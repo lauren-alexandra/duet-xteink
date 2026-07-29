@@ -12,12 +12,12 @@
 
 - 43 X3 Reading Stats screenshots
 - 43 X4 Reading Stats screenshots
-- 6 curated X3 feature screenshots plus one X3 overview sheet
-- 13 curated X4 feature/app screenshots plus one X4 overview sheet
+- 22 curated X3 feature/app screenshots plus one X3 overview sheet
+- 21 curated X4 feature/app screenshots plus one X4 overview sheet
 - 4 reproducible public-domain X3 demo screenshots
 - 7 reproducible public-domain X4 demo screenshots
 - 4 X4 font previews
-- Total: 122 PNG files
+- Total: 146 PNG files
 
 ## Data Provenance
 
@@ -25,7 +25,7 @@ The main gallery mixes recognizable books from Lauren's library with public-doma
 
 ## Review
 
-- All 122 PNG files decode successfully through ImageMagick.
+- All 146 PNG files decode successfully through ImageMagick.
 - Every local image and gallery link in the README and media indexes resolves.
 - X3 and X4 feature overview sheets were reviewed for hydrated covers, density, footer fit, and visible metadata.
 - Representative dense statistics pages were reviewed side by side at native aspect ratio, including Current, Heatmap, Reader DNA, Wrapped, Library, Started, Devices, and Trends.

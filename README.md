@@ -74,7 +74,15 @@ These native-resolution alpha.6 simulator captures use a mix of recognizable boo
 | --- | --- | --- |
 | [![Duet smart search](docs/media/alpha-0.1.0/x4/search-autocomplete.png)](docs/media/alpha-0.1.0/x4/search-autocomplete.png) | [![Duet More Info](docs/media/alpha-0.1.0/x4/more-info.png)](docs/media/alpha-0.1.0/x4/more-info.png) | [![Duet reader quick menu](docs/media/alpha-0.1.0/x4/reader-quick-menu.png)](docs/media/alpha-0.1.0/x4/reader-quick-menu.png) |
 
-Browse the [complete alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+| Reading heatmap | Reader DNA | All-device stats |
+| --- | --- | --- |
+| [![Duet reading heatmap](docs/media/alpha-0.1.0/stats/x4/smoke-stats-heatmap.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-heatmap.png) | [![Duet Reader DNA](docs/media/alpha-0.1.0/stats/x4/smoke-stats-reader-dna.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-reader-dna.png) | [![Duet all-device stats](docs/media/alpha-0.1.0/stats/x4/smoke-stats-all-devices.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-all-devices.png) |
+
+| Apps | Favorites | Achievements |
+| --- | --- | --- |
+| [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
+
+Browse the [complete 146-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
 
 ---
 

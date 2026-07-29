@@ -88,7 +88,7 @@ The public repository contains the reviewed native-resolution simulator gallery 
 
 ## Current Candidate Coverage
 
-The public alpha.6 gallery now contains 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its main gallery mixes approved real-library covers with public-domain classics, and its separate reproducible demo uses only public-domain classics and a checked-in catalog fixture. It also includes fresh X3/X4 Dashboard, Reading Home, hydrated grid, carousel, search, More Info, reader overlay, dictionary, achievement, utility, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
+The public alpha.6 gallery contains 146 PNGs. That includes 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its main gallery mixes approved real-library covers with public-domain classics, and its separate reproducible demo uses only public-domain classics and a checked-in catalog fixture. It also includes fresh X3/X4 Dashboard, Reading Home, Home menu, hydrated 2x2/3x3/4x4 grids, carousel and scrolling-title states, search autocomplete and results, More Info, reader overlay and Book Info, dictionary selection and definition, Apps, Favorites, achievement states, Tetris, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
 
 Real book titles and rendered cover art appear in the library, dashboard, search, More Info, and reader scenes. All reading statistics, progress, sessions, streaks, achievements, sync results, and device names are fabricated.
 
@@ -102,13 +102,17 @@ Real-device photos, responsiveness clips, boot and sleep frames, a physical Near
 | --- | --- | --- |
 | X3 Dashboard | Fresh alpha.6 simulator capture reviewed | Included in public gallery |
 | X4 Dashboard Extended | Fresh alpha.6 simulator capture reviewed | Included in public gallery |
-| 2x2, 3x3, and 4x4 grids | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
-| Five-cover carousel | Fresh hydrated alpha.6 capture reviewed | Included in public gallery |
-| Search autocomplete/results | Fresh alpha.6 capture reviewed | Included in public gallery |
-| Book Info | Fresh hydrated alpha.6 capture reviewed | Included in public gallery |
-| Reader quick overlay | Fresh alpha.6 capture reviewed | Included in public gallery |
+| X3/X4 Home menu | Fresh alpha.6 simulator captures reviewed | Included in public gallery |
+| X3/X4 2x2, 3x3, and 4x4 grids | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 five-cover carousel and scrolling-title state | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 search autocomplete, filled suggestion, and results | Fresh alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 More Info | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 reader quick overlay and reader Book Info | Fresh alpha.6 captures reviewed | Included in public gallery |
 | Font picker/comparison | Four-family alpha.6 set reviewed | Included in public gallery |
-| Dictionary/history | Fresh alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 Dictionary selection and definition | Fresh alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 Apps and Favorites | Fresh alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 Achievements in-progress and completed states | Fresh alpha.6 captures reviewed | Included in public gallery |
+| X3/X4 Tetris | Fresh alpha.6 captures reviewed | Included in public gallery |
 | All Reading Stats pages | 43 fresh alpha.6 frames per device reviewed | Included in complete X3/X4 gallery |
 | Nearby and KOReader Sync | Fresh public-data capture still required | Capture from final alpha.6 build |
 | Sleep and boot | Outstanding | Capture clean X3 and X4 device frames |
