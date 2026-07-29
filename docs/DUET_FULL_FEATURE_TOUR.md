@@ -467,7 +467,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The initial public alpha does **not** bundle the maintainer's personal 130-family SD-card collection. A separate public pack can follow only after every source, generated file, license, Reserved Font Name rule, and checksum is reviewed. [Font Sources][5] records that audit.
+The initial public alpha includes the licensed fonts built into the firmware. Additional `.cpfont` families can be installed separately, and [Font Sources][5] records the source and licensing audit for future public font assets.
 
 ## Dictionary and reference tools
 
@@ -712,7 +712,6 @@ Known constraints:
 - X3 and X4 can behave differently under the same library and SD-card load.
 - Damaged SD-card filesystems can imitate firmware defects because the books and persistent state live on the card.
 - The achievement unlock ledger is not yet part of `.cstats`.
-- The personal 130-family font collection is not bundled.
 - Physical acceptance of the exact public candidate is still pending.
 
 ## Testing and privacy

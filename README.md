@@ -22,6 +22,32 @@ For the complete public-facing story in one place, including how the features wo
 
 ---
 
+## Downloads
+
+The current tester release is **Duet v0.1.0-alpha.6**:
+
+- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin)
+- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin)
+- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-v0.1.0-alpha.6-firmware.zip)
+- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/SHA256SUMS.txt)
+- [Read the alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6)
+
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases).
+
+## Start here
+
+New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the instructions in one order instead of making you hunt through the repository:
+
+- **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
+- **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
+- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
+- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), including a ready-to-paste [computer-assistant prompt](docs/AI_COVER_PREFILL_PROMPT.md).
+- **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
+- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.6 Acceptance Quickstart](docs/ALPHA6_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
+- **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
+
+---
+
 ## Alpha status
 
 Duet v0.1.0-alpha.6 already runs on both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, and repeated two-device sync.
@@ -34,7 +60,7 @@ Developers are especially welcome. Duet is currently maintained by Lauren alone,
 
 ## Screenshots and demos
 
-These native-resolution alpha.6 simulator captures use a mix of recognizable books from Lauren's library and public-domain classics as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. A separate all-classics demo set is reproducible from the checked-in catalog fixture. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
+These native-resolution alpha.6 simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
 
 | X4 feature overview | X3 feature overview |
 | --- | --- |
@@ -48,7 +74,15 @@ These native-resolution alpha.6 simulator captures use a mix of recognizable boo
 | --- | --- | --- |
 | [![Duet smart search](docs/media/alpha-0.1.0/x4/search-autocomplete.png)](docs/media/alpha-0.1.0/x4/search-autocomplete.png) | [![Duet More Info](docs/media/alpha-0.1.0/x4/more-info.png)](docs/media/alpha-0.1.0/x4/more-info.png) | [![Duet reader quick menu](docs/media/alpha-0.1.0/x4/reader-quick-menu.png)](docs/media/alpha-0.1.0/x4/reader-quick-menu.png) |
 
-Browse the [complete alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+| Reading heatmap | Reader DNA | All-device stats |
+| --- | --- | --- |
+| [![Duet reading heatmap](docs/media/alpha-0.1.0/stats/x4/smoke-stats-heatmap.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-heatmap.png) | [![Duet Reader DNA](docs/media/alpha-0.1.0/stats/x4/smoke-stats-reader-dna.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-reader-dna.png) | [![Duet all-device stats](docs/media/alpha-0.1.0/stats/x4/smoke-stats-all-devices.png)](docs/media/alpha-0.1.0/stats/x4/smoke-stats-all-devices.png) |
+
+| Apps | Favorites | Achievements |
+| --- | --- | --- |
+| [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
+
+Browse the [complete 135-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
 
 ---
 
@@ -113,11 +147,11 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 
 ## Fonts
 
-- A categorized `.cpfont` system organized by Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. A family exposes the sizes and up to four real styles actually installed; the standard personal generator uses six sizes from 10–20 pt.
+- A categorized `.cpfont` system organized by Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. A family exposes the sizes and up to four real styles actually installed; the SD-card generator supports six sizes from 10–20 pt.
 - **A/B comparison view** at matched sizes, compact Normal/Italic/Bold specimens, real face detection, and synthetic bold/italic fallbacks when a family lacks those files.
 - A cached font catalog avoids rescanning every installed family on each boot. On the maintainer's development cards this reduced discovery to a small fraction of the prior path; exact timing varies with card and font set.
 
-The initial alpha includes the licensed font families already built into the firmware. The personal development font collection is not a release asset. A separate optional SD-card font pack may follow only after every family, generated file, Reserved Font Name decision, license, and checksum is reviewed. See [FONT_SOURCES.md](FONT_SOURCES.md).
+The initial alpha includes the licensed font families already built into the firmware. A separate optional SD-card font pack may follow after its source, license, and generated-file review is complete. See [FONT_SOURCES.md](FONT_SOURCES.md).
 
 ## Apps
 
@@ -142,6 +176,8 @@ Speed is treated as a feature, and every cut is measured first:
 ## Install firmware
 
 Public alpha downloads will be published only through this repository's [Releases](https://github.com/lauren-alexandra/duet-xteink/releases) page.
+
+Read the [Start Here guide](docs/START_HERE.md) and [full installation instructions](docs/installation.md) before flashing. The short version is:
 
 1. **Back up your SD card.**
 2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.6.bin` or `Duet-X4-v0.1.0-alpha.6.bin`).
@@ -174,7 +210,7 @@ This firmware exists because a chain of generous projects shared their work. Dir
 - **[CPR-vCodex](https://github.com/franssjz/cpr-vcodex)** by franssjz — the StarDict dictionary engine and UI, the first 62 achievement milestones, and the reading-identity philosophy (and original radar) behind this fork's statistics lab.
 - **[CrossPet](https://github.com/trilwu/crosspet)** by trilwu — the Dashboard Extended layout lineage and the awake multi-click Power detector.
 - **[Biscuit](https://github.com/yattsu/biscuit)** by yattsu — the Tetris implementation this fork's version is adapted from.
-- **Font projects** — every redistributed family is openly licensed (OFL and similar); sources, revisions, and per-family licenses in `FONT_SOURCES.md`. Proprietary system fonts are excluded from the public pack.
+- **Font projects** — every redistributed family is openly licensed (OFL and similar), with sources, revisions, and per-family licenses recorded in `FONT_SOURCES.md`.
 
 Original to this fork: the current Nearby reading-statistics merge protocol and attribution ledger, the statistics lab and its chart pages, the Home Stats picker, session logging, the hot-file relocation and the rest of the performance program, 46 achievements, and the two-device reliability work throughout.
 
