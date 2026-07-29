@@ -11,7 +11,7 @@ Duet v0.1.0-alpha.6 is in final prerelease preparation. The latest shared X3/X4 
 - Mapped major imported and adapted firmware features to upstream projects and pinned revisions.
 - Reconciled the public README, user guide, feature catalog, controls, storage, font, statistics, sync, sleep, and release documents against the current source. The canonical catalog now distinguishes implemented behavior, device-specific behavior, optional SD assets, deliberate exclusions, and physical acceptance still pending.
 - Corrected the documented alpha.4 storage model to match the reviewed builds: frequently opened state lives under `/.crossink`, while path-keyed per-book progress, statistics, covers, and render caches remain under `/.crosspoint`.
-- Implemented the [Duet Storage Namespace Migration](docs/DUET_STORAGE_NAMESPACE_MIGRATION.md): `/.duet` is the canonical namespace, while inherited `/.crossink`, `/.crosspoint`, and `/.crossink-stats-backup` directories remain non-destructive import and recovery sources.
+- Implemented Duet storage migration: `/.duet` is the canonical namespace, while inherited `/.crossink`, `/.crosspoint`, and `/.crossink-stats-backup` directories remain non-destructive import and recovery sources.
 - Verified the current branch supports both X3 and X4 build targets.
 - Separated the public font plan from the private 130-family personal pack.
 - Added a feature catalog, third-party notices, and font source ledger.
@@ -106,7 +106,8 @@ Duet-v0.1.0-alpha.6-firmware.zip
 |   |-- simulator.md
 |   |-- templates/
 |   |   |-- MEDIA_MANIFEST.md
-|   |   `-- PHYSICAL_ACCEPTANCE_RECORD.md
+|   `-- maintainer/
+|       `-- PHYSICAL_ACCEPTANCE_RECORD.md
 |   |-- installation.md
 |   |-- troubleshooting.md
 |   |-- webserver-endpoints.md

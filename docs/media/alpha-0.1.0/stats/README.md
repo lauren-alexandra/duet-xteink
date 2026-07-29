@@ -1,3 +1,9 @@
+---
+title: Complete Reading Stats Gallery
+parent: Complete Feature Tour
+nav_order: 2
+---
+
 # Complete Reading Stats Gallery
 
 Duet has 33 top-level Reading Stats pages plus 10 alternate or detail states. Every image below uses deterministic fabricated history. Duet uses the same stats interface and feature code on X3 and X4, so each shared page is shown once at representative X4 resolution.

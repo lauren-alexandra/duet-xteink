@@ -27,7 +27,7 @@ The [full installation guide](installation.md) includes command-line flashing an
 4. Confirm the model and version, then allow the reader to restart.
 5. Verify the new version in **Settings > System** before removing the rollback copy from your computer.
 
-Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk state without deleting it. Read the [storage migration guide](DUET_STORAGE_NAMESPACE_MIGRATION.md) before manually moving, renaming, or deleting hidden state folders.
+Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk state without deleting it. Do not manually move, rename, or delete `/.duet`, `/.crossink`, `/.crosspoint`, or `/.crossink-stats-backup` while upgrading; the legacy folders remain recovery sources.
 
 ## Loading books and building the library
 

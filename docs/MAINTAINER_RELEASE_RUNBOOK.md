@@ -105,7 +105,7 @@ Verify the hashes before either BIN reaches a device:
 
 ## Physical Acceptance
 
-Copy `docs/templates/PHYSICAL_ACCEPTANCE_RECORD.md` for the exact candidate. Test the same commit and hashes on both devices.
+Copy `.github/maintainer/PHYSICAL_ACCEPTANCE_RECORD.md` for the exact candidate. Test the same commit and hashes on both devices.
 
 Minimum acceptance:
 

@@ -1,3 +1,9 @@
+---
+title: Alpha.7 Screenshot Gallery
+parent: Complete Feature Tour
+nav_order: 1
+---
+
 # Duet Alpha Screenshot Gallery
 
 Duet uses the same interface and feature code on X3 and X4, so this gallery shows one representative X4 capture for each shared screen instead of publishing duplicate device sets. The gallery uses recognizable books from Lauren's library so the interface looks like a real, varied reader. Every reading statistic, progress value, date, achievement state, device name, and sync value is deterministic fabricated test data. No EPUB, extracted cover asset, personal catalog, credential, contact detail, or real device-state file is included.

@@ -1,6 +1,7 @@
 ---
 title: Complete Feature Tour
 nav_order: 2
+has_children: true
 ---
 
 # Duet: the complete feature tour
