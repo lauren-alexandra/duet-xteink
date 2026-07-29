@@ -1,6 +1,6 @@
 # Duet Alpha.6 Screenshot Gallery
 
-These screenshots were generated at native X3 and X4 resolution from the Duet v0.1.0-alpha.6 simulator path. The main gallery mixes recognizable books from Lauren's library with public-domain classics so the interface looks like a real, varied reader. Every reading statistic, progress value, date, achievement state, device name, and sync value is deterministic fabricated test data. No EPUB, extracted cover asset, personal catalog, credential, contact detail, or real device-state file is included.
+These screenshots were generated at native X3 and X4 resolution from the Duet v0.1.0-alpha.6 simulator path. The gallery uses recognizable books from Lauren's library so the interface looks like a real, varied reader. Every reading statistic, progress value, date, achievement state, device name, and sync value is deterministic fabricated test data. No EPUB, extracted cover asset, personal catalog, credential, contact detail, or real device-state file is included.
 
 ## Feature Overviews
 
@@ -66,9 +66,11 @@ These screenshots were generated at native X3 and X4 resolution from the Duet v0
 
 ## Font Variety
 
-| Bookerly | NV Bitter | OpenDyslexic | Great Vibes |
+Each picker capture compares a different current family with a different preview family, so the four examples showcase eight fonts rather than repeating the preview as the current selection.
+
+| NV Newsreader / Bookerly | NV Garamond / NV Bitter | Atkinson Hyperlegible Next / OpenDyslexic | Cormorant Garamond / Great Vibes |
 | --- | --- | --- | --- |
-| [![Bookerly font preview](fonts/bookerly.png)](fonts/bookerly.png) | [![NV Bitter font preview](fonts/nv-bitter.png)](fonts/nv-bitter.png) | [![OpenDyslexic font preview](fonts/opendyslexic.png)](fonts/opendyslexic.png) | [![Great Vibes font preview](fonts/great-vibes.png)](fonts/great-vibes.png) |
+| [![NV Newsreader current and Bookerly preview](fonts/bookerly.png)](fonts/bookerly.png) | [![NV Garamond current and NV Bitter preview](fonts/nv-bitter.png)](fonts/nv-bitter.png) | [![Atkinson Hyperlegible Next current and OpenDyslexic preview](fonts/opendyslexic.png)](fonts/opendyslexic.png) | [![Cormorant Garamond current and Great Vibes preview](fonts/great-vibes.png)](fonts/great-vibes.png) |
 
 ## Complete Reading Stats Gallery
 
@@ -77,10 +79,6 @@ The [complete X3/X4 Reading Stats gallery](stats/README.md) contains all 33 top-
 | Reading Heatmap | Reader DNA | All-Device Stats |
 | --- | --- | --- |
 | [![Reading heatmap](stats/x4/smoke-stats-heatmap.png)](stats/x4/smoke-stats-heatmap.png) | [![Reader DNA](stats/x4/smoke-stats-reader-dna.png)](stats/x4/smoke-stats-reader-dna.png) | [![All-device statistics](stats/x4/smoke-stats-all-devices.png)](stats/x4/smoke-stats-all-devices.png) |
-
-## Reproducible Classics Demo
-
-The separate [X3](demo/x3/) and [X4](demo/x4/) demo folders use only public-domain classics and the checked-in [`public-classics-library-catalog.tsv`](../../../scripts/fixtures/public-classics-library-catalog.tsv) fixture. They provide neutral, reproducible references for the cover grid, carousel, Reading Home, More Info, and autocomplete search without requiring Lauren's library. The underlying Project Gutenberg EPUBs and extracted cover files are not part of the repository.
 
 ## Evidence Boundary
 

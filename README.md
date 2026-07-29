@@ -60,7 +60,7 @@ Developers are especially welcome. Duet is currently maintained by Lauren alone,
 
 ## Screenshots and demos
 
-These native-resolution alpha.6 simulator captures use a mix of recognizable books from Lauren's library and public-domain classics as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. A separate all-classics demo set is reproducible from the checked-in catalog fixture. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
+These native-resolution alpha.6 simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
 
 | X4 feature overview | X3 feature overview |
 | --- | --- |
@@ -82,7 +82,7 @@ These native-resolution alpha.6 simulator captures use a mix of recognizable boo
 | --- | --- | --- |
 | [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
 
-Browse the [complete 146-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+Browse the [complete 135-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
 
 ---
 

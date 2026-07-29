@@ -1284,7 +1284,54 @@ class SimulatorSmokeTest {
     const char* requestedPointSize = std::getenv("CROSSINK_SIMULATOR_SMOKE_FONT_PREVIEW_SIZE");
     const int pointSize = requestedPointSize && requestedPointSize[0] != '\0' ? std::atoi(requestedPointSize) : 16;
     if (pointSize < 1 || pointSize > 255) fail("Invalid font preview size: %d", pointSize);
-    selectSdFont(*family, requireFontSizeIndex(*family, static_cast<uint8_t>(pointSize)));
+
+    const char* currentFamilyName = std::getenv("CROSSINK_SIMULATOR_SMOKE_FONT_CURRENT_FAMILY");
+    if (currentFamilyName != nullptr && currentFamilyName[0] != '\0') {
+      if (strcmp(currentFamilyName, familyName) == 0) {
+        fail("Current and preview font families must differ: %s", familyName);
+      }
+      const SdCardFontFamilyInfo* currentFamily = registry.findFamily(currentFamilyName);
+      if (!currentFamily) fail("Single font current fixture is missing %s", currentFamilyName);
+      selectSdFont(*currentFamily, requireFontSizeIndex(*currentFamily, 16));
+    } else {
+      uint8_t baselineStoredSize = 0;
+      bool foundBaselineSize = false;
+      for (uint8_t i = 0; i < CrossPointSettings::FONT_SIZE_COUNT; ++i) {
+        const auto size = static_cast<CrossPointSettings::FONT_SIZE>(i);
+        if (CrossPointSettings::getReaderFontPointSize(size) != 16) continue;
+        const uint8_t stored = CrossPointSettings::getStoredReaderFontSize(size);
+        if (stored == 0xFF) continue;
+        baselineStoredSize = stored;
+        foundBaselineSize = true;
+        break;
+      }
+      if (!foundBaselineSize) fail("Single font preview fixture is missing the built-in 16 pt baseline");
+      SETTINGS.fontFamily = CrossPointSettings::LEXENDDECA;
+      SETTINGS.fontSize = baselineStoredSize;
+      SETTINGS.sdFontPointSize = 0;
+      SETTINGS.sdFontFamilyName[0] = '\0';
+      sdFontSystem.ensureLoaded(renderer);
+    }
+
+    FontSelectionActivity preview(renderer, mappedInputManager, &registry);
+    preview.onEnter();
+    bool foundTarget = false;
+    const int familyCount = registry.getFamilyCount();
+    for (int i = 0; i < familyCount + 12; ++i) {
+      mappedInputManager.simulatorClearInputFrame();
+      mappedInputManager.simulatorInjectRelease(MappedInputManager::Button::Down);
+      preview.loop();
+      mappedInputManager.simulatorClearInputFrame();
+      mappedInputManager.simulatorInjectPress(MappedInputManager::Button::Confirm);
+      preview.loop();
+      mappedInputManager.simulatorClearInputFrame();
+      if (strcmp(SETTINGS.sdFontFamilyName, familyName) == 0) {
+        foundTarget = true;
+        break;
+      }
+    }
+    if (!foundTarget) fail("Font picker did not preview requested family %s", familyName);
+
     const char* expectedSyntheticMask = std::getenv("CROSSINK_SIMULATOR_EXPECT_SYNTHETIC_STYLE_MASK");
     if (expectedSyntheticMask != nullptr && expectedSyntheticMask[0] != '\0') {
       uint8_t actualMask = 0;
@@ -1306,8 +1353,7 @@ class SimulatorSmokeTest {
       }
       LOG_INF("SMOKE", "Validated %s synthetic style mask: 0x%X", familyName, actualMask);
     }
-    FontSelectionActivity preview(renderer, mappedInputManager, &registry);
-    preview.onEnter();
+
     const std::string previewFamilyName = familyName;
     const bool usesCompactDyslexicSpecimen = previewFamilyName.find("Dyslex") != std::string::npos ||
                                              previewFamilyName.find("dyslex") != std::string::npos ||

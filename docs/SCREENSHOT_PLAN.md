@@ -88,7 +88,7 @@ The public repository contains the reviewed native-resolution simulator gallery 
 
 ## Current Candidate Coverage
 
-The public alpha.6 gallery contains 146 PNGs. That includes 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its main gallery mixes approved real-library covers with public-domain classics, and its separate reproducible demo uses only public-domain classics and a checked-in catalog fixture. It also includes fresh X3/X4 Dashboard, Reading Home, Home menu, hydrated 2x2/3x3/4x4 grids, carousel and scrolling-title states, search autocomplete and results, More Info, reader overlay and Book Info, dictionary selection and definition, Apps, Favorites, achievement states, Tetris, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
+The public alpha.6 gallery contains 135 PNGs. That includes 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its gallery uses approved real-library covers with fabricated reading data. It also includes fresh X3/X4 Dashboard, Reading Home, Home menu, hydrated 2x2/3x3/4x4 grids, carousel and scrolling-title states, search autocomplete and results, More Info, reader overlay and Book Info, dictionary selection and definition, Apps, Favorites, achievement states, Tetris, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
 
 Real book titles and rendered cover art appear in the library, dashboard, search, More Info, and reader scenes. All reading statistics, progress, sessions, streaks, achievements, sync results, and device names are fabricated.
 
@@ -108,7 +108,7 @@ Real-device photos, responsiveness clips, boot and sleep frames, a physical Near
 | X3/X4 search autocomplete, filled suggestion, and results | Fresh alpha.6 captures reviewed | Included in public gallery |
 | X3/X4 More Info | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
 | X3/X4 reader quick overlay and reader Book Info | Fresh alpha.6 captures reviewed | Included in public gallery |
-| Font picker/comparison | Four-family alpha.6 set reviewed | Included in public gallery |
+| Font picker/comparison | Four alpha.6 A/B captures showing eight distinct current and preview families | Included in public gallery |
 | X3/X4 Dictionary selection and definition | Fresh alpha.6 captures reviewed | Included in public gallery |
 | X3/X4 Apps and Favorites | Fresh alpha.6 captures reviewed | Included in public gallery |
 | X3/X4 Achievements in-progress and completed states | Fresh alpha.6 captures reviewed | Included in public gallery |

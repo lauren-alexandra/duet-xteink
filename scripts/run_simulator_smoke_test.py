@@ -615,6 +615,8 @@ def run_smoke(args: argparse.Namespace) -> int:
         if args.single_font_preview:
             env["CROSSINK_SIMULATOR_SMOKE_FONT_PREVIEW_FAMILY"] = args.single_font_preview[0]
             env["CROSSINK_SIMULATOR_SMOKE_FONT_PREVIEW_SIZE"] = str(args.font_preview_size)
+        if args.font_current:
+            env["CROSSINK_SIMULATOR_SMOKE_FONT_CURRENT_FAMILY"] = args.font_current
         if args.expect_font_family_count is not None:
             env["CROSSINK_SIMULATOR_EXPECT_FONT_FAMILY_COUNT"] = str(args.expect_font_family_count)
         if args.expect_synthetic_style_mask is not None:
@@ -1188,6 +1190,10 @@ def parse_args() -> argparse.Namespace:
         default=16,
         choices=(10, 12, 14, 16, 18, 20),
         help="Point size used by --single-font-preview (default: 16)",
+    )
+    parser.add_argument(
+        "--font-current",
+        help="SD font family shown as Current while --single-font-preview shows a different family",
     )
     parser.add_argument(
         "--expect-font-family-count",
