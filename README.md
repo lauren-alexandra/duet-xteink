@@ -22,11 +22,23 @@ For the complete public-facing story in one place, including how the features wo
 
 ---
 
+## Downloads
+
+The current tester release is **Duet v0.1.0-alpha.6**:
+
+- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin)
+- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin)
+- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-v0.1.0-alpha.6-firmware.zip)
+- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/SHA256SUMS.txt)
+- [Read the alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6)
+
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). Duet's private 130-family development collection is not a public download yet; a Duet-owned font pack will be released only after every included family and generated file completes its license review.
+
 ## Start here
 
 New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the instructions in one order instead of making you hunt through the repository:
 
-- **First installation or recovery:** [Installation](docs/installation.md) and the [official prerelease downloads](https://github.com/lauren-alexandra/duet-xteink/releases).
+- **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
 - **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
 - **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
 - **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), including a ready-to-paste [computer-assistant prompt](docs/AI_COVER_PREFILL_PROMPT.md).
