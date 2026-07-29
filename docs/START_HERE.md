@@ -35,7 +35,7 @@ Copy supported books to the SD card in the folder structure you want to browse. 
 
 For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. The complete ready-to-paste prompt for Codex, Claude CoWork, Perplexity Computer, or another local assistant is included directly on that page and also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
 
-More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts** or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). See [SD-card fonts](sd-card-fonts.md), [Reader Features](reader-features.md), and the [User Guide](../USER_GUIDE.md) for the exact structures.
+More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts**. The Alpha.7 on-device downloader currently uses CrossInk's credited compatibility catalog; see [SD-card fonts](sd-card-fonts.md) for the exact public-pack status and manual installation options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](../USER_GUIDE.md) cover the rest of the library and reader structure.
 
 ## Using an X3 and X4 together
 
@@ -65,6 +65,8 @@ The [Troubleshooting guide](troubleshooting.md) covers firmware recovery, SD-car
 | Installation and recovery | [Installation](installation.md) and [Troubleshooting](troubleshooting.md) |
 | Current alpha risks and test targets | [Alpha Testing](ALPHA_TESTING.md) |
 | Large-library cover preparation | [Desktop Cover Prefill](COVER_PREFILL.md) |
+| Installing and using a dictionary | [Dictionary Setup](DICTIONARY_SETUP.md) |
+| Installing or converting fonts | [SD-card fonts](sd-card-fonts.md) |
 | All current screenshots | [Alpha.7 Media Gallery](media/alpha-0.1.0/README.md) |
 | Contributing code or documentation | [Contributing to Duet](../CONTRIBUTING.md) |
 | Complete credit and audited upstream revisions | [Third-Party Notices](../THIRD_PARTY_NOTICES.md) |

@@ -475,6 +475,8 @@ The initial public alpha includes the licensed fonts built into the firmware. Ad
 
 Duet uses StarDict dictionaries installed under `/dictionaries/<Dictionary Name>/`. A package needs matching `.ifo`, `.idx`, and uncompressed `.dict` files, with optional `.syn`. A compressed `.dict.dz` must be extracted first.
 
+The current release provides a separate ready-to-copy WordNet 3.0 StarDict archive with its license. [Dictionary Setup](DICTIONARY_SETUP.md) covers installation, first preparation, in-book word selection, lookup history, and common package errors.
+
 The reader can:
 
 - Prepare and switch between multiple dictionaries

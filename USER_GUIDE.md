@@ -654,6 +654,12 @@ To open bookmarks, press **Confirm** while inside a book. Then navigate to the *
 
 Bookmarks are stored as per-book `.bin` files in `/.duet/state/bookmarks`. Legacy bookmark files are migrated or merged when found.
 
+### 5.3 Dictionary
+
+Duet reads offline StarDict dictionaries from `/dictionaries/<Name>/`. The current release has a separate ready-to-copy WordNet 3.0 download. Follow [Dictionary Setup](./docs/DICTIONARY_SETUP.md) for the exact card structure, first index preparation, reader controls, `.dict.dz` extraction, and troubleshooting.
+
+After the dictionary reports **Dictionary ready**, press **Confirm** inside a book and choose **Dictionary**. Use the page buttons to move between text rows, **Left/Right** to move between words, and **Confirm** to look up the selected word. The full reader menu's **Lookup history** returns to definitions previously opened in that book.
+
 ## 6. Current Limitations & Roadmap
 
 Duet is in active alpha development. Current boundaries and test targets:

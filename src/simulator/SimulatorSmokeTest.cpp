@@ -561,11 +561,11 @@ class SimulatorSmokeTest {
     const GlobalReadingStats allDevicesHistory = GlobalReadingStats::loadAggregated(history);
 
     constexpr std::array<const char*, 33> tabLabels = {
-        "Current",      "Progress",    "Book",       "Device",       "Synced",     "Devices",   "Trends",
-        "Activity",     "90 Days",     "Calendar",   "Heatmap",      "Profile",    "Goals",     "Sessions",
-        "Weekdays",     "Pace",        "Time of Day", "Months",       "Year",       "Sessions Mix",
-        "Streaks",      "Start/Finish", "Dates",      "Reader DNA",   "DNA Details", "Signature",
-        "Sig Details",  "Fastest",     "Wrapped",    "Started",      "Library",    "Taste",     "Series",
+        "Current",      "Progress", "Book",        "Device",      "Synced",    "Devices",      "Trends",
+        "Activity",     "90 Days",  "Calendar",    "Heatmap",     "Profile",   "Goals",        "Sessions",
+        "Weekdays",     "Pace",     "Time of Day", "Months",      "Year",      "Sessions Mix", "Streaks",
+        "Start/Finish", "Dates",    "Reader DNA",  "DNA Details", "Signature", "Sig Details",  "Fastest",
+        "Wrapped",      "Started",  "Library",     "Taste",       "Series",
     };
     const auto drawTabs = [&](const size_t selected) {
       renderStatsTabBar(renderer, tabLabels.data(), tabLabels.size(), selected);

@@ -29,10 +29,11 @@ The current tester release is **Duet v0.1.0-alpha.7**:
 - [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin)
 - [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin)
 - [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-v0.1.0-alpha.7-firmware.zip)
+- [Download the ready-to-copy WordNet 3.0 dictionary pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-WordNet-3.0-StarDict.zip)
 - [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
 - [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
 
-Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases).
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**. During Alpha.7, that on-device downloader uses CrossInk's credited 24-family compatibility catalog; the expanded Duet development collection is not yet a public download. See [SD-card fonts](docs/sd-card-fonts.md) for the exact status and manual installation options.
 
 ## Start here
 
@@ -40,7 +41,7 @@ New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the 
 
 - **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
 - **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
-- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
+- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library), [Dictionary Setup](docs/DICTIONARY_SETUP.md), and the full [User Guide](USER_GUIDE.md).
 - **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), with the complete computer-assistant prompt directly on the page and also available as a [standalone prompt](docs/AI_COVER_PREFILL_PROMPT.md).
 - **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
 - **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
@@ -92,7 +93,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 - A **quick overlay menu** in every book: Chapter picker, Dictionary, Go To %, Sync (with a KOReader-or-Nearby chooser), Reading Stats, Tilt page-turn (on devices with an accelerometer), Auto Page Turn, line spacing, and Reader Options — plus a full menu with bookmarks, clippings, screenshots, QR sharing, and Book Info.
 - **Refresh modes** (Auto / Fast / Half / Full), **Text Darkness** (Normal / Dark / Extra Dark), **Bionic Reading** (Off / Normal / Subtle), Dark Reader Mode, orientation control, and status-bar customization.
 - **Guarded chapter pre-indexing**: the next chapter can build silently in the background while you read, cooperatively yielding and cancelling at safe checkpoints when input arrives. Timing logs expose completion, cancellation, low-memory deferral, and failure.
-- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install an SD-card font family with the standard Duet set to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
+- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install a compatible six-size SD-card family to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
 - Per-book progress survives updates and restarts, and **Quick Resume** can preserve the visible page while sleeping.
 - Reading position, bookmarks, clippings, and stats are debounce-persisted; active reading time is committed before deep sleep through an idempotent path.
 
@@ -142,6 +143,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 
 - **StarDict format** (`.ifo` / `.idx` / `.dict` / optional `.syn`) under `/dictionaries/<Name>/` — multi-dictionary, with in-book word selection, suggestions, definitions, and per-book looked-up-words history (engine lineage: CPR-vCodex, hardened with CrumBLE's SEEK-derived recovery patterns).
 - Corrupt-cache recovery, watchdog-safe yielding index scans, visible build progress, and low-memory preflight.
+- The current release includes a separate, ready-to-copy WordNet 3.0 StarDict ZIP with its original license. Follow [Dictionary Setup](docs/DICTIONARY_SETUP.md) to install it, prepare the index, look up a word, or troubleshoot a third-party package.
 
 ## Fonts
 

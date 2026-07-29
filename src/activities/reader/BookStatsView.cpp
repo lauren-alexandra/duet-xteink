@@ -360,17 +360,16 @@ class BookWpmResolver {
           progress.pageCount > 0) {
         const float chapterProgress =
             static_cast<float>(progress.pageNumber + 1) / static_cast<float>(progress.pageCount);
-        progressPercent = std::clamp(epub.calculateProgress(progress.spineIndex, chapterProgress) * 100.0f, 0.0f,
-                                     100.0f);
+        progressPercent =
+            std::clamp(epub.calculateProgress(progress.spineIndex, chapterProgress) * 100.0f, 0.0f, 100.0f);
       }
     }
     if (stats.isCompleted && progressPercent < 100.0f) progressPercent = 100.0f;
     const uint32_t wordsRead = estimatedWordsRead(totalWords, progressPercent);
     if (wordsRead == 0) return 0;
-    return static_cast<uint32_t>(
-        std::min<uint64_t>((static_cast<uint64_t>(wordsRead) * 600ULL + stats.totalReadingSeconds / 2ULL) /
-                               stats.totalReadingSeconds,
-                           UINT32_MAX));
+    return static_cast<uint32_t>(std::min<uint64_t>(
+        (static_cast<uint64_t>(wordsRead) * 600ULL + stats.totalReadingSeconds / 2ULL) / stats.totalReadingSeconds,
+        UINT32_MAX));
   }
 
   void remember(const uint64_t key, const uint32_t wpmX10) {
@@ -1621,8 +1620,8 @@ void formatSignedPaceDelta(const int32_t deltaX10, char* out, const size_t outSi
     return;
   }
   const uint32_t magnitude = static_cast<uint32_t>(std::abs(deltaX10));
-  snprintf(out, outSize, "%c%lu %s", deltaX10 > 0 ? '+' : '-',
-           static_cast<unsigned long>((magnitude + 5u) / 10u), suffix);
+  snprintf(out, outSize, "%c%lu %s", deltaX10 > 0 ? '+' : '-', static_cast<unsigned long>((magnitude + 5u) / 10u),
+           suffix);
 }
 
 void formatWpmX10(const uint32_t wpmX10, char* out, const size_t outSize) {
@@ -1884,8 +1883,7 @@ void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* map
   const int contentBottom = renderer.getScreenHeight() - statsBottomInset(metrics, showButtonHints);
 
   if (loading || books.empty()) {
-    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40,
-                              loading ? tr(STR_LOADING) : tr(STR_STATS_FASTEST_EMPTY));
+    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40, loading ? tr(STR_LOADING) : tr(STR_STATS_FASTEST_EMPTY));
     drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
     return;
   }
@@ -2041,18 +2039,14 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
                                   : 0;
   const uint32_t paceX10 =
       tracked.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((tracked.words * 600ULL + tracked.wordPaceSeconds / 2ULL) /
-                                       tracked.wordPaceSeconds,
-                                   UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (tracked.words * 600ULL + tracked.wordPaceSeconds / 2ULL) / tracked.wordPaceSeconds, UINT32_MAX))
           : 0;
   const uint32_t currentAvgSession = current.sessions > 0 ? current.seconds / current.sessions : 0;
   const uint32_t currentPaceX10 =
       current.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((current.words * 600ULL + current.wordPaceSeconds / 2ULL) /
-                                       current.wordPaceSeconds,
-                                   UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
           : 0;
 
   char valueTime[32];
@@ -2144,10 +2138,9 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   const ReadingMetricWindow current =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
-  const ReadingMetricWindow previous =
-      hasNow ? collectReadingWindow(journal, history, session, today, currentDays, previousDays, goalSeconds,
-                                    &wpmResolver)
-             : ReadingMetricWindow{};
+  const ReadingMetricWindow previous = hasNow ? collectReadingWindow(journal, history, session, today, currentDays,
+                                                                     previousDays, goalSeconds, &wpmResolver)
+                                              : ReadingMetricWindow{};
   const ReadingMetricWindow currentWeek = hasNow ? collectReadingWindow(journal, history, session, today, 0,
                                                                         std::min<uint16_t>(7, trackedDays), goalSeconds)
                                                  : ReadingMetricWindow{};
@@ -2161,10 +2154,8 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   const uint32_t avgReadDay = current.activeDays > 0 ? current.seconds / current.activeDays : 0;
   const uint32_t paceX10 =
       current.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((current.words * 600ULL + current.wordPaceSeconds / 2ULL) /
-                                       current.wordPaceSeconds,
-                                   UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
           : 0;
   const uint32_t currentVarietyStart = currentDays > 0 && today + 1u >= currentDays ? today + 1u - currentDays : 0;
   const uint32_t previousVarietyStart =
@@ -2282,10 +2273,9 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   const ReadingMetricWindow current =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
-  const ReadingMetricWindow previous =
-      hasNow ? collectReadingWindow(journal, history, session, today, currentDays, previousDays, goalSeconds,
-                                    &wpmResolver)
-             : ReadingMetricWindow{};
+  const ReadingMetricWindow previous = hasNow ? collectReadingWindow(journal, history, session, today, currentDays,
+                                                                     previousDays, goalSeconds, &wpmResolver)
+                                              : ReadingMetricWindow{};
   const ReadingMetricWindow currentWeek =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, std::min<uint16_t>(7, trackedDays), 0)
              : ReadingMetricWindow{};
@@ -2297,17 +2287,13 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   const uint32_t previousAvgReadDay = previous.activeDays > 0 ? previous.seconds / previous.activeDays : 0;
   const uint32_t currentPaceX10 =
       current.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((current.words * 600ULL + current.wordPaceSeconds / 2ULL) /
-                                       current.wordPaceSeconds,
-                                   UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
           : 0;
   const uint32_t previousPaceX10 =
       previous.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((previous.words * 600ULL + previous.wordPaceSeconds / 2ULL) /
-                                       previous.wordPaceSeconds,
-                                   UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (previous.words * 600ULL + previous.wordPaceSeconds / 2ULL) / previous.wordPaceSeconds, UINT32_MAX))
           : 0;
   const uint32_t currentVarietyStart = currentDays > 0 && today + 1u >= currentDays ? today + 1u - currentDays : 0;
   const uint32_t previousVarietyStart =
@@ -3182,9 +3168,8 @@ void renderMonthlyTrendPage(GfxRenderer& renderer, const MappedInputManager* map
 
 DeviceSplitStatsSummary loadDeviceSplitStatsSummary() {
   DeviceSplitStatsSummary summary;
-  summary.peerCount =
-      GlobalReadingStats::loadSyncedPeers(summary.peers.data(), summary.peerNames.data(),
-                                          DeviceSplitStatsSummary::MAX_PEERS);
+  summary.peerCount = GlobalReadingStats::loadSyncedPeers(summary.peers.data(), summary.peerNames.data(),
+                                                          DeviceSplitStatsSummary::MAX_PEERS);
   summary.loaded = true;
   return summary;
 }
@@ -3451,15 +3436,13 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   char value[40];
   const uint32_t weekPaceX10 =
       recentSecondsWeek > 0
-          ? static_cast<uint32_t>(std::min<uint64_t>((recentWordsWeek * 600ULL + recentSecondsWeek / 2ULL) /
-                                                         recentSecondsWeek,
-                                                     UINT32_MAX))
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (recentWordsWeek * 600ULL + recentSecondsWeek / 2ULL) / recentSecondsWeek, UINT32_MAX))
           : 0;
-  const uint32_t monthPaceX10 =
-      secondsMonth > 0
-          ? static_cast<uint32_t>(
-                std::min<uint64_t>((wordsMonth * 600ULL + secondsMonth / 2ULL) / secondsMonth, UINT32_MAX))
-          : 0;
+  const uint32_t monthPaceX10 = secondsMonth > 0
+                                    ? static_cast<uint32_t>(std::min<uint64_t>(
+                                          (wordsMonth * 600ULL + secondsMonth / 2ULL) / secondsMonth, UINT32_MAX))
+                                    : 0;
   formatWpmX10(weekPaceX10, value, sizeof(value));
   drawStatCell(renderer, contentX, thirdWidth, summaryTop, summaryHeight, value, tr(STR_STATS_PACE_7D));
   formatWpmX10(monthPaceX10, value, sizeof(value));

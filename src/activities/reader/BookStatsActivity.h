@@ -145,14 +145,12 @@ class BookStatsActivity final : public Activity {
                     const std::string& bookCachePath, const BookReadingStats& stats, float progressPercent,
                     bool hasEstimatedTimeLeft, uint32_t estimatedTimeLeftSeconds, const GlobalReadingStats& globalStats,
                     bool returnToHomeOnExit = false, const ReadingSessionSnapshot& sessionSnapshot = {},
-                    uint32_t bookWordCount = 0,
-                    InitialPage initialPage = InitialPage::CurrentBook);
+                    uint32_t bookWordCount = 0, InitialPage initialPage = InitialPage::CurrentBook);
   BookStatsActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, const std::string& title,
                     const std::string& bookCachePath, const BookReadingStats& stats, float progressPercent,
                     bool hasEstimatedTimeLeft, uint32_t estimatedTimeLeftSeconds, const GlobalReadingStats& globalStats,
                     const GlobalReadingStats& allDevicesStats, bool returnToHomeOnExit = false,
-                    const ReadingSessionSnapshot& sessionSnapshot = {},
-                    uint32_t bookWordCount = 0,
+                    const ReadingSessionSnapshot& sessionSnapshot = {}, uint32_t bookWordCount = 0,
                     InitialPage initialPage = InitialPage::CurrentBook);
 
   void onEnter() override;

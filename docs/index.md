@@ -23,6 +23,7 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 ## Features And Daily Use
 
 - [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.md)
+- [Dictionary Setup](./DICTIONARY_SETUP.md)
 - [Font Build Variants](./font-build-variants.md)
 - [SD-Card Fonts](./sd-card-fonts.md)
 - [Reader Features](./reader-features.md)

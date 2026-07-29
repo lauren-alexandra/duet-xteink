@@ -29,6 +29,7 @@ DOC_FILES = (
     "ALPHA_TESTING.md",
     "AI_COVER_PREFILL_PROMPT.md",
     "COVER_PREFILL.md",
+    "DICTIONARY_SETUP.md",
     "DUET_FULL_FEATURE_TOUR.md",
     "DUET_STORAGE_NAMESPACE_MIGRATION.md",
     "ISSUE_TRIAGE.md",
@@ -64,6 +65,7 @@ DOC_DIRS = (
 SCRIPT_FILES = (
     "duet_storage_paths.py",
     "generate_library_catalog.py",
+    "package_wordnet_dictionary.py",
     "prebuild_library_stats_index.py",
     "prefill_cover_thumbnails.py",
 )

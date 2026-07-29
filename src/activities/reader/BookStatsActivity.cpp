@@ -457,8 +457,8 @@ bool BookStatsActivity::processDerivedStatsLoadStep() {
 void BookStatsActivity::moveReadingDatesSelection(const int delta) {
   ensureReadingDates();
   if (readingDates.empty() || delta == 0) return;
-  const size_t next = static_cast<size_t>(std::clamp<int64_t>(
-      static_cast<int64_t>(readingDatesSelected) + delta, 0, static_cast<int64_t>(readingDates.size() - 1)));
+  const size_t next = static_cast<size_t>(std::clamp<int64_t>(static_cast<int64_t>(readingDatesSelected) + delta, 0,
+                                                              static_cast<int64_t>(readingDates.size() - 1)));
   if (next == readingDatesSelected) return;
   readingDatesSelected = next;
   requestUpdate();
@@ -669,24 +669,39 @@ void BookStatsActivity::exitStatsActivity(const bool viaBack) {
 
 size_t BookStatsActivity::buildVisiblePages(std::array<Page, 35>& pages) const {
   const std::array<Page, 33> allPages = {
-      Page::CurrentBook,      Page::BookProgress,
-      Page::BookPatterns,     Page::ThisDevice,
-      Page::AllDevices,       Page::DeviceSplit,
+      Page::CurrentBook,
+      Page::BookProgress,
+      Page::BookPatterns,
+      Page::ThisDevice,
+      Page::AllDevices,
+      Page::DeviceSplit,
       Page::Trends,
-      Page::ActivityChart,    Page::DailyMinutes,
-      Page::MonthlyCalendar,  Page::Heatmap,
-      Page::ReadingProfile,   Page::Goals,
-      Page::RecentSessions,   Page::WeekdayPattern,
-      Page::PaceTrend,        Page::TimeOfDay,
-      Page::MonthlyTrend,     Page::YearLine,
+      Page::ActivityChart,
+      Page::DailyMinutes,
+      Page::MonthlyCalendar,
+      Page::Heatmap,
+      Page::ReadingProfile,
+      Page::Goals,
+      Page::RecentSessions,
+      Page::WeekdayPattern,
+      Page::PaceTrend,
+      Page::TimeOfDay,
+      Page::MonthlyTrend,
+      Page::YearLine,
       Page::SessionLengths,
-      Page::StreakMilestones, Page::StartedFinished,
+      Page::StreakMilestones,
+      Page::StartedFinished,
       Page::ReadingDates,
-      Page::ReaderRadar,      Page::ReaderDnaDetails,
-      Page::ReaderSignature,  Page::ReaderSignatureDetails,
-      Page::FastestReads,     Page::Wrapped,
-      Page::StartedBooks,     Page::LibraryOverview,
-      Page::ReadingTaste,     Page::SeriesProgress,
+      Page::ReaderRadar,
+      Page::ReaderDnaDetails,
+      Page::ReaderSignature,
+      Page::ReaderSignatureDetails,
+      Page::FastestReads,
+      Page::Wrapped,
+      Page::StartedBooks,
+      Page::LibraryOverview,
+      Page::ReadingTaste,
+      Page::SeriesProgress,
   };
   size_t count = 0;
   for (const Page candidate : allPages) {
