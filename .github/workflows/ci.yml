@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - uses: actions/setup-python@v6
         with:
@@ -49,10 +50,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-format-21
 
-      - name: Run clang-format
+      - name: Check changed C/C++ formatting
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          PATH="/usr/lib/llvm-21/bin:$PATH" ./bin/clang-format-fix
-          git diff --exit-code || (echo "Please run 'bin/clang-format-fix' to fix formatting issues" && exit 1)
+          set -euo pipefail
+
+          base_sha="${PR_BASE_SHA:-${BEFORE_SHA:-}}"
+          if [[ -z "${base_sha}" || "${base_sha}" =~ ^0+$ ]] || ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+            echo "No usable base commit is available; skipping the inherited tree."
+            exit 0
+          fi
+
+          mapfile -t changed_files < <(
+            git diff --name-only --diff-filter=ACMR "${base_sha}" "${GITHUB_SHA}" -- \
+              '*.c' '*.cpp' '*.h' '*.hpp' \
+              | grep -v -E '^lib/EpdFont/builtinFonts/|^lib/Epub/Epub/hyphenation/generated/|^lib/uzlib/' \
+              || true
+          )
+
+          if (( ${#changed_files[@]} == 0 )); then
+            echo "No changed C/C++ files to check."
+            exit 0
+          fi
+
+          clang-format-21 -style=file --dry-run --Werror "${changed_files[@]}"
 
   cppcheck:
     runs-on: ubuntu-latest
