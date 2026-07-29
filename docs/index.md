@@ -11,23 +11,40 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 
 [View the official Duet repository](https://github.com/lauren-alexandra/duet-xteink)
 
-## User Docs
+## Start Here
+
+- [Start Here](./START_HERE.md)
+- [Installation](./installation.md)
+- [User Guide](../USER_GUIDE.md)
+- [Alpha Testing](./ALPHA_TESTING.md)
+- [Troubleshooting](./troubleshooting.md)
+- [Alpha.6 Acceptance Quickstart](./ALPHA6_ACCEPTANCE_QUICKSTART.md)
+
+## Features And Daily Use
 
 - [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.md)
-- [Installation](./installation.md)
 - [Font Build Variants](./font-build-variants.md)
+- [SD-Card Fonts](./sd-card-fonts.md)
 - [Reader Features](./reader-features.md)
+- [File Formats](./file-formats.md)
 - [Nearby Position Sync](./nearby-position-sync.md)
+- [Nearby Reading Stats Sync](./reading-stats-sync.md)
 - [EPUB Render Modes](./epub-render-modes.md)
 - [Controls](./controls.md)
-- [Simulator](./simulator.md)
 - [Data Cache](./data-cache.md)
 - [Duet Storage Namespace Migration](./DUET_STORAGE_NAMESPACE_MIGRATION.md)
 - [Web Server Guide](./webserver.md)
-- [Troubleshooting](./troubleshooting.md)
-- [Alpha.6 Acceptance Quickstart](./ALPHA6_ACCEPTANCE_QUICKSTART.md)
-- [Alpha Testing](./ALPHA_TESTING.md)
+
+## Library And Media
+
 - [Desktop Cover Prefill](./COVER_PREFILL.md)
 - [Alpha.6 Release Notes](./releases/v0.1.0-alpha.6.md)
 - [Alpha.6 Screenshot Gallery](./media/alpha-0.1.0/README.md)
 - [Complete X3/X4 Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
+
+## Testing, Development, And Community
+
+- [Physical Test Matrix](./PHYSICAL_TEST_MATRIX.md)
+- [Issue Triage](./ISSUE_TRIAGE.md)
+- [Simulator](./simulator.md)
+- [Maintainer Release Runbook](./MAINTAINER_RELEASE_RUNBOOK.md)

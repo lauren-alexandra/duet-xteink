@@ -22,6 +22,20 @@ For the complete public-facing story in one place, including how the features wo
 
 ---
 
+## Start here
+
+New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the instructions in one order instead of making you hunt through the repository:
+
+- **First installation or recovery:** [Installation](docs/installation.md) and the [official prerelease downloads](https://github.com/lauren-alexandra/duet-xteink/releases).
+- **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
+- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
+- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), including a ready-to-paste [computer-assistant prompt](docs/AI_COVER_PREFILL_PROMPT.md).
+- **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
+- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.6 Acceptance Quickstart](docs/ALPHA6_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
+- **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
+
+---
+
 ## Alpha status
 
 Duet v0.1.0-alpha.6 already runs on both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, and repeated two-device sync.
@@ -142,6 +156,8 @@ Speed is treated as a feature, and every cut is measured first:
 ## Install firmware
 
 Public alpha downloads will be published only through this repository's [Releases](https://github.com/lauren-alexandra/duet-xteink/releases) page.
+
+Read the [Start Here guide](docs/START_HERE.md) and [full installation instructions](docs/installation.md) before flashing. The short version is:
 
 1. **Back up your SD card.**
 2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.6.bin` or `Duet-X4-v0.1.0-alpha.6.bin`).
