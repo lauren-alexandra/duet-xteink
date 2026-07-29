@@ -1,3 +1,9 @@
+---
+title: Alpha.7 Device Acceptance
+parent: Alpha Testing
+nav_order: 1
+---
+
 # Duet Alpha.7 Device Acceptance
 
 Use this route to test the exact `v0.1.0-alpha.7` build on an X3 or X4. It does not replace the full [Physical Test Matrix](PHYSICAL_TEST_MATRIX.md); it puts the changed and highest-risk behavior in a practical order.

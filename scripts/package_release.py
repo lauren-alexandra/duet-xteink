@@ -41,6 +41,7 @@ DOC_FILES = (
     "epub-render-modes.md",
     "file-formats.md",
     "font-build-variants.md",
+    "font-sources.md",
     "hyphenation-trie-format.md",
     "i18n.md",
     "installation.md",
@@ -57,7 +58,6 @@ DOC_FILES = (
 DOC_DIRS = (
     "images",
     "media",
-    "templates",
 )
 SCRIPT_FILES = (
     "duet_storage_paths.py",

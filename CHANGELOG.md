@@ -3,6 +3,7 @@
 ### Fixed
 
 - The deterministic public statistics fixture now connects its dummy Pace history to staged EPUB word counts, so the Pace Trend gallery screenshot contains representative WPM bars, 7-day and 30-day averages, and a trend instead of an empty chart.
+- The public statistics fixture now varies fabricated session lengths, page counts, start times, daily totals, and calendar gaps so the gallery demonstrates realistic differences across Sessions, Calendar, Heatmap, Trends, and related pages.
 
 ## [0.1.0-alpha.7] - 2026-07-29
 

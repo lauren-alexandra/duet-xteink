@@ -468,7 +468,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The initial public alpha includes the licensed fonts built into the firmware. Additional `.cpfont` families can be installed separately, and [Font Sources][5] records the source and licensing audit for future public font assets.
+The initial public alpha includes the licensed fonts built into the firmware and can download CrossInk's credited 24-family compatibility catalog. Additional `.cpfont` families can be installed separately. Alpha.7 does not include an expanded Duet font ZIP; [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) lists the exact current options, and [Font Sources][5] records the source and licensing audit.
 
 ## Dictionary and reference tools
 
@@ -661,7 +661,7 @@ Nearby Position Sync is inherited from CrossInk. KOReader Sync is inherited from
 - Complete `.cstats` archives with validation, CRCs, safety export, staged restore, and rollback
 - Cache-safe book moves, breadcrumb performance telemetry, expanded simulators, physical-acceptance records, and deterministic public-release tooling
 
-The canonical item-by-item inventory is the [Features Unique To Duet](../FEATURES.md#features-unique-to-duet) section of the feature catalog. The next section records upstream lineage instead of flattening everything into "ours" or "theirs."
+The canonical item-by-item inventory is the [Features Unique To Duet](https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md#features-unique-to-duet) section of the feature catalog. The next section records upstream lineage instead of flattening everything into "ours" or "theirs."
 
 ## Credits and lineage
 
@@ -765,11 +765,11 @@ Both devices must run the same Duet release before using Nearby Sync.
 
 Duet is open source under MIT. The public alpha is an invitation to test it carefully, report honestly, and help make the X3 and X4 nicer places to read.
 
-[1]: ../FEATURES.md
-[2]: ../THIRD_PARTY_NOTICES.md
-[3]: COVER_PREFILL.md
-[4]: AI_COVER_PREFILL_PROMPT.md
-[5]: ../FONT_SOURCES.md
+[1]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md
+[2]: https://github.com/lauren-alexandra/duet-xteink/blob/main/THIRD_PARTY_NOTICES.md
+[3]: https://lauren-alexandra.github.io/duet-xteink/COVER_PREFILL.html
+[4]: https://lauren-alexandra.github.io/duet-xteink/AI_COVER_PREFILL_PROMPT.html
+[5]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FONT_SOURCES.md
 [6]: https://github.com/crosspoint-reader/crosspoint-reader
 [7]: https://github.com/uxjulia/CrossInk
 [8]: https://github.com/chintanvajariya/CrossInk-Carousel
@@ -780,14 +780,14 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [13]: https://github.com/yattsu/biscuit
 [14]: https://github.com/seek-reader/seek
 [15]: https://github.com/aaludon/crosspoint-reader-aalu
-[16]: ALPHA_TESTING.md
-[17]: ALPHA7_ACCEPTANCE_QUICKSTART.md
-[18]: PHYSICAL_TEST_MATRIX.md
+[16]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
+[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA7_ACCEPTANCE_QUICKSTART.html
+[18]: https://lauren-alexandra.github.io/duet-xteink/PHYSICAL_TEST_MATRIX.html
 [19]: https://github.com/lauren-alexandra/duet-xteink/releases
-[20]: ../README.md
-[21]: ../FEATURES.md
-[22]: ../THIRD_PARTY_NOTICES.md
-[23]: ALPHA_TESTING.md
-[24]: COVER_PREFILL.md
-[25]: ../USER_GUIDE.md
-[26]: ../PUBLIC_RELEASE_READINESS.md
+[20]: https://lauren-alexandra.github.io/duet-xteink/
+[21]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md
+[22]: https://github.com/lauren-alexandra/duet-xteink/blob/main/THIRD_PARTY_NOTICES.md
+[23]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
+[24]: https://lauren-alexandra.github.io/duet-xteink/COVER_PREFILL.html
+[25]: https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md
+[26]: https://github.com/lauren-alexandra/duet-xteink/blob/main/PUBLIC_RELEASE_READINESS.md

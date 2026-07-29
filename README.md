@@ -33,7 +33,7 @@ The current tester release is **Duet v0.1.0-alpha.7**:
 - [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
 - [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
 
-Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**. During Alpha.7, that on-device downloader uses CrossInk's credited 24-family compatibility catalog; the expanded Duet development collection is not yet a public download. See [SD-card fonts](docs/sd-card-fonts.md) for the exact status and manual installation options.
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**. During Alpha.7, that on-device downloader uses CrossInk's credited 24-family compatibility catalog. There is not currently a separate expanded Duet font ZIP. See [Fonts](docs/sd-card-fonts.md) for the exact available families, direct download route, previews, six-size behavior, and manual installation options.
 
 ## Start here
 
@@ -151,7 +151,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 - **A/B comparison view** at matched sizes, compact Normal/Italic/Bold specimens, real face detection, and synthetic bold/italic fallbacks when a family lacks those files.
 - A cached font catalog avoids rescanning every installed family on each boot. On the maintainer's development cards this reduced discovery to a small fraction of the prior path; exact timing varies with card and font set.
 
-The initial alpha includes the licensed font families already built into the firmware. A separate optional SD-card font pack may follow after its source, license, and generated-file review is complete. See [FONT_SOURCES.md](FONT_SOURCES.md).
+The initial alpha includes the licensed font families already built into the firmware and can download the credited 24-family compatibility catalog to the SD card. An expanded Duet ZIP is not included in Alpha.7. See [Fonts](docs/sd-card-fonts.md) for current downloads and [FONT_SOURCES.md](FONT_SOURCES.md) for the source ledger.
 
 ## Apps
 

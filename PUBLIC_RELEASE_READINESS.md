@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Duet v0.1.0-alpha.6 is in final prerelease preparation. The latest shared X3/X4 device code has been reconciled into the public branch, the canonical `/.duet` migration is implemented, public identity and lineage are documented, privacy-safe simulator media exists, and deterministic build, audit, checksum, and packaging tools are present. The remaining publication work is mechanical and verifiable: run the final tests and public X3/X4 builds from one commit, package and hash the exact artifacts, create the canonical public repository, and publish the GitHub prerelease. The physical matrix intentionally remains open after publication because the purpose of this early alpha is to widen hardware, SD-card, and library testing; simulator or maintainer-device success is not presented as universal acceptance.
+Duet v0.1.0-alpha.7 is published as a GitHub prerelease with device-specific X3 and X4 BINs, a complete firmware package, checksums, a ready-to-copy dictionary asset, tester guidance, and public source. Automated builds, tests, audits, and simulator captures establish release consistency; the physical matrix remains open because the purpose of this early alpha is to widen hardware, SD-card, library, sleep/wake, and sync testing. Simulator or maintainer-device success is not presented as universal acceptance.
 
 ## Completed Audit Work
 
@@ -46,28 +46,26 @@ Duet v0.1.0-alpha.6 is in final prerelease preparation. The latest shared X3/X4 
 - Completed clean alpha.4 `x3-public` and `x4-public` builds. The X3 image has 661,472 bytes and the X4 image has 798,560 bytes free in the OTA app partition.
 - Packaged those exact alpha.4 binaries into `Duet-v0.1.0-alpha.4-DRAFT-firmware.zip`; the ZIP integrity test and both packaged SHA-256 checks passed.
 - Added a short alpha.4 device-acceptance route, expanded the reusable physical record for complete-stats restore evidence, and added a privacy/version manifest for final screenshots and clips.
-- Generated and reviewed 111 fresh alpha.6 simulator PNGs: 43 Reading Stats states per device, 21 curated feature and app captures, and four font previews. Every checked-in image decodes, every gallery link resolves, and the repository media set is 1.4 MB.
+- Generated and reviewed the shared Alpha.7 gallery: 43 Reading Stats states, 22 curated feature and app captures, and four font previews. Every checked-in image decodes and every local gallery link resolves.
 - Completed the final alpha.6 host, simulator, static-analysis, privacy, formatting, and public-build gates. All 117 host tests pass; both X3 and X4 simulator smokes pass; cppcheck reports zero high and zero medium findings; and the release audit passes.
 - Built the final alpha.6 X3 image at 5,937,136 bytes with 616,464 bytes of OTA app-partition headroom and the X4 image at 5,800,048 bytes with 753,552 bytes of headroom.
 
-## Remaining Publication Checks
+## Remaining Alpha Work
 
-- Package the exact final X3/X4 binaries and verify the ZIP plus `SHA256SUMS.txt`.
-- Use the reviewed public-history strategy in `INITIAL_PUBLICATION_PLAN.md`; the private development history contains personal author metadata and remains preserved separately rather than becoming the public lineage.
-- Create `lauren-alexandra/duet-xteink`, publish the source, tag `v0.1.0-alpha.6`, and attach the verified firmware package as a GitHub prerelease.
-- Capture the remaining real-device System/version, sleep, sync, and paired-reader media during physical alpha acceptance. The checked-in simulator gallery is current alpha.6 media.
-- Continue the open X3/X4 physical matrix through tester reports after publication. Exact physical acceptance is a stable-release gate, not a reason to disguise the alpha as finished.
+- Continue the open X3/X4 physical matrix through tester reports. Exact physical acceptance is a stable-release gate, not a reason to disguise the alpha as finished.
+- Expand real-device coverage for SD-card timing, sleep/wake, Nearby Sync, long reading sessions, large libraries, and recovery.
+- Keep release artifacts, checksums, release notes, gallery media, and tester documentation aligned with each future tagged candidate.
 
-## Deferred Beyond The Initial Alpha
+## Fonts
 
-- The optional public SD-card font bundle is a later, separately licensed release. The initial alpha is firmware-only and already carries the source ledger and licenses for the eight families represented in its generated font headers. Do not copy the private 130-family folder wholesale; generation, checksums, Reserved Font Name review, and per-family notices remain mandatory before any public font ZIP.
+Alpha.7 includes the licensed families built into the firmware and supports the credited 24-family CrossInk compatibility catalog through **Manage Fonts**. No separate expanded Duet font ZIP is attached to this release. The exact current download and conversion routes are documented on the [Fonts](docs/sd-card-fonts.md) page.
 
 ## Release Package
 
-The initial alpha can ship as a firmware-only archive while the separately licensed public font pack is reviewed:
+The published Alpha.7 firmware package contains:
 
 ```text
-Duet-v0.1.0-alpha.6-firmware.zip
+Duet-v0.1.0-alpha.7-firmware.zip
 |-- README-FIRST.txt
 |-- README.md
 |-- FEATURES.md
@@ -75,10 +73,10 @@ Duet-v0.1.0-alpha.6-firmware.zip
 |-- CHANGELOG.md
 |-- PUBLIC_RELEASE_READINESS.md
 |-- firmware/
-|   |-- Duet-X3-v0.1.0-alpha.6.bin
-|   `-- Duet-X4-v0.1.0-alpha.6.bin
+|   |-- Duet-X3-v0.1.0-alpha.7.bin
+|   `-- Duet-X4-v0.1.0-alpha.7.bin
 |-- docs/
-|   |-- ALPHA6_ACCEPTANCE_QUICKSTART.md
+|   |-- ALPHA7_ACCEPTANCE_QUICKSTART.md
 |   |-- ALPHA_TESTING.md
 |   |-- AI_COVER_PREFILL_PROMPT.md
 |   |-- COVER_PREFILL.md
@@ -104,10 +102,6 @@ Duet-v0.1.0-alpha.6-firmware.zip
 |   |-- reading-stats-sync.md
 |   |-- sd-card-fonts.md
 |   |-- simulator.md
-|   |-- templates/
-|   |   |-- MEDIA_MANIFEST.md
-|   `-- maintainer/
-|       `-- PHYSICAL_ACCEPTANCE_RECORD.md
 |   |-- installation.md
 |   |-- troubleshooting.md
 |   |-- webserver-endpoints.md
@@ -119,6 +113,9 @@ Duet-v0.1.0-alpha.6-firmware.zip
 |-- NOTICE
 |-- THIRD_PARTY_NOTICES.md
 |-- FONT_SOURCES.md
+|-- .github/
+|   `-- maintainer/
+|       `-- PHYSICAL_ACCEPTANCE_RECORD.md
 |-- licenses/
 |   `-- fonts/
 |       |-- BUILTIN_FONT_SOURCES.md
@@ -126,9 +123,7 @@ Duet-v0.1.0-alpha.6-firmware.zip
 `-- SHA256SUMS.txt
 ```
 
-The later optional font archive may add a reviewed `/sd-card/fonts` folder and the notices for every included `.cpfont`. SD fonts remain separate assets rather than part of the firmware image. The current private font folder is about 643 MB uncompressed, whereas the device firmware partition has less than 1 MB of headroom in the latest X3 build.
-
-Separate BIN-only downloads may also be offered, but the initial alpha's primary download is the firmware package shown above.
+The X3 and X4 BINs are also available as separate downloads beside the package, dictionary, and checksums.
 
 ## Private Data Exclusions
 

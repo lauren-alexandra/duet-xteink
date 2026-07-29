@@ -1,3 +1,9 @@
+---
+title: Alpha Testing
+nav_order: 4
+has_children: true
+---
+
 # Duet Alpha Testing
 
 Duet alpha builds are for volunteers who are comfortable backing up an SD card, flashing firmware, collecting logs, and restoring a known-good build. They are not yet recommended as a first e-reader firmware experience.

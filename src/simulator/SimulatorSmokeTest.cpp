@@ -337,23 +337,35 @@ class SimulatorSmokeTest {
       mediaOffsets.push_back(mediaOffsetPool[index]);
     }
     std::sort(mediaOffsets.begin(), mediaOffsets.end(), std::greater<uint16_t>());
+    constexpr std::array<uint16_t, 16> mediaMinutes = {18, 31, 47, 63, 26, 82, 39, 55,
+                                                       21, 96, 44, 70, 34, 58, 76, 49};
+    constexpr std::array<uint16_t, 16> mediaPages = {12, 24, 39, 55, 18, 73, 31, 46,
+                                                     14, 86, 36, 61, 27, 50, 68, 41};
+    uint32_t generatedSeconds = 0;
+    uint32_t generatedPages = 0;
     for (size_t i = 0; i < mediaOffsets.size(); ++i) {
       ReadingStatsDate date;
       if (!readingStatsDateFromDayIndex(mediaTodayIndex - mediaOffsets[i], date)) {
         fail("Could not derive stats media fixture date");
       }
-      const uint32_t seconds = i + 1 == mediaOffsets.size() ? 72u * 60u : 53u * 60u;
-      const uint16_t pages = i + 1 == mediaOffsets.size() ? 63 : 64;
+      const size_t patternIndex = (i * 7u + mediaOffsets[i]) % mediaMinutes.size();
+      const uint32_t seconds = static_cast<uint32_t>(mediaMinutes[patternIndex]) * 60u;
+      const uint16_t pages = mediaPages[(patternIndex * 5u + i) % mediaPages.size()];
       if (!ReadingJournal::recordSession(
               {date, static_cast<uint8_t>((i * 7u) % 24u), static_cast<uint8_t>((i * 13u) % 60u), 0}, seconds, pages)) {
         fail("Could not seed rich stats media fixture");
       }
+      generatedSeconds += seconds;
+      generatedPages += pages;
     }
     journal = ReadingJournal::load();
     const ReadingJournalPeriod mediaPeriod =
         journal ? journal->periodEndingOn(mediaTodayIndex, 366) : ReadingJournalPeriod{};
-    if (!journal || mediaPeriod.sessions != 237 || mediaPeriod.readingSeconds != 209u * 3600u + 57u * 60u ||
-        mediaPeriod.screenPages != 14963) {
+    constexpr uint32_t regressionFixtureSeconds = 494u * 60u;
+    constexpr uint32_t regressionFixturePages = 372;
+    if (!journal || mediaPeriod.sessions != 237 ||
+        mediaPeriod.readingSeconds != regressionFixtureSeconds + generatedSeconds ||
+        mediaPeriod.screenPages != regressionFixturePages + generatedPages) {
       fail("Rich stats media fixture totals are inconsistent");
     }
 

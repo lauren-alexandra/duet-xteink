@@ -1,6 +1,7 @@
 ---
 title: Font Build Variants
-nav_order: 12
+parent: Fonts
+nav_order: 1
 ---
 
 # Font Build Variants
