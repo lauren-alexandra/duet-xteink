@@ -5,16 +5,16 @@ nav_order: 12
 
 # Font Build Variants
 
-Duet ships device-specific public font profiles because the ESP32-C3 has limited flash and RAM. Both public profiles preserve emoji and miscellaneous symbol support; they differ in the built-in reader sizes included. SD-card font families expose the sizes actually installed for that family.
+Duet's standard six-size SD-card font families provide 10, 12, 14, 16, 18, and 20 pt on both X3 and X4. The smaller lists below describe only the emergency Lexend Deca and Bitter fallbacks embedded inside each firmware BIN. They do not limit the sizes available after an SD-card font family is installed.
 
 ## Variants
 
 ### X3 public profile (`x3-public`, based on `tiny`)
 
-The X3 public BIN includes:
+The X3 public BIN embeds:
 
 - Emoji and miscellaneous-symbol support
-- 4 font sizes:
+- 4 fallback font sizes:
   - 10 pt
   - 12 pt
   - 14 pt
@@ -22,13 +22,15 @@ The X3 public BIN includes:
 
 ### X4 public profile (`x4-public`, based on `xlarge`)
 
-The 8, 9, 10, 12, and 14 pt built-ins are removed to make room for the larger reader sizes while preserving emoji and symbols.
+The X4 public BIN embeds:
 
 - Emoji and miscellaneous-symbol support
-- 3 font sizes:
+- 3 fallback font sizes:
   - 16 pt
   - 18 pt
   - 20 pt
+
+Embedding all six sizes for both fallback families would make either public BIN about 7.13 MB, exceeding the 6.55 MB app partition. Keeping the full reading range on the SD card preserves the firmware features, translation catalogs, emoji, and symbols while allowing every installed family to offer all six sizes.
 
 ## Flashing A Variant
 

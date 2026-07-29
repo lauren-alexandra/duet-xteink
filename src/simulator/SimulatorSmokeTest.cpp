@@ -8,6 +8,7 @@
 #include <Logging.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
@@ -513,11 +514,25 @@ class SimulatorSmokeTest {
       }
     };
 
+    constexpr std::array<const char*, 6> paceFixturePaths = {
+        "/books/smoke-stats-pace-01.epub", "/books/smoke-stats-pace-02.epub", "/books/smoke-stats-pace-03.epub",
+        "/books/smoke-stats-pace-04.epub", "/books/smoke-stats-pace-05.epub", "/books/smoke-stats-pace-06.epub",
+    };
+    constexpr std::array<uint16_t, 6> paceFixtureWpm = {214, 247, 231, 276, 294, 318};
+    constexpr std::array<uint8_t, 6> paceFixtureDayOffsets = {13, 10, 7, 4, 2, 0};
+
     Storage.ensureDirectoryExists(DUET_BOOKS_ROOT_PATH "");
     for (uint8_t i = 0; i < 24; ++i) {
-      char cachePath[96];
-      snprintf(cachePath, sizeof(cachePath), DUET_BOOKS_ROOT_PATH "/epub_media_%02u", static_cast<unsigned>(i + 1));
-      Storage.ensureDirectoryExists(cachePath);
+      std::string cachePath;
+      if (i < paceFixturePaths.size()) {
+        cachePath = Epub::cachePathForFilePath(paceFixturePaths[i], DUET_BOOKS_ROOT_PATH "");
+      } else {
+        char generatedPath[96];
+        snprintf(generatedPath, sizeof(generatedPath), DUET_BOOKS_ROOT_PATH "/epub_media_%02u",
+                 static_cast<unsigned>(i + 1));
+        cachePath = generatedPath;
+      }
+      Storage.ensureDirectoryExists(cachePath.c_str());
       ReadingStatsDate startDate;
       readingStatsDateFromDayIndex(mediaTodayIndex - static_cast<uint32_t>(8u + i * 11u), startDate);
       BookReadingStats detail;
@@ -529,16 +544,33 @@ class SimulatorSmokeTest {
       detail.avgSecondsPerForwardPage = static_cast<uint16_t>(34u + i % 18u);
       detail.paceSampleCount = 8;
       if (i < 6) {
+        Epub paceBook(paceFixturePaths[i], DUET_BOOKS_ROOT_PATH "");
+        if (!paceBook.load(true, true) || paceBook.getTotalWords() == 0) {
+          fail("Could not load the WPM media fixture book: %s", paceFixturePaths[i]);
+        }
+        detail.totalReadingSeconds = static_cast<uint32_t>(std::max<uint64_t>(
+            10,
+            (static_cast<uint64_t>(paceBook.getTotalWords()) * 60ULL + paceFixtureWpm[i] / 2ULL) / paceFixtureWpm[i]));
+        detail.countedSessionSeconds = detail.totalReadingSeconds;
         detail.isCompleted = true;
         readingStatsDateFromDayIndex(readingStatsDayIndex(startDate) + static_cast<uint32_t>(3u + i * 2u),
                                      detail.finishedDate);
       }
       detail.save(cachePath);
       char title[64];
-      snprintf(title, sizeof(title), "Fictional Media Book %02u", static_cast<unsigned>(i + 1));
+      snprintf(title, sizeof(title), i < paceFixturePaths.size() ? "Pace Fixture %02u" : "Fictional Media Book %02u",
+               static_cast<unsigned>(i + 1));
       if (!ReadingLedger::recordReadingSpan({startDate, 19, 0, 0}, detail.totalReadingSeconds, detail.totalPagesTurned,
-                                            cachePath, title)) {
+                                            cachePath.c_str(), title)) {
         fail("Could not seed detailed media book history");
+      }
+      if (i < paceFixturePaths.size()) {
+        ReadingStatsDate paceDate;
+        if (!readingStatsDateFromDayIndex(mediaTodayIndex - paceFixtureDayOffsets[i], paceDate) ||
+            !ReadingLedger::recordReadingSpan({paceDate, 20, 0, 0}, 18u * 60u, 16u + i * 3u, cachePath.c_str(),
+                                              title)) {
+          fail("Could not seed recent WPM media history");
+        }
       }
     }
     if (!LibraryInsights::publishLocalDetailedBookStatsForSync()) {

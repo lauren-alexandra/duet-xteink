@@ -219,7 +219,7 @@ The Settings screen allows you to configure the device's behavior. There are a f
   - "Lexend Deca" (default)
   - "Bitter"
 
-- **Reader Font Size**: Adjust the text size for reading. The firmware-only X3 fallback fonts include 10, 12, 14, and 16 pt; the firmware-only X4 fallbacks include 16, 18, and 20 pt. Those smaller built-in sets preserve flash space and do not limit SD fonts. A standard Duet SD-card family can expose 10, 12, 14, 16, 18, and 20 pt on either device, and any manually installed family exposes the sizes actually present.
+- **Reader Font Size**: Adjust the text size for reading. A standard Duet SD-card family exposes 10, 12, 14, 16, 18, and 20 pt on both X3 and X4. Without an SD-card family, the firmware-only X3 fallback offers 10, 12, 14, and 16 pt, while the X4 fallback offers 16, 18, and 20 pt. Any manually installed family exposes the sizes actually present.
 
 - **Reader Line Spacing**: Choose Tight, Normal, or Wide, then adjust the line height percentage more precisely if desired.
 
@@ -526,7 +526,7 @@ At a book-folder level, choose list, 2x2, 3x3, 4x4, or five-cover carousel prese
 
 **Search Library** uses the optional `library_catalog.tsv` to rank matches across any title word, author, series, and catalog tags. Move through the suggestions/results with the navigation buttons. A short Confirm opens a result; a one-second Confirm hold opens **More Info**.
 
-More Info can show cover, title, author, series/index, genre, spice level, reading state, progress, and catalog description, with an **Open** action. A book remains readable without a catalog; only catalog-backed fields are missing.
+More Info can show cover, title, author, series/index, genre, spice level, reading state, progress, and catalog description, with an **Open** action. Copying a book to the SD card does not generate a description: descriptions, categories, series data, and spice metadata come from the optional `/.duet/state/library_catalog.tsv`. A book remains readable without that catalog; only catalog-backed fields are missing.
 
 ### 3.10 Reading Statistics
 

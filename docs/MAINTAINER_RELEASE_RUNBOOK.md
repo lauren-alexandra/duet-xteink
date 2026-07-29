@@ -105,7 +105,7 @@ Verify the hashes before either BIN reaches a device:
 
 ## Physical Acceptance
 
-Copy `docs/templates/PHYSICAL_ACCEPTANCE_RECORD.md` for the exact candidate. Test the same commit and hashes on both devices.
+Copy `.github/maintainer/PHYSICAL_ACCEPTANCE_RECORD.md` for the exact candidate. Test the same commit and hashes on both devices.
 
 Minimum acceptance:
 
@@ -132,7 +132,7 @@ After the accepted firmware is frozen:
 1. regenerate every simulator stats page using the rich dummy fixture;
 2. review all labels, clipping, navigation, and values;
 3. capture native X3 and X4 screenshots;
-4. take the real-device photos and unsped videos in `docs/SCREENSHOT_PLAN.md`;
+4. take the approved real-device photos and unsped videos;
 5. remove metadata from public images;
 6. verify no personal data or unpublished device files are present.
 

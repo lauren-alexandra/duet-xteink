@@ -23,6 +23,8 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 ## Features And Daily Use
 
 - [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.md)
+- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.md)
+- [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
 - [Dictionary Setup](./DICTIONARY_SETUP.md)
 - [Font Build Variants](./font-build-variants.md)
 - [SD-Card Fonts](./sd-card-fonts.md)
@@ -33,15 +35,12 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 - [EPUB Render Modes](./epub-render-modes.md)
 - [Controls](./controls.md)
 - [Data Cache](./data-cache.md)
-- [Duet Storage Namespace Migration](./DUET_STORAGE_NAMESPACE_MIGRATION.md)
 - [Web Server Guide](./webserver.md)
 
 ## Library And Media
 
 - [Desktop Cover Prefill](./COVER_PREFILL.md)
 - [Alpha.7 Release Notes](./releases/v0.1.0-alpha.7.md)
-- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.md)
-- [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
 
 ## Testing, Development, And Community
 

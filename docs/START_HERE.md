@@ -27,7 +27,7 @@ The [full installation guide](installation.md) includes command-line flashing an
 4. Confirm the model and version, then allow the reader to restart.
 5. Verify the new version in **Settings > System** before removing the rollback copy from your computer.
 
-Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk state without deleting it. Read the [storage migration guide](DUET_STORAGE_NAMESPACE_MIGRATION.md) before manually moving, renaming, or deleting hidden state folders.
+Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk state without deleting it. Do not manually move, rename, or delete `/.duet`, `/.crossink`, `/.crosspoint`, or `/.crossink-stats-backup` while upgrading; the legacy folders remain recovery sources.
 
 ## Loading books and building the library
 
@@ -35,7 +35,7 @@ Copy supported books to the SD card in the folder structure you want to browse. 
 
 For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. The complete ready-to-paste prompt for Codex, Claude CoWork, Perplexity Computer, or another local assistant is included directly on that page and also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
 
-More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts**. The Alpha.7 on-device downloader currently uses CrossInk's credited compatibility catalog; see [SD-card fonts](sd-card-fonts.md) for the exact public-pack status and manual installation options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](../USER_GUIDE.md) cover the rest of the library and reader structure.
+More Info descriptions and library categories use an optional Calibre-generated `/.duet/state/library_catalog.tsv`. Copying an EPUB to the SD card does not generate a description automatically; books remain readable without the catalog, but More Info shows only the metadata Duet can resolve locally. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts**. The Alpha.7 on-device downloader currently uses CrossInk's credited compatibility catalog; see [SD-card fonts](sd-card-fonts.md) for the exact public-pack status and manual installation options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](../USER_GUIDE.md) cover the rest of the library and reader structure.
 
 ## Using an X3 and X4 together
 

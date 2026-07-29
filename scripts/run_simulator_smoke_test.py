@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import shutil
@@ -14,6 +15,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+from pathlib import PurePosixPath
 
 from duet_storage_paths import (
     DUET_BOOKS_ROOT,
@@ -61,6 +63,7 @@ FILE_BROWSER_DISPLAYS = {
     "carousel": 3,
 }
 FILE_BROWSER_GRID_LAYOUTS = {"2x2": 0, "3x3": 1, "4x4": 2}
+STATS_PACE_FIXTURE_PATHS = tuple(f"/books/smoke-stats-pace-{index:02d}.epub" for index in range(1, 7))
 
 
 def platformio_cli() -> str:
@@ -190,6 +193,129 @@ def stage_reading_home_books(
         fixture_sources.append(Path(name))
         device_paths.append(f"/books/{name}")
     return fixture_sources, device_paths
+
+
+def stage_stats_pace_books(temp_root: Path, source: Path) -> None:
+    """Stage real EPUB copies so the WPM media fixture can resolve word counts."""
+    books_dir = temp_root / "fs_" / "books"
+    with zipfile.ZipFile(source) as archive:
+        container = ET.fromstring(archive.read("META-INF/container.xml"))
+        rootfile = container.find(".//{*}rootfile")
+        if rootfile is None:
+            raise ValueError("Pace fixture EPUB has no container rootfile")
+        opf_path = rootfile.attrib.get("full-path", "")
+        package = ET.fromstring(archive.read(opf_path))
+        manifest = {
+            item.attrib.get("id", ""): item.attrib.get("href", "")
+            for item in package.findall(".//{*}manifest/{*}item")
+        }
+        opf_root = PurePosixPath(opf_path).parent
+        spine_word_counts = []
+        for itemref in package.findall(".//{*}spine/{*}itemref"):
+            href = manifest.get(itemref.attrib.get("idref", ""), "")
+            if not href:
+                continue
+            chapter = ET.fromstring(archive.read(str(opf_root / href)))
+            text = " ".join(chapter.itertext())
+            spine_word_counts.append(max(1, len(re.findall(r"[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*", text))))
+
+        if not spine_word_counts:
+            raise ValueError("Pace fixture EPUB has no readable spine text")
+
+        total_words = sum(spine_word_counts)
+        total_locations = 0
+        word_start = 0
+        location_spine = []
+        for index, word_count in enumerate(spine_word_counts):
+            location_count = max(1, (word_count + 149) // 150)
+            location_spine.append(
+                {
+                    "index": index,
+                    "startLocation": total_locations + 1,
+                    "endLocation": total_locations + location_count,
+                    "wordStart": word_start,
+                    "wordCount": word_count,
+                }
+            )
+            total_locations += location_count
+            word_start += word_count
+
+        locations = json.dumps(
+            {
+                "format": "x-locations",
+                "version": 1,
+                "totalLocations": total_locations,
+                "totalWords": total_words,
+                "wordsPerReferencePage": 300,
+                "totalReferencePages": max(1, (total_words + 299) // 300),
+                "spine": location_spine,
+            },
+            separators=(",", ":"),
+        ).encode("utf-8")
+        entries = [
+            (info, archive.read(info.filename))
+            for info in archive.infolist()
+            if info.filename != "META-INF/x-locations.json"
+        ]
+
+    for device_path in STATS_PACE_FIXTURE_PATHS:
+        target = books_dir / Path(device_path).name
+        with zipfile.ZipFile(target, "w") as output:
+            for info, data in entries:
+                compression = zipfile.ZIP_STORED if info.filename == "mimetype" else info.compress_type
+                output.writestr(info, data, compress_type=compression)
+            output.writestr("META-INF/x-locations.json", locations, compress_type=zipfile.ZIP_DEFLATED)
+
+
+def write_stats_pace_catalog_fixture(temp_root: Path) -> None:
+    """Map the WPM fixture cache keys back to staged EPUBs."""
+    catalog = mounted_path(temp_root / "fs_", f"{DUET_STATE_ROOT}/library_catalog.tsv")
+    catalog.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        f"M\t2\t{len(STATS_PACE_FIXTURE_PATHS)}\t1\t0\t1\t1",
+        "A\t0\tDuet Demo Library",
+        "G\t0\tDemo",
+        "P\t0\tNot Rated",
+    ]
+    for index, device_path in enumerate(STATS_PACE_FIXTURE_PATHS, start=1):
+        lines.append(
+            f"B\t{index}\t0\t-1\t0\t0\t0\t{device_path}\tPace Fixture {index:02d}"
+            "\tDeterministic simulator-only book used to demonstrate words-per-minute trends."
+        )
+    catalog.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def assert_stats_pace_screenshot_populated(path: Path) -> None:
+    """Reject a Pace capture whose chart has axes but no WPM bars."""
+    data = path.read_bytes()
+    if len(data) < 62 or data[:2] != b"BM":
+        raise ValueError(f"Pace screenshot is not a supported BMP: {path}")
+
+    pixel_offset = struct.unpack_from("<I", data, 10)[0]
+    dib_size = struct.unpack_from("<I", data, 14)[0]
+    width = struct.unpack_from("<i", data, 18)[0]
+    signed_height = struct.unpack_from("<i", data, 22)[0]
+    bits_per_pixel = struct.unpack_from("<H", data, 28)[0]
+    height = abs(signed_height)
+    if width <= 0 or height <= 0 or bits_per_pixel != 1:
+        raise ValueError(f"Pace screenshot has unsupported BMP geometry: {path}")
+
+    palette_offset = 14 + dib_size
+    palette = (data[palette_offset : palette_offset + 4], data[palette_offset + 4 : palette_offset + 8])
+    dark_index = min(range(2), key=lambda index: sum(palette[index][:3]))
+    row_bytes = ((width + 31) // 32) * 4
+    x_start, x_end = int(width * 0.15), int(width * 0.95)
+    y_start, y_end = int(height * 0.20), int(height * 0.74)
+    dark_pixels = 0
+    for display_y in range(y_start, y_end):
+        file_y = display_y if signed_height < 0 else height - 1 - display_y
+        row_offset = pixel_offset + file_y * row_bytes
+        for x in range(x_start, x_end):
+            palette_index = (data[row_offset + x // 8] >> (7 - x % 8)) & 1
+            dark_pixels += palette_index == dark_index
+
+    if dark_pixels < 1000:
+        raise ValueError(f"Pace screenshot has no populated WPM bars: {path}")
 
 
 def stage_font_families(temp_root: Path, family_sources: list[Path]) -> None:
@@ -510,6 +636,8 @@ def run_smoke(args: argparse.Namespace) -> int:
         reading_home_paths: list[str] = []
         if args.reading_home_screenshot:
             reading_home_sources, reading_home_paths = stage_reading_home_books(temp_root, book, additional_books)
+        if args.stats_screenshot_dir:
+            stage_stats_pace_books(temp_root, book)
         if sleep_image:
             shutil.copy2(sleep_image, temp_root / "fs_" / "sleep.bmp")
         if font_families:
@@ -544,6 +672,8 @@ def run_smoke(args: argparse.Namespace) -> int:
             catalog_target = mounted_path(temp_root / "fs_", f"{DUET_STATE_ROOT}/library_catalog.tsv")
             catalog_target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(catalog_source, catalog_target)
+        elif args.stats_screenshot_dir:
+            write_stats_pace_catalog_fixture(temp_root)
         elif args.book_info_screenshot or args.library_search_screenshot or args.library_autocomplete_screenshot:
             write_book_info_catalog_fixture(temp_root, simulator_book_path)
         if args.feature_screenshot_dir and not dictionaries_root:
@@ -966,6 +1096,8 @@ def run_smoke(args: argparse.Namespace) -> int:
                 if not source.exists():
                     print(f"Reading stats smoke screenshot was not created: {name}", file=sys.stderr)
                     return 2
+                if name == "pace":
+                    assert_stats_pace_screenshot_populated(source)
                 shutil.copy2(source, screenshot_dir / source.name)
             print(f"Saved reading stats screenshots to {screenshot_dir}", flush=True)
 
