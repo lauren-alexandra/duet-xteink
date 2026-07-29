@@ -716,7 +716,7 @@ Known constraints:
 
 ## Testing and privacy
 
-Start with [Alpha Testing][16], the short [alpha.6 acceptance route][17], and the full [Physical Test Matrix][18].
+Start with [Alpha Testing][16], the short [alpha.7 acceptance route][17], and the full [Physical Test Matrix][18].
 
 A useful report includes:
 
@@ -775,7 +775,7 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [14]: https://github.com/seek-reader/seek
 [15]: https://github.com/aaludon/crosspoint-reader-aalu
 [16]: ALPHA_TESTING.md
-[17]: ALPHA6_ACCEPTANCE_QUICKSTART.md
+[17]: ALPHA7_ACCEPTANCE_QUICKSTART.md
 [18]: PHYSICAL_TEST_MATRIX.md
 [19]: https://github.com/lauren-alexandra/duet-xteink/releases
 [20]: ../README.md

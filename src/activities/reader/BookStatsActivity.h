@@ -88,6 +88,11 @@ class BookStatsActivity final : public Activity {
   std::vector<ReadingDateStatsEntry> readingDates;
   size_t readingDatesSelected = 0;
   bool readingDatesLoaded = false;
+  std::vector<FastestReadStatsEntry> fastestReads;
+  bool fastestReadsLoaded = false;
+  StartFinishStatsSummary startFinishSummary;
+  bool startFinishSummaryLoaded = false;
+  DeviceSplitStatsSummary deviceSplitSummary;
   bool dayDetailsOpen = false;
   bool dayCorrectionEditMode = false;
   ReadingStatsDate dayDetailsDate;
@@ -117,6 +122,11 @@ class BookStatsActivity final : public Activity {
   void ensureReadingDates();
   void moveReadingDatesSelection(int delta);
   void openSelectedReadingDatesBook();
+  void ensureFastestReads();
+  void ensureStartFinishSummary();
+  void ensureDeviceSplitSummary();
+  void invalidateDerivedStatsCaches();
+  bool processDerivedStatsLoadStep();
   void openDayDetails(const ReadingStatsDate* date = nullptr);
   void refreshDayDetails();
   void changeDayDetailsDate(int delta);

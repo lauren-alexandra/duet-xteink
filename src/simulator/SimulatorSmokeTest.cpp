@@ -561,11 +561,11 @@ class SimulatorSmokeTest {
     const GlobalReadingStats allDevicesHistory = GlobalReadingStats::loadAggregated(history);
 
     constexpr std::array<const char*, 33> tabLabels = {
-        "Current",    "Progress",    "Book",      "Trends",       "Activity", "90 Days",      "Calendar",
-        "Heatmap",    "Profile",     "Goals",     "Sessions",     "Weekdays", "Pace",         "Time of Day",
-        "Months",     "Year",        "Devices",   "Sessions Mix", "Streaks",  "Start/Finish", "Dates",
-        "Reader DNA", "DNA Details", "Signature", "Sig Details",  "Fastest",  "Wrapped",      "Started",
-        "Library",    "Taste",       "Series",    "Device",       "Synced",
+        "Current",      "Progress",    "Book",       "Device",       "Synced",     "Devices",   "Trends",
+        "Activity",     "90 Days",     "Calendar",   "Heatmap",      "Profile",    "Goals",     "Sessions",
+        "Weekdays",     "Pace",        "Time of Day", "Months",       "Year",       "Sessions Mix",
+        "Streaks",      "Start/Finish", "Dates",      "Reader DNA",   "DNA Details", "Signature",
+        "Sig Details",  "Fastest",     "Wrapped",    "Started",      "Library",    "Taste",     "Series",
     };
     const auto drawTabs = [&](const size_t selected) {
       renderStatsTabBar(renderer, tabLabels.data(), tabLabels.size(), selected);
@@ -590,19 +590,19 @@ class SimulatorSmokeTest {
     drawTabs(2);
     save("/smoke-stats-book-patterns.bmp");
     renderReadingTrendsPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
-    drawTabs(3);
+    drawTabs(6);
     save("/smoke-stats-trends.bmp");
     renderReadingActivityChartPage(renderer, &mappedInputManager, journal.get(), history, session, 30, true, true);
-    drawTabs(4);
+    drawTabs(7);
     save("/smoke-stats-activity.bmp");
     renderReadingDailyMinutesPage(renderer, &mappedInputManager, journal.get(), history, session, 0, true, true);
-    drawTabs(5);
+    drawTabs(8);
     save("/smoke-stats-daily-minutes.bmp");
     renderReadingDailyMinutesPage(renderer, &mappedInputManager, journal.get(), history, session, 8, true, true);
-    drawTabs(5);
+    drawTabs(8);
     save("/smoke-stats-daily-minutes-scrolled.bmp");
     renderMonthlyReadingCalendarPage(renderer, &mappedInputManager, journal.get(), history, session, 30, true, true);
-    drawTabs(6);
+    drawTabs(9);
     save("/smoke-stats-calendar.bmp");
     renderReadingDayDetailsPage(renderer, &mappedInputManager, ledgerDate, beforeMidnight, 0, false, 0, true, true);
     save("/smoke-stats-day-details.bmp");
@@ -610,98 +610,101 @@ class SimulatorSmokeTest {
                                 true);
     save("/smoke-stats-day-edit.bmp");
     renderReadingHeatmapPage(renderer, &mappedInputManager, journal.get(), history, session, 30, true, true);
-    drawTabs(7);
+    drawTabs(10);
     save("/smoke-stats-heatmap.bmp");
     renderReadingProfilePage(renderer, &mappedInputManager, journal.get(), history, session, 30, true, true);
-    drawTabs(8);
+    drawTabs(11);
     save("/smoke-stats-profile.bmp");
     renderReadingGoalsPage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
-    drawTabs(9);
+    drawTabs(12);
     save("/smoke-stats-goals.bmp");
     renderRecentReadingSessionsPage(renderer, &mappedInputManager, journal.get(), history.totalSessions, 0, true, true);
-    drawTabs(10);
+    drawTabs(13);
     save("/smoke-stats-recent.bmp");
     renderRecentReadingSessionsPage(renderer, &mappedInputManager, journal.get(), history.totalSessions, 3, true, true);
-    drawTabs(10);
+    drawTabs(13);
     save("/smoke-stats-recent-scrolled.bmp");
     renderWeekdayPatternPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
-    drawTabs(11);
+    drawTabs(14);
     save("/smoke-stats-weekdays.bmp");
     renderPaceTrendPage(renderer, &mappedInputManager, journal.get(), session, true, true);
-    drawTabs(12);
+    drawTabs(15);
     save("/smoke-stats-pace.bmp");
     renderTimeOfDayPage(renderer, &mappedInputManager, history, true, true);
-    drawTabs(13);
+    drawTabs(16);
     save("/smoke-stats-time-of-day.bmp");
     renderMonthlyTrendPage(renderer, &mappedInputManager, journal.get(), session, true, true);
-    drawTabs(14);
+    drawTabs(17);
     save("/smoke-stats-months.bmp");
     renderYearLinePage(renderer, &mappedInputManager, journal.get(), session, true, true);
-    drawTabs(15);
+    drawTabs(18);
     save("/smoke-stats-year.bmp");
-    renderDeviceSplitPage(renderer, &mappedInputManager, history, true, true);
-    drawTabs(16);
+    const DeviceSplitStatsSummary deviceSplit = loadDeviceSplitStatsSummary();
+    renderDeviceSplitPage(renderer, &mappedInputManager, history, deviceSplit, true, true);
+    drawTabs(5);
     save("/smoke-stats-devices.bmp");
     renderSessionLengthsPage(renderer, &mappedInputManager, journal.get(), session, true, true);
-    drawTabs(17);
+    drawTabs(19);
     save("/smoke-stats-sessions-mix.bmp");
     renderStreakMilestonesPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
-    drawTabs(18);
+    drawTabs(20);
     save("/smoke-stats-streaks.bmp");
-    renderStartedFinishedPage(renderer, &mappedInputManager, true, true);
-    drawTabs(19);
+    const StartFinishStatsSummary startFinish = loadStartFinishStatsSummary();
+    renderStartedFinishedPage(renderer, &mappedInputManager, startFinish, true, true);
+    drawTabs(21);
     save("/smoke-stats-start-finish.bmp");
     const std::vector<ReadingDateStatsEntry> readingDates = loadReadingDateStatsEntries();
     renderReadingDatesPage(renderer, &mappedInputManager, readingDates, 0, false, true, true);
-    drawTabs(20);
+    drawTabs(22);
     save("/smoke-stats-reading-dates.bmp");
     renderReadingDatesPage(renderer, &mappedInputManager, readingDates,
                            readingDates.empty() ? 0 : readingDates.size() - 1, false, true, true);
-    drawTabs(20);
+    drawTabs(22);
     save("/smoke-stats-reading-dates-scrolled.bmp");
     renderReaderRadarPage(renderer, &mappedInputManager, journal.get(), history, session, &insights, 20, true, true);
-    drawTabs(21);
+    drawTabs(23);
     save("/smoke-stats-reader-dna.bmp");
     renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
-    drawTabs(22);
+    drawTabs(24);
     save("/smoke-stats-dna-details.bmp");
     renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
-    drawTabs(23);
+    drawTabs(25);
     save("/smoke-stats-signature.bmp");
     renderReadingSignatureDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
-    drawTabs(24);
+    drawTabs(26);
     save("/smoke-stats-signature-details.bmp");
-    renderFastestReadsPage(renderer, &mappedInputManager, true, true);
-    drawTabs(25);
+    const std::vector<FastestReadStatsEntry> fastestReads = loadFastestReadStatsEntries();
+    renderFastestReadsPage(renderer, &mappedInputManager, fastestReads, false, true, true);
+    drawTabs(27);
     save("/smoke-stats-fastest.bmp");
     renderReadingWrappedPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
-    drawTabs(26);
+    drawTabs(28);
     save("/smoke-stats-wrapped.bmp");
     const std::vector<StartedBookStatsEntry> startedBooks = loadStartedBookStatsEntries();
     renderStartedBooksPage(renderer, &mappedInputManager, startedBooks, 0, false, true, true);
-    drawTabs(27);
+    drawTabs(29);
     save("/smoke-stats-started.bmp");
     renderStartedBooksPage(renderer, &mappedInputManager, startedBooks,
                            startedBooks.empty() ? 0 : startedBooks.size() - 1, false, true, true);
-    drawTabs(27);
+    drawTabs(29);
     save("/smoke-stats-started-scrolled.bmp");
     renderLibraryInsightsPage(renderer, &mappedInputManager, &insights, true, true);
-    drawTabs(28);
+    drawTabs(30);
     save("/smoke-stats-library.bmp");
     renderReadingTastePage(renderer, &mappedInputManager, &insights, true, true);
-    drawTabs(29);
+    drawTabs(31);
     save("/smoke-stats-taste.bmp");
     renderSeriesProgressPage(renderer, &mappedInputManager, &insights, 0, true, true);
-    drawTabs(30);
+    drawTabs(32);
     save("/smoke-stats-series.bmp");
     renderSeriesProgressPage(renderer, &mappedInputManager, &insights, 3, true, true);
-    drawTabs(30);
+    drawTabs(32);
     save("/smoke-stats-series-scrolled.bmp");
     renderGlobalStatsPage(renderer, &mappedInputManager, "This Device", history, true, true);
-    drawTabs(31);
+    drawTabs(3);
     save("/smoke-stats-this-device.bmp");
     renderGlobalStatsPage(renderer, &mappedInputManager, "All Devices", allDevicesHistory, true, true);
-    drawTabs(32);
+    drawTabs(4);
     save("/smoke-stats-all-devices.bmp");
     stats.isCompleted = true;
     stats.finishedDate = {2026, 7, 14};

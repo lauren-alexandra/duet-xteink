@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -44,8 +45,34 @@ struct ReadingDateStatsEntry {
   bool completed = false;
 };
 
+struct FastestReadStatsEntry {
+  std::string title;
+  uint16_t days = 0;
+  uint32_t seconds = 0;
+};
+
+struct StartFinishStatsSummary {
+  int nowMonth = 0;
+  std::array<uint8_t, 12> started{};
+  std::array<uint8_t, 12> finished{};
+  uint32_t totalStarted = 0;
+  uint32_t totalFinished = 0;
+  bool available = false;
+};
+
+struct DeviceSplitStatsSummary {
+  static constexpr uint8_t MAX_PEERS = 3;
+  std::array<GlobalReadingStats, MAX_PEERS> peers{};
+  std::array<std::string, MAX_PEERS> peerNames{};
+  uint8_t peerCount = 0;
+  bool loaded = false;
+};
+
 std::vector<ReadingDateStatsEntry> loadReadingDateStatsEntries();
 std::vector<StartedBookStatsEntry> loadStartedBookStatsEntries();
+std::vector<FastestReadStatsEntry> loadFastestReadStatsEntries();
+StartFinishStatsSummary loadStartFinishStatsSummary();
+DeviceSplitStatsSummary loadDeviceSplitStatsSummary();
 
 ReadingStreakSummary summarizeReadingStreaks(const ReadingJournal* journal, const GlobalReadingStats& history,
                                              const ReadingSessionSnapshot& session, uint32_t todayDayIndex,
@@ -98,14 +125,15 @@ void renderStreakMilestonesPage(GfxRenderer& renderer, const MappedInputManager*
                                 const ReadingJournal* journal, const GlobalReadingStats& history,
                                 const ReadingSessionSnapshot& session, bool showButtonHints, bool showMoreButton);
 
-void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, bool showButtonHints,
-                               bool showMoreButton);
+void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
+                               const StartFinishStatsSummary& summary, bool showButtonHints, bool showMoreButton);
 
 void renderReadingDatesPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                             const std::vector<ReadingDateStatsEntry>& books, size_t selectedIndex, bool loading,
                             bool showButtonHints, bool showMoreButton);
 
-void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, bool showButtonHints,
+void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
+                            const std::vector<FastestReadStatsEntry>& books, bool loading, bool showButtonHints,
                             bool showMoreButton);
 
 void renderReaderRadarPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, const ReadingJournal* journal,
@@ -134,7 +162,8 @@ void renderMonthlyTrendPage(GfxRenderer& renderer, const MappedInputManager* map
                             const ReadingSessionSnapshot& session, bool showButtonHints, bool showMoreButton);
 
 void renderDeviceSplitPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
-                           const GlobalReadingStats& localStats, bool showButtonHints, bool showMoreButton);
+                           const GlobalReadingStats& localStats, const DeviceSplitStatsSummary& devices,
+                           bool showButtonHints, bool showMoreButton);
 
 void renderReadingActivityChartPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                     const ReadingJournal* journal, const GlobalReadingStats& history,

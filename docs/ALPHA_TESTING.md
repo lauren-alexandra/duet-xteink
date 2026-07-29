@@ -2,9 +2,9 @@
 
 Duet alpha builds are for volunteers who are comfortable backing up an SD card, flashing firmware, collecting logs, and restoring a known-good build. They are not yet recommended as a first e-reader firmware experience.
 
-The current tester version is `v0.1.0-alpha.6`. Internal repair labels such as `wpm2` and `indexing2` are development history, not Duet release versions.
+The current tester version is `v0.1.0-alpha.7`. Internal repair labels such as `wpm2` and `indexing2` are development history, not Duet release versions.
 
-For a practical first pass on this exact candidate, follow the [Alpha.6 Device Acceptance](ALPHA6_ACCEPTANCE_QUICKSTART.md) route and record the results in the [Physical Test Matrix](PHYSICAL_TEST_MATRIX.md).
+For a practical first pass on this exact candidate, follow the [Alpha.7 Device Acceptance](ALPHA7_ACCEPTANCE_QUICKSTART.md) route and record the results in the [Physical Test Matrix](PHYSICAL_TEST_MATRIX.md).
 
 ## Before Installing
 
@@ -21,7 +21,7 @@ These are intentionally public. An alpha tester should know what may fail and wh
 
 ### Fix Included, Physical Verification Needed
 
-- X4 post-install cleanup detects the first boot of a new device/version from an SD-card marker. Alpha.2 relied on the hardware `AfterFlash` route, but SD-card updates restart as a generic software reset and could leave the updater screen ghosting through Home. Verify that the alpha.6 cleanup occurs once after installation and does not repeat on ordinary sleep/wake.
+- X4 post-install cleanup detects the first boot of a new device/version from an SD-card marker. Alpha.2 relied on the hardware `AfterFlash` route, but SD-card updates restart as a generic software reset and could leave the updater screen ghosting through Home. Verify that the cleanup occurs once after the alpha.7 installation and does not repeat on ordinary sleep/wake.
 - X4 sleep once again shows **Going to sleep**, then paints the selected sleep frame with one final full update. Ordinary X4 wake no longer runs the firmware-flash-only black/white scrub before the Duet splash. Verify the settled sleep image, visible flash count, wake time, and old-screen residue. X3 sleep/wake behavior is intentionally unchanged.
 - Library input is intended to remain responsive while covers are generated. Verify this separately in list, grid, and carousel views on both devices.
 - Carousel movement now reuses overlapping covers, preloads one hidden cover beyond each visible edge, and requests higher-quality persistent center and adjacent thumbnails. Verify quality, ordinary next/previous movement after the initial seven-cover window hydrates, and persistence after leaving and returning to a folder.
@@ -39,7 +39,7 @@ These are intentionally public. An alpha tester should know what may fail and wh
 
 For a large or multiply organized library, run the [desktop cover prefill](COVER_PREFILL.md) once after loading books. It creates the exact X3/X4 grid and carousel thumbnails on the computer so browsing is ready immediately, while the firmware remains responsible for genuinely new books later.
 
-The process is incremental and produces `/.duet/state/desktop_cover_prefill.json` for verification. An [AI-assistant prompt](AI_COVER_PREFILL_PROMPT.md) is also available.
+The process is incremental and produces `/.duet/state/desktop_cover_prefill.json` for verification. The complete AI-assistant prompt appears directly on the cover-prefill page and is also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
 
 ### Known Performance Risks
 
@@ -50,7 +50,7 @@ The process is incremental and produces `/.duet/state/desktop_cover_prefill.json
 
 ### Complete Stats Archives
 
-Alpha.6 preserves the validated complete-archive contract while storing new exports under `/.duet/backups/reading-stats`. The archive includes global totals, journal and ledger history, the session log, Stats Date, library statistics, synced-device data and names, and each book's versioned statistics.
+Alpha.7 preserves the validated complete-archive contract while storing new exports under `/.duet/backups/reading-stats`. The archive includes global totals, journal and ledger history, the session log, Stats Date, library statistics, synced-device data and names, and each book's versioned statistics.
 
 Physical acceptance is still required. Keep the full SD-card backup, confirm the export reports a non-zero file count and byte count, restore the archive, and verify global totals, a known book's statistics, session history, and synced-device figures. A successful simulator run does not prove the physical card or panel path.
 
@@ -60,7 +60,7 @@ Physical acceptance is still required. Keep the full SD-card backup, confirm the
 - Repeated X3-to-X4 and X4-to-X3 position and statistics sync.
 - Sleep/wake, achievement notifications, and book resume across long-running use rather than a short smoke test.
 - The locked sleep-image cycle gesture at Off, 1, 2, and 3, including whether the default three-click setting requires an additional initial wake press.
-- X4 sleep/wake after the alpha.6 install path, including sleep from Home and from an open book.
+- X4 sleep/wake after the alpha.7 install path, including sleep from Home and from an open book.
 - Unusual SD-card brands, capacities, filesystems, and near-full cards.
 
 ### SD-Card Health

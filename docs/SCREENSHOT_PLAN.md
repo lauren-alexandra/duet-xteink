@@ -14,24 +14,23 @@ Do not copy a real card's catalogs, statistics, settings, credentials, or device
 
 ## Core Screenshot Set
 
-1. Home dashboard on X3.
-2. Dashboard Extended on X4.
-3. Library list plus 2x2, 3x3, and 4x4 cover grids.
-4. Five-cover carousel with a selected title and author.
-5. Smart search autocomplete and results.
-6. Book Info with cover, description, series, and reading status.
-7. Reader page with the quick overlay.
-8. Font picker and matched A/B comparison.
-9. Dictionary lookup and looked-up-word history.
-10. Every Reading Stats page, including overview, heatmap, streaks, Reader DNA, device split, timelines, and achievements.
-11. Nearby Sync and KOReader Sync confirmation screens without account data.
-12. Sleep screen and the Duet boot mark.
-13. File-transfer web portal.
-14. X3 and X4 together, showing the same book or synced statistics.
+1. Home dashboard and Dashboard Extended.
+2. Library list plus 2x2, 3x3, and 4x4 cover grids.
+3. Five-cover carousel with a selected title and author.
+4. Smart search autocomplete and results.
+5. Book Info with cover, description, series, and reading status.
+6. Reader page with the quick overlay.
+7. Font picker and matched A/B comparison.
+8. Dictionary lookup and looked-up-word history.
+9. Every Reading Stats page, including overview, heatmap, streaks, Reader DNA, device split, timelines, and achievements.
+10. Nearby Sync and KOReader Sync confirmation screens without account data.
+11. Sleep screen and the Duet boot mark.
+12. File-transfer web portal.
+13. X3 and X4 together, showing the same book or synced statistics.
 
 ## Minimum Alpha Launch Set
 
-The soft launch does not need all fourteen scenes. Publish these first:
+The soft launch does not need all thirteen scenes. Publish these first:
 
 1. X3 and X4 together on two different Duet home themes.
 2. One 3x3 grid and one five-cover carousel with fully hydrated covers.
@@ -55,7 +54,7 @@ Keep each clip focused and short enough that viewers can see responsiveness with
 
 ## Capture Rules
 
-- Capture simulator images at native X3 and X4 dimensions.
+- Publish each shared simulator screen once at representative X4 dimensions. Continue regression-testing both X3 and X4 simulator targets.
 - Include several real-device photographs to show actual e-ink rendering.
 - Use full refresh before final still images.
 - Avoid glare, heavy perspective distortion, and hands covering controls.
@@ -72,8 +71,8 @@ Keep each clip focused and short enough that viewers can see responsiveness with
 ```text
 docs/media/
 |-- alpha-0.1.0/
-|   |-- demo/
-|   |-- x3/
+|   |-- fonts/
+|   |-- stats/
 |   |-- x4/
 |   |-- web/
 |   `-- video/
@@ -84,15 +83,15 @@ Only approved, privacy-checked media belongs in the public repository.
 
 ## Publication Package
 
-The public repository contains the reviewed native-resolution simulator gallery under `docs/media/alpha-0.1.0/`. The private media workspace keeps the original BMP captures, contact-sheet working files, and earlier alpha.3 and alpha.5 references outside the release. The final media manifest must record the alpha.6 source revision and both firmware hashes before the gallery is described as release-matched evidence.
+The public repository contains the reviewed native-resolution simulator gallery under `docs/media/alpha-0.1.0/`. The private media workspace keeps the original BMP captures, contact-sheet working files, duplicate device captures, and earlier release references outside the release. The final media manifest must record the alpha.7 source revision and both firmware hashes before the gallery is described as release-matched evidence.
 
 ## Current Candidate Coverage
 
-The public alpha.6 gallery contains 135 PNGs. That includes 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its gallery uses approved real-library covers with fabricated reading data. It also includes fresh X3/X4 Dashboard, Reading Home, Home menu, hydrated 2x2/3x3/4x4 grids, carousel and scrolling-title states, search autocomplete and results, More Info, reader overlay and Book Info, dictionary selection and definition, Apps, Favorites, achievement states, Tetris, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
+The public alpha.7 gallery contains 69 PNGs. That includes one representative 43-image Reading Stats set: all 33 top-level pages plus 10 useful alternate and detail states. The gallery uses approved real-library covers with fabricated reading data. It also includes Dashboard, Reading Home, Home menu, hydrated 2x2/3x3/4x4 grids, carousel and scrolling-title states, search autocomplete and results, More Info for the selected search result, reader overlay and Book Info, dictionary selection and definition, Apps, Favorites, achievement states, Tetris, and font captures generated from the current source. Duplicate X3 and X4 captures remain private regression evidence instead of being published twice.
 
 Real book titles and rendered cover art appear in the library, dashboard, search, More Info, and reader scenes. All reading statistics, progress, sessions, streaks, achievements, sync results, and device names are fabricated.
 
-Before publication, record the final alpha.6 source revision and firmware hashes in the public media manifest, capture the System/version page from the exact final build, rerun OCR and metadata checks, and confirm that the checked-in images still match the final simulator output. Earlier preflight media remains segregated and is not publication evidence.
+Before publication, record the final alpha.7 source revision and firmware hashes in the public media manifest, capture the System/version page from the exact final build, rerun OCR and metadata checks, and confirm that the checked-in images still match the final simulator output. Earlier preflight media remains segregated and is not publication evidence.
 
 Real-device photos, responsiveness clips, boot and sleep frames, a physical Nearby Sync clip, and the X3/X4 together shot remain physical-device work.
 
@@ -100,22 +99,21 @@ Real-device photos, responsiveness clips, boot and sleep frames, a physical Near
 
 | Scene | Status | Next action |
 | --- | --- | --- |
-| X3 Dashboard | Fresh alpha.6 simulator capture reviewed | Included in public gallery |
-| X4 Dashboard Extended | Fresh alpha.6 simulator capture reviewed | Included in public gallery |
-| X3/X4 Home menu | Fresh alpha.6 simulator captures reviewed | Included in public gallery |
-| X3/X4 2x2, 3x3, and 4x4 grids | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 five-cover carousel and scrolling-title state | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 search autocomplete, filled suggestion, and results | Fresh alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 More Info | Fresh hydrated alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 reader quick overlay and reader Book Info | Fresh alpha.6 captures reviewed | Included in public gallery |
-| Font picker/comparison | Four alpha.6 A/B captures showing eight distinct current and preview families | Included in public gallery |
-| X3/X4 Dictionary selection and definition | Fresh alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 Apps and Favorites | Fresh alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 Achievements in-progress and completed states | Fresh alpha.6 captures reviewed | Included in public gallery |
-| X3/X4 Tetris | Fresh alpha.6 captures reviewed | Included in public gallery |
-| All Reading Stats pages | 43 fresh alpha.6 frames per device reviewed | Included in complete X3/X4 gallery |
-| Nearby and KOReader Sync | Fresh public-data capture still required | Capture from final alpha.6 build |
+| Dashboard and Dashboard Extended | Representative simulator captures reviewed | Included in public gallery |
+| Home menu | Representative simulator capture reviewed | Included in public gallery |
+| 2x2, 3x3, and 4x4 grids | Representative hydrated captures reviewed | Included in public gallery |
+| Five-cover carousel and scrolling-title state | Representative hydrated captures reviewed | Included in public gallery |
+| Search autocomplete, filled suggestion, and results | Representative captures reviewed | Included in public gallery |
+| More Info | Hydrated Love Theoretically capture matches the highlighted search result | Included in public gallery |
+| Reader quick overlay and reader Book Info | Representative captures reviewed | Included in public gallery |
+| Font picker/comparison | Four A/B captures show eight distinct current and preview families | Included in public gallery |
+| Dictionary selection and definition | Representative captures reviewed | Included in public gallery |
+| Apps and Favorites | Representative captures reviewed | Included in public gallery |
+| Achievements in-progress and completed states | Representative captures reviewed | Included in public gallery |
+| Tetris | Representative capture reviewed | Included in public gallery |
+| All Reading Stats pages | One 43-frame shared-interface set reviewed | Included in complete gallery |
+| Nearby and KOReader Sync | Fresh public-data capture still required | Capture from final alpha.7 build |
 | Sleep and boot | Outstanding | Capture clean X3 and X4 device frames |
-| System/version | Alpha.5 source capture is obsolete | Recapture from alpha.6 |
-| Web portal | Data-safe alpha.5 source capture reviewed | Compare with alpha.6 and approve |
+| System/version | Earlier source capture is obsolete | Recapture from alpha.7 |
+| Web portal | Earlier data-safe capture reviewed | Compare with alpha.7 and approve |
 | X3 and X4 together | Outstanding | Photograph after final physical acceptance |

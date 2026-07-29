@@ -5,13 +5,13 @@ nav_order: 1
 
 # Start here
 
-Duet is early-alpha firmware for the Xteink X3 and X4. The current tester release is `v0.1.0-alpha.6`. Start by identifying your device, backing up the complete SD card, and keeping a known-good firmware BIN available for recovery. X3 and X4 firmware files are not interchangeable.
+Duet is early-alpha firmware for the Xteink X3 and X4. The current tester release is `v0.1.0-alpha.7`. Start by identifying your device, backing up the complete SD card, and keeping a known-good firmware BIN available for recovery. X3 and X4 firmware files are not interchangeable.
 
 ## First Duet installation
 
 1. Read the [current alpha notes and known issues](ALPHA_TESTING.md).
 2. Back up the complete SD card, including hidden folders.
-3. Download the [X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin) or [X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin). The [complete alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6) also provides the combined firmware ZIP and SHA-256 checksums.
+3. Download the [X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin) or [X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin). The [complete alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7) also provides the combined firmware ZIP and SHA-256 checksums.
 4. Wake and unlock the reader, connect it by USB-C, and open the [CrossPoint web installer](https://crosspointreader.com/#flash-tools).
 5. Choose the correct device, select **Custom .bin**, and flash the Duet BIN.
 6. After the restart, open **Settings > System** and confirm the displayed Duet version.
@@ -33,7 +33,7 @@ Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk s
 
 Copy supported books to the SD card in the folder structure you want to browse. Duet reads EPUB, XTC, XTCH, TXT, and Markdown files. The [User Guide](../USER_GUIDE.md) covers the reader, library views, search, More Info, bookmarks, clippings, statistics, sleep modes, and settings.
 
-For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. A ready-to-paste [computer-assistant prompt](AI_COVER_PREFILL_PROMPT.md) is included for Codex, Claude CoWork, Perplexity Computer, or another local assistant.
+For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. The complete ready-to-paste prompt for Codex, Claude CoWork, Perplexity Computer, or another local assistant is included directly on that page and also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
 
 More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts** or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). See [SD-card fonts](sd-card-fonts.md), [Reader Features](reader-features.md), and the [User Guide](../USER_GUIDE.md) for the exact structures.
 
@@ -45,7 +45,7 @@ Position sync requires the same book identity on both readers. Statistics and ac
 
 ## Testing the alpha
 
-Use the short [Alpha.6 Acceptance Quickstart](ALPHA6_ACCEPTANCE_QUICKSTART.md) for an ordered physical-device pass. The broader [Alpha Testing guide](ALPHA_TESTING.md) lists known issues, high-value test areas, useful logs, privacy rules, and a copy-ready report format.
+Use the short [Alpha.7 Acceptance Quickstart](ALPHA7_ACCEPTANCE_QUICKSTART.md) for an ordered physical-device pass. The broader [Alpha Testing guide](ALPHA_TESTING.md) lists known issues, high-value test areas, useful logs, privacy rules, and a copy-ready report format.
 
 Use **Alpha Test Report** for a successful or mixed test session and **Alpha Bug Report** for one reproducible defect. Do not upload ebooks, full SD-card archives, credentials, personal catalogs, contact files, or raw reading history. Review logs before posting because book paths and filenames may be personal.
 
@@ -65,6 +65,6 @@ The [Troubleshooting guide](troubleshooting.md) covers firmware recovery, SD-car
 | Installation and recovery | [Installation](installation.md) and [Troubleshooting](troubleshooting.md) |
 | Current alpha risks and test targets | [Alpha Testing](ALPHA_TESTING.md) |
 | Large-library cover preparation | [Desktop Cover Prefill](COVER_PREFILL.md) |
-| All current screenshots | [Alpha.6 Media Gallery](media/alpha-0.1.0/README.md) |
+| All current screenshots | [Alpha.7 Media Gallery](media/alpha-0.1.0/README.md) |
 | Contributing code or documentation | [Contributing to Duet](../CONTRIBUTING.md) |
 | Complete credit and audited upstream revisions | [Third-Party Notices](../THIRD_PARTY_NOTICES.md) |

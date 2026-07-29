@@ -4,16 +4,16 @@ This page separates source review, build success, simulator coverage, and behavi
 
 ## Current candidate
 
-- Version: `v0.1.0-alpha.6`
-- X3 artifact: `Duet-X3-v0.1.0-alpha.6.bin`
-- X3 size: 5,937,136 bytes
-- X3 SHA-256: `0db9b7712cda235b54e064403510480a577334b8faf5eeb61fa7c2eef26f22ef`
-- X4 artifact: `Duet-X4-v0.1.0-alpha.6.bin`
-- X4 size: 5,800,048 bytes
-- X4 SHA-256: `9ba44d3b3a7a524173748901124b8557516605fff1aeef9a017d49e475e41d4f`
+- Version: `v0.1.0-alpha.7`
+- X3 artifact: `Duet-X3-v0.1.0-alpha.7.bin`
+- X3 size: 5,941,904 bytes
+- X3 SHA-256: `e27ede316b5fce4729395b7d68c18fed9be6b18507919a13b6e38c474b0629ba`
+- X4 artifact: `Duet-X4-v0.1.0-alpha.7.bin`
+- X4 size: 5,804,864 bytes
+- X4 SHA-256: `c38ed35ccd48df2d2dda3507fece1f843eb43005b934a4d629219e10540fa583`
 - Source state: release branch pending final tag and prerelease publication
 
-Both alpha.6 hardware targets build successfully. The X3 image uses 90.4% of its configured flash partition and leaves 616,464 bytes of OTA app-partition headroom. The X4 image uses 88.3% and leaves 753,552 bytes. All 117 host unit tests pass, the X3 and X4 simulator smoke tests pass, and static analysis reports no high- or medium-severity findings. The immediately preceding internal X3/X4 code lineage was exercised on both personal devices, including the chapter-preview completion repair and current-book WPM display. That is useful development evidence, but it is not a substitute for testing these exact cleanly named alpha.6 artifacts. Simulator results do not prove physical panel refresh behavior.
+Both alpha.7 hardware targets build successfully. The X3 image leaves 611,696 bytes of OTA app-partition headroom. The X4 image leaves 748,736 bytes. All 117 host unit tests pass, and the X3 and X4 simulator smoke tests pass. This is useful development evidence, but it is not a substitute for testing these exact cleanly named alpha.7 artifacts. Simulator results do not prove physical panel refresh behavior.
 
 ## Alpha 2 Status
 
@@ -21,11 +21,11 @@ Alpha.2 was not physically tested. The X4 photo initially attributed to alpha.2 
 
 Code review still found an installation-path weakness worth fixing before the next flash: SD updates restart with `ESP_RST_SW`, which HalGPIO classifies as `Other`, so an `AfterFlash`-only cleanup gate is unreliable. Alpha.3 replaces that gate with a device-and-version marker.
 
-## Alpha 6 Acceptance
+## Alpha 7 Acceptance
 
 | Area | X3 | X4 | Evidence needed |
 | --- | --- | --- | --- |
-| Install and reported version | Pending | Pending | System page shows `Duet 0.1.0-alpha.6` |
+| Install and reported version | Pending | Pending | System page shows `Duet 0.1.0-alpha.7` |
 | Canonical storage migration | Pending | Pending | `/.duet` created; active book, progress, settings, stats, achievements, covers, and catalog preserved; legacy roots untouched |
 | Second boot after migration | Pending | Pending | Migration does not visibly repeat and the same active book remains selected |
 | Post-install Home ghosting | Pending | Pending | No updater text or prior screen after first settled Home frame |

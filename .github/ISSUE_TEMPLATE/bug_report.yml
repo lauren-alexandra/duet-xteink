@@ -28,7 +28,7 @@ body:
     attributes:
       label: Duet Version
       description: Copy the exact value shown in Settings > System.
-      placeholder: Ex. Duet 0.1.0-alpha.6
+      placeholder: Ex. Duet 0.1.0-alpha.7
     validations:
       required: true
 

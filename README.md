@@ -24,13 +24,13 @@ For the complete public-facing story in one place, including how the features wo
 
 ## Downloads
 
-The current tester release is **Duet v0.1.0-alpha.6**:
+The current tester release is **Duet v0.1.0-alpha.7**:
 
-- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin)
-- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin)
-- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-v0.1.0-alpha.6-firmware.zip)
-- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/SHA256SUMS.txt)
-- [Read the alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6)
+- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin)
+- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin)
+- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-v0.1.0-alpha.7-firmware.zip)
+- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
+- [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
 
 Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases).
 
@@ -41,16 +41,16 @@ New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the 
 - **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
 - **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
 - **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
-- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), including a ready-to-paste [computer-assistant prompt](docs/AI_COVER_PREFILL_PROMPT.md).
+- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), with the complete computer-assistant prompt directly on the page and also available as a [standalone prompt](docs/AI_COVER_PREFILL_PROMPT.md).
 - **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
-- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.6 Acceptance Quickstart](docs/ALPHA6_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
+- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
 - **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
 
 ---
 
 ## Alpha status
 
-Duet v0.1.0-alpha.6 already runs on both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, and repeated two-device sync.
+Duet v0.1.0-alpha.7 targets both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include statistics responsiveness and WPM estimates, first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, font-download back-out, and repeated two-device sync.
 
 See [Duet Alpha Testing](docs/ALPHA_TESTING.md) for the current known issues, test matrix, privacy rules, and useful logs. A successful build or simulator run is not presented as physical-device acceptance. Use the repository's **Alpha Test Report** form for successful or mixed sessions and **Alpha Bug Report** for one reproducible defect. Maintainer-side publication follows the [release runbook](docs/MAINTAINER_RELEASE_RUNBOOK.md); incoming reports follow the [alpha triage guide](docs/ISSUE_TRIAGE.md).
 
@@ -60,11 +60,9 @@ Developers are especially welcome. Duet is currently maintained by Lauren alone,
 
 ## Screenshots and demos
 
-These native-resolution alpha.6 simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
+Duet uses the same interface and feature code on X3 and X4, so the gallery shows each shared screen once at representative X4 resolution instead of duplicating every image. These simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
 
-| X4 feature overview | X3 feature overview |
-| --- | --- |
-| [![Duet alpha.6 on X4](docs/media/alpha-0.1.0/x4/feature-overview.png)](docs/media/alpha-0.1.0/x4/feature-overview.png) | [![Duet alpha.6 on X3](docs/media/alpha-0.1.0/x3/feature-overview.png)](docs/media/alpha-0.1.0/x3/feature-overview.png) |
+[![Duet feature overview](docs/media/alpha-0.1.0/x4/feature-overview.png)](docs/media/alpha-0.1.0/x4/feature-overview.png)
 
 | Dashboard | Cover grid | Carousel |
 | --- | --- | --- |
@@ -82,7 +80,7 @@ These native-resolution alpha.6 simulator captures use recognizable books from L
 | --- | --- | --- |
 | [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
 
-Browse the [complete 135-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+Browse the [complete 69-image media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state once for the shared X3/X4 interface. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
 
 ---
 
@@ -180,7 +178,7 @@ Public alpha downloads will be published only through this repository's [Release
 Read the [Start Here guide](docs/START_HERE.md) and [full installation instructions](docs/installation.md) before flashing. The short version is:
 
 1. **Back up your SD card.**
-2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.6.bin` or `Duet-X4-v0.1.0-alpha.6.bin`).
+2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.7.bin` or `Duet-X4-v0.1.0-alpha.7.bin`).
 3. For a first Duet installation or recovery, use the CrossPoint web installer's **Custom .bin** option.
 4. For a Duet-to-Duet update, put exactly one firmware BIN at the SD-card root, then choose **Settings → System → SD Firmware Update**.
 5. After flashing, confirm **Settings → System** shows the expected Duet version before a long reading session.

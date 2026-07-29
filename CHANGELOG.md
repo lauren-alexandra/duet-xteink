@@ -1,3 +1,21 @@
+## [0.1.0-alpha.7] - 2026-07-29
+
+### Changed
+
+- Current-book, Pace Trend, Reader DNA, and Reading Signature pace fields now use estimated words per minute when Duet can connect attributable reading time to a cataloged book's word count and saved progress.
+- Book, Device, Synced, and Devices statistics pages now sit together near the beginning of the horizontal tab strip.
+- Fastest Reads, Start/Finish, and Device Split load and cache their derived data after the initial page shell paints, so navigation does not perform the complete scan before responding.
+- The Streaks page targets the first milestone above the personal longest streak and reports the consecutive days the current streak still needs.
+- Backing out of the Manage Fonts WiFi picker preserves the installed-font registry and no longer restarts the reader.
+- The public gallery now publishes 69 representative shared-interface images instead of duplicate X3 and X4 sets, and the search sequence's More Info screen matches its highlighted Love Theoretically result.
+- The Desktop Cover Prefill page now includes the complete copy-ready AI assistant prompt directly on the page.
+
+### Verification
+
+- All 117 host tests pass.
+- X3 and X4 simulator smoke tests pass.
+- Both public firmware targets build within the OTA app partition.
+
 ## [0.1.0-alpha.6] - 2026-07-28
 
 ### Added
