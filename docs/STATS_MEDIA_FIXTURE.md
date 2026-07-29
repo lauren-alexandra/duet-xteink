@@ -16,7 +16,7 @@ The current simulator fixture includes:
 - Four populated genres, four authors, eight heat categories, and 24 series.
 - Populated monthly, yearly, weekday, time-of-day, session-length, timeline, fastest-read, start/finish, Reader DNA, and Wrapped views.
 
-`The Love Hypothesis` may appear as real interface display text. Its progress, reading time, pace, sessions, dates, and every other statistic are invented. All other fixture book and author names are fictional.
+Recognizable books may appear as interface display text and cover art in the broader gallery. Their progress, reading time, pace, sessions, dates, and every other statistic are invented. The reproducible demo uses only public-domain classics, and all remaining fixture book and reader names are fictional.
 
 ## Capture Inventory
 

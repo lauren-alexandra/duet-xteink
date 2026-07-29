@@ -589,8 +589,9 @@ Duet uses one shared source tree for both readers, with device-specific build pr
 
 Current intentional differences include:
 
-- X3 built-in font sizes: 10, 12, 14, 16 pt
-- X4 built-in font sizes: 16, 18, 20 pt
+- X3 firmware-only fallback sizes: 10, 12, 14, 16 pt
+- X4 firmware-only fallback sizes: 16, 18, 20 pt
+- Standard SD-card family sizes on either device: 10, 12, 14, 16, 18, 20 pt
 - X3 can expose tilt page turn when its QMI8658 sensor is available
 - Minimal Stats sleep mode is visible on X3 and hidden on X4
 - Display refresh and memory limits require device-specific tuning even when the user-facing feature is shared

@@ -219,7 +219,7 @@ The Settings screen allows you to configure the device's behavior. There are a f
   - "Lexend Deca" (default)
   - "Bitter"
 
-- **Reader Font Size**: Adjust the text size for reading. The public X3 build includes 10, 12, 14, and 16 pt built-ins. The public X4 build includes 16, 18, and 20 pt built-ins. An SD-card font family exposes the sizes actually installed for that family.
+- **Reader Font Size**: Adjust the text size for reading. The firmware-only X3 fallback fonts include 10, 12, 14, and 16 pt; the firmware-only X4 fallbacks include 16, 18, and 20 pt. Those smaller built-in sets preserve flash space and do not limit SD fonts. A standard Duet SD-card family can expose 10, 12, 14, 16, 18, and 20 pt on either device, and any manually installed family exposes the sizes actually present.
 
 - **Reader Line Spacing**: Choose Tight, Normal, or Wide, then adjust the line height percentage more precisely if desired.
 

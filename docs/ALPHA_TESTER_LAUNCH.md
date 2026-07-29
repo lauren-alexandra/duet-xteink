@@ -1,22 +1,81 @@
-# Reddit Soft-Launch Draft
+# Reddit soft-launch draft
 
 ## Title
 
-Duet: looking for Xteink X3/X4 alpha testers for a reading-focused CrossInk fork
+I built Duet, an open-source Xteink X3/X4 firmware with cover libraries, deep reading stats, custom fonts, and two-reader sync [early alpha]
 
 ## Post
 
-Hi! I've been building **Duet**, an open-source CrossInk fork for the Xteink X3 and X4, entirely as a one-person project. I am its creator, designer, maintainer, physical-device tester, documentation department, and person currently asking two tiny e-readers to do an unreasonable number of things. I think it is ready for a small, honest alpha test rather than a grand “everything is finished” launch.
+Hi! I've been building **Duet**, an open-source CrossInk fork for the Xteink X3 and X4, entirely as a one-person project. I am its creator, designer, maintainer, physical-device tester, documentation department, and person currently asking two tiny e-readers to do an unreasonable number of things. It is ready for a small, honest alpha test rather than a grand "everything is finished" launch.
 
-Duet is for people who want these tiny readers to feel like a real personal library: cover grids and a carousel, smart title/author/series search, book descriptions, custom dashboards, a much larger reading-stats system, custom fonts and dictionaries, bookmarks and clippings, configurable reader controls, sleep screens, achievements, and direct X3/X4 stats and position sync.
+Duet is for people who want these tiny readers to feel like a real personal library instead of a folder with page-turn buttons. It combines cover-focused browsing, search and book information, detailed reading history, extensive typography controls, flexible Home screens, dictionaries and saved reading tools, and direct X3/X4 sync.
 
-The current source-verified inventory includes eight Home themes, 6 book-browser layouts, 33 top-level statistics pages, 22 launcher destinations, 12 sleep modes, and 108 persistent achievement milestones. The complete public story is in `docs/DUET_FULL_FEATURE_TOUR.md`, the canonical technical inventory is in `FEATURES.md`, and `THIRD_PARTY_NOTICES.md` records the exact audited upstream revisions and direct versus design-only adaptation.
+The current source-verified inventory includes eight Home themes, six book-browser layouts, 33 top-level statistics pages, 22 launcher destinations, 12 sleep modes, and 108 persistent achievement milestones. The complete public story is in `docs/DUET_FULL_FEATURE_TOUR.md`, the canonical technical inventory is in `FEATURES.md`, and `THIRD_PARTY_NOTICES.md` records the exact audited upstream revisions and direct versus design-only adaptation.
 
 The project is open source under MIT. Forks are welcome. The official source and releases are:
 
 https://github.com/lauren-alexandra/duet-xteink
 
+Screenshots, including every current statistics page on both X3 and X4:
+
+https://lauren-alexandra.github.io/duet-xteink/media/alpha-0.1.0/
+
 The current tester build is **v0.1.0-alpha.6** with separate, clearly named X3 and X4 BINs. Please only test if you are comfortable backing up an SD card, keeping a rollback BIN, and collecting a small log if something goes wrong.
+
+### What is in Duet
+
+#### Library and discovery
+
+- One-line and two-line lists, 2x2, 3x3, and 4x4 cover grids, plus a five-cover carousel.
+- Cover/title and title/author presentation, folder counts, page counts, sort by title or author, and progress/reading-state signals.
+- Smart autocomplete and full search across any title word, author, series, and catalog tags, rather than requiring the query to begin with the first word of a title.
+- More Info pages with cover, title, author, series, description, genre, spice level, progress, and direct Open.
+- Favorites, Saved Items, Recent Books, Mark Finished/Unread, and optional finished-book movement to `/Read`.
+- A desktop cover-prefill tool for large or multiply organized libraries. It creates the exact X3/X4 thumbnails the firmware requests so the first visit to a grid or carousel does not have to generate every cover on the reader.
+- Clean Library Cache, which refuses incomplete scans and moves confirmed orphaned caches into a recoverable `.attic` instead of deleting them.
+
+#### Reading and typography
+
+- EPUB, XTC, XTCH, TXT, and Markdown reading, with saved per-book position.
+- A quick in-reader overlay for chapters, dictionary lookup, Go To, sync, quick stats, X3 tilt controls, auto page turn, spacing, Reader Options, and the full reader menu.
+- Global reader defaults plus automatic per-book overrides for font, size, line spacing, margins, orientation, alignment, publisher styles, hyphenation, images, reading aids, and render profile.
+- Tight, Normal, and Wide line-spacing presets plus granular adjustment; 5-40 px margins; multiple alignment and text-darkness options; Dark Reader Mode; Bionic Reading; Guide Dots; and forced first-line indents.
+- Custom `.cpfont` families grouped by Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative.
+- The firmware-only fallback fonts use device-specific size sets to fit inside flash. Standard SD-card families can expose 10, 12, 14, 16, 18, and 20 pt on either X3 or X4.
+- Real Regular, Italic, Bold, and Bold Italic faces where installed, with synthetic bold and italic fallbacks for incomplete families.
+- Font preview, category browsing, style specimens, and A/B comparison.
+- StarDict dictionaries, multiple installed dictionary choices, in-reader lookup, and per-book Looked-Up Words history.
+- Bookmarks, highlighted clippings, `/My Clippings.txt`, footnotes with quick return, screenshots, QR position sharing, auto page turn, and optional X3 tilt-to-turn.
+
+#### Reading statistics
+
+- Reading time, counted sessions, exact session history, pages, estimated words per minute for the current book, time left, dates, completions, goals, and streaks.
+- A deliberate time/session rule: all active reading time is retained, while a counted session requires at least one page turn.
+- Daily journal and per-date book attribution, so time and pages can be traced back to the books that produced them.
+- Current Book, Book Progress, Book Patterns, Trends, Activity, Daily Minutes, Monthly Calendar, a 12-month heatmap, Goals, Recent Sessions, weekday and time-of-day patterns, pace, monthly/year views, session lengths, streak milestones, started/finished history, and book date correction.
+- Reading Profile for raw recent measurements, plus a separate six-axis Reader DNA model and a plain-language Reading Signature with the measurements visible behind both.
+- Fastest Reads, Wrapped, Started Books, Library Overview, Reading Taste, Series Progress, This Device, All Devices, and Device Split.
+- Manual time correction with validation and rollback, deliberate holds before changing start/finish dates, optional exclusions for books under `/ignore_stats/`, and complete `.cstats` export/restore archives.
+
+#### Home, personalization, and tools
+
+- Eight Home themes: Classic, Minimal, Dashboard, Dashboard Extended, Lyra, Lyra Extended, Lyra Carousel, and RoundedRaff.
+- Home Stats customization with selectable dashboard rows, footer values, and strip values.
+- A customizable 22-destination Home/Apps launcher with protected escape routes so Settings and Browse Files cannot accidentally become unreachable.
+- 108 persistent achievements across reading starts, sessions, finished books, reading time, goals, streaks, bookmarks, long sessions, reading days, screen pages, series, reading times, and cross-device use.
+- Twelve sleep modes, including custom images, book covers, Page Overlay, statistics, Dashboard, Minimal, and Quick Resume presentations.
+- Custom BMP sleep images, transparent PNG Page Overlays, fitted/cropped cover options, Screen Clean, and configurable locked-screen image cycling.
+- Tetris, Favorites, Dictionary, If Found, File Transfer, OPDS, KOReader setup, and recovery tools without turning the reader into a general-purpose app collection.
+
+#### Two readers and recovery
+
+- Nearby Position Sync compares the current EPUB position and moves only after explicit confirmation.
+- Nearby Reading Stats Sync exchanges device names, global totals, per-book detail, journals, attribution ledgers, Stats Date, and retained peer snapshots while preserving separate This Device and All Devices views.
+- KOReader Sync remains available for remote book-position synchronization.
+- Duet writes new state under `/.duet` and non-destructively imports inherited `/.crossink`, `/.crosspoint`, and `/.crossink-stats-backup` state without deleting the original source.
+- Cache-safe book moves preserve durable progress and statistics while disposable layout data can rebuild.
+- Crash reports and breadcrumb timing cover boot, Home, picker, sync preparation, reader transitions, and chapter pre-indexing.
+- The X3 and X4 use one shared source tree with device-specific geometry, memory profiles, refresh handling, and public build targets.
 
 I genuinely want all the useful feedback I can get: bugs, confusing button behavior, features you wish existed, accessibility needs, documentation that does not make sense, performance differences between cards or devices, visual details that feel off, and things Duet already does especially well. You do not need to be a firmware developer to notice something valuable. If you are a developer and would like to help investigate, fix, document, test, or improve any part of Duet, I would genuinely love that too. Focused pull requests are welcome, and the contributor guide identifies the areas where another pair of technical eyes would help most.
 
