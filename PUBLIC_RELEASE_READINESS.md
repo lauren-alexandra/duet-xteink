@@ -21,7 +21,7 @@ Duet v0.1.0-alpha.6 is in final prerelease preparation. The latest shared X3/X4 
 - Added an incremental desktop cover-prefill workflow and guarded computer-assistant prompt for large or multiply organized libraries.
 - Rebranded the boot/version display, Settings footer, default device names, simulator, crash text, web portal, translations, updater, release workflows, release catalog, and public documentation as Duet.
 - Preserved `/.crossink`, `/.crosspoint`, `/.crossink-stats-backup`, legacy setting names, render-mode IDs, and internal compatibility symbols as migration and recovery inputs so existing device state survives the public rename and canonical `/.duet` move.
-- Added alpha release notes, a Reddit soft-launch draft, exact installation and recovery instructions, a screenshot plan, a complete public feature tour, and `release/README-FIRST.txt`.
+- Added alpha release notes, a Reddit soft-launch draft, exact installation and recovery instructions, a complete public feature tour, and `release/README-FIRST.txt`.
 - Added backup-first SD-card verification guidance so filesystem damage is not mistaken for a firmware defect or "fixed" by deleting recoverable state.
 - Added an automated public-release audit for version drift, required attribution files, local computer paths, phone-number-shaped text, ebooks outside approved test fixtures, and accidentally tracked device-state files.
 - Added automation for a self-contained firmware archive with both device builds, checksums, tester instructions, installation/recovery help, the complete feature catalog and user guide, cover-prefill guidance, authorship, notices, and licenses.
@@ -95,8 +95,6 @@ Duet-v0.1.0-alpha.6-firmware.zip
 |   |-- font-build-variants.md
 |   |-- nearby-position-sync.md
 |   |-- PHYSICAL_TEST_MATRIX.md
-|   |-- SCREENSHOT_PLAN.md
-|   |-- STATS_MEDIA_FIXTURE.md
 |   |-- controls.md
 |   |-- data-cache.md
 |   |-- epub-render-modes.md

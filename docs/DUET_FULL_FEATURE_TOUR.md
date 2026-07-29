@@ -347,7 +347,7 @@ Because these readers do not have a dependable real-time clock, Duet also keeps 
 | 10 | Goals | Daily goal and goal-streak detail |
 | 11 | Recent Sessions | Scrollable exact session history |
 | 12 | Weekday Pattern | Reading distribution by weekday |
-| 13 | Pace Trend | Relative 30-day screen-page pace and direction; historical journals do not contain the per-book word totals needed to reconstruct WPM |
+| 13 | Pace Trend | Attributable 30-day words-per-minute history, 7-day and 30-day averages, and trend direction when cataloged books have word counts and progress |
 | 14 | Time of Day | Morning, afternoon, evening, and night distribution |
 | 15 | Monthly Trend | Reading by month |
 | 16 | Year Line | Cumulative current-year line and page-turn total |
@@ -451,8 +451,8 @@ ChareInk7 is part of the fallback stack, not a third selectable built-in. Noto E
 
 Built-in reading sizes are device-specific:
 
-- X3: 10, 12, 14, and 16 pt
-- X4: 16, 18, and 20 pt
+- X3 firmware-only fallback: 10, 12, 14, and 16 pt
+- X4 firmware-only fallback: 16, 18, and 20 pt
 
 Additional `.cpfont` families can be installed under `/.fonts/` or `/fonts/`. The font picker organizes them into:
 
@@ -511,7 +511,11 @@ Custom mode can rotate BMP files from `/.sleep` or `/sleep`, with a root `sleep.
 
 Page Overlay places sleep artwork over the stored monochrome reader page. BMP white behaves as transparent; PNG alpha can preserve the page underneath. PNG sleep images are accepted in Page Overlay mode, not in every sleep mode.
 
+### Locked Sleep-Image Cycling
+
 While locked, an optional 1-, 2-, or 3-click Power gesture can cycle to a fresh sleep image and return directly to sleep. CrumBLE supplied the original one-tap behavior; Duet made the count configurable and defaults to three at Lauren's direction because one tap was too easy to trigger accidentally. Although the code intends to count the initial wake press as click one, the current physical builds can require one wake press followed by the three taps, making the default gesture feel like four physical presses. That is a disclosed alpha input quirk, not a fourth setting.
+
+### Awake Power Actions
 
 While awake, single, double, triple, and long Power actions can be configured separately. Long Menu and Back actions are configurable too. Possible actions include Sleep, page turn, bookmark, stats, Mark Finished, refresh, font change, Guide Dots, Bionic Reading, page-turn mode, Sync Progress, File Transfer, Calibre Wireless, network/hotspot, screenshot, Dark Mode, footnotes, Browse Files, and clipping. Tilt appears only when the sensor is available.
 
@@ -756,8 +760,7 @@ Both devices must run the same Duet release before using Nearby Sync.
 - [Alpha Testing][23]: known issues, logs, and reporting
 - [Cover Prefill][24]: computer-side thumbnail generation
 - [User Guide][25]: everyday use
-- [Public Screenshot and Demo Plan][26]: media rules and shot list
-- [Public Release Readiness][27]: remaining release gates
+- [Public Release Readiness][26]: remaining release gates
 
 Duet is open source under MIT. The public alpha is an invitation to test it carefully, report honestly, and help make the X3 and X4 nicer places to read.
 
@@ -786,5 +789,4 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [23]: ALPHA_TESTING.md
 [24]: COVER_PREFILL.md
 [25]: ../USER_GUIDE.md
-[26]: SCREENSHOT_PLAN.md
-[27]: ../PUBLIC_RELEASE_READINESS.md
+[26]: ../PUBLIC_RELEASE_READINESS.md

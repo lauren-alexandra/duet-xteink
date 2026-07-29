@@ -104,6 +104,7 @@ Nearby Position Sync is **not** unique to Duet; it is inherited from CrossInk. K
 
 - The PNG Page Overlay compositor that reveals the stored monochrome reader page through transparent regions.
 - Dashboard sleep presentation and Duet's large-folder sleep-image inventory cache.
+- Duet's configurable Off/1/2/3-click extension to CrumBLE's locked one-tap sleep-image cycling, including the Lauren-selected three-click default.
 - Duet's expanded Power-action mapping system around the credited CrossPet multi-click detector and inherited CrossInk controls.
 - Shared X3/X4 integration with device-specific geometry, memory profiles, refresh handling, and X4 ghosting repairs.
 
@@ -172,8 +173,8 @@ Nearby Position Sync is **not** unique to Duet; it is inherited from CrossInk. K
 | --- | --- | --- |
 | Selectable built-ins | Lexend Deca and Bitter. | CrossInk, with Duet size reduction |
 | Built-in fallback stack | ChareInk7 fills selected missing reader glyphs; Noto Emoji, Noto Sans Symbols, and Noto Sans CJK SC provide limited symbol/language fallback; Inter is the UI face with IBM Plex Sans Hebrew fallback. ChareInk7 is not a separate selectable built-in in the public build. | CrossInk |
-| X3 built-in sizes | 10, 12, 14, and 16 pt in `x3-public`. | CrossInk build variants; Duet public profile |
-| X4 built-in sizes | 16, 18, and 20 pt in `x4-public`. | CrossInk build variants; Duet public profile |
+| X3 built-in fallback sizes | 10, 12, 14, and 16 pt in `x3-public`. | CrossInk build variants; Duet public profile |
+| X4 built-in fallback sizes | 16, 18, and 20 pt in `x4-public`. | CrossInk build variants; Duet public profile |
 | SD-card font families | `.cpfont` families discovered from `/.fonts/` or `/fonts/`, grouped as Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. | CrossPoint/CrossInk SD fonts; Duet catalog and grouping |
 | SD-card sizes | A family exposes the sizes actually installed. The standard Duet generation set uses 10, 12, 14, 16, 18, and 20 pt on either X3 or X4, but the firmware does not invent missing files. | CrossInk format; Duet registry |
 | Font styles | Real Regular, Italic, Bold, and Bold Italic where present; synthetic bold and/or italic when a family lacks a face. | CrossPoint/CrossInk format; Duet fallbacks |

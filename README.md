@@ -81,7 +81,7 @@ Duet uses the same interface and feature code on X3 and X4, so the gallery shows
 | --- | --- | --- |
 | [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
 
-Browse the [complete 69-image media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state once for the shared X3/X4 interface. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+Browse the [complete 69-image media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state once for the shared X3/X4 interface.
 
 ---
 
@@ -93,7 +93,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 - A **quick overlay menu** in every book: Chapter picker, Dictionary, Go To %, Sync (with a KOReader-or-Nearby chooser), Reading Stats, Tilt page-turn (on devices with an accelerometer), Auto Page Turn, line spacing, and Reader Options — plus a full menu with bookmarks, clippings, screenshots, QR sharing, and Book Info.
 - **Refresh modes** (Auto / Fast / Half / Full), **Text Darkness** (Normal / Dark / Extra Dark), **Bionic Reading** (Off / Normal / Subtle), Dark Reader Mode, orientation control, and status-bar customization.
 - **Guarded chapter pre-indexing**: the next chapter can build silently in the background while you read, cooperatively yielding and cancelling at safe checkpoints when input arrives. Timing logs expose completion, cancellation, low-memory deferral, and failure.
-- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install a compatible six-size SD-card family to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
+- Compatible six-size SD-card families provide **10 / 12 / 14 / 16 / 18 / 20 pt on both X3 and X4**, with real layout reflow at every installed size. The smaller device-specific sets embedded in the BIN are emergency fallbacks, not the normal Duet font experience.
 - Per-book progress survives updates and restarts, and **Quick Resume** can preserve the visible page while sleeping.
 - Reading position, bookmarks, clippings, and stats are debounce-persisted; active reading time is committed before deep sleep through an idempotent path.
 
@@ -161,7 +161,7 @@ The initial alpha includes the licensed font families already built into the fir
 
 - Twelve sleep modes: Blank, Dark, Light, Custom, Cover, Cover + Custom, Page Overlay, Reading Stats, Minimal, Minimal Stats, Dashboard, and Quick Resume. Minimal Stats is currently available on X3 and hidden on X4.
 - Custom BMP rotation plus BMP or transparency-aware PNG artwork in **Page Overlay** mode; Fit/Crop and cover filters apply where relevant.
-- Optional locked-device Power-click cycling to summon a fresh sleep image and return directly to sleep. CrumBLE introduced the original one-tap behavior; Duet expands it to Off / 1 / 2 / 3 clicks and defaults to 3 to reduce accidental changes. See [Controls](docs/controls.md#locked-sleep-image-cycling) for the current physical-device gesture note.
+- Optional locked-device Power-click cycling to summon a fresh sleep image and return directly to sleep. CrumBLE introduced the original one-tap behavior; Duet expands it to Off / 1 / 2 / 3 clicks and defaults to 3 to reduce accidental changes. See the [feature tour](docs/DUET_FULL_FEATURE_TOUR.md#locked-sleep-image-cycling) for the feature and [Controls](docs/controls.md#locked-sleep-image-cycling) for the current physical-device gesture note.
 - Reading time is committed before deep sleep, idempotently — repeated sleep/wake can neither lose nor double-count a minute.
 
 ## Performance engineering

@@ -35,8 +35,6 @@ DOC_FILES = (
     "ISSUE_TRIAGE.md",
     "MAINTAINER_RELEASE_RUNBOOK.md",
     "PHYSICAL_TEST_MATRIX.md",
-    "SCREENSHOT_PLAN.md",
-    "STATS_MEDIA_FIXTURE.md",
     "activity-manager.md",
     "bionic-reading.md",
     "controls.md",

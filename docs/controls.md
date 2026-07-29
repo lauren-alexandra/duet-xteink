@@ -42,15 +42,17 @@ Note: Even though some actions assigned to the front buttons could be used globa
 
 ## Side Button Long-press Action
 
-When set to `Change Font Size`, hold a side button for about 2 seconds:
+While reading an EPUB, set this to `Change Font Size` and hold a side button for about 1 second:
 
 - Up increases font size
 - Down decreases font size
 
-When set to `Orientation Change`, hold a side button for about 2 seconds:
+Set this to `Orientation Change` and hold a side button for about 1 second:
 
 - Up cycles through the orientations in the following order: `Landscape CCW` -> `Inverted` -> `Landscape CW` -> `Portrait`
 - Down cycles through the orientations in the following order: `Landscape CW` -> `Inverted` -> `Landscape CCW` -> `Portrait`
+
+The firmware recognizes these reader long presses after 700 ms. EPUB text reflows after a font-size or orientation change. TXT supports the orientation action; fixed-page XTC books do not reflow and consume the side-button orientation hold without rotating the page.
 
 ## Power, Back, and Menu Button Actions
 
