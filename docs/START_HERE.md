@@ -35,7 +35,7 @@ Copy supported books to the SD card in the folder structure you want to browse. 
 
 For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. A ready-to-paste [computer-assistant prompt](AI_COVER_PREFILL_PROMPT.md) is included for Codex, Claude CoWork, Perplexity Computer, or another local assistant.
 
-More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts** or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). Duet's private 130-family development collection is not a public download yet because its licenses are still being reviewed. See [SD-card fonts](sd-card-fonts.md), [Reader Features](reader-features.md), and the [User Guide](../USER_GUIDE.md) for the exact structures.
+More Info descriptions and library categories use an optional Calibre catalog. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts** or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). See [SD-card fonts](sd-card-fonts.md), [Reader Features](reader-features.md), and the [User Guide](../USER_GUIDE.md) for the exact structures.
 
 ## Using an X3 and X4 together
 

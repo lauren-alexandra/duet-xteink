@@ -32,7 +32,7 @@ The current tester release is **Duet v0.1.0-alpha.6**:
 - [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/SHA256SUMS.txt)
 - [Read the alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6)
 
-Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases). Duet's private 130-family development collection is not a public download yet; a Duet-owned font pack will be released only after every included family and generated file completes its license review.
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases).
 
 ## Start here
 
@@ -147,11 +147,11 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 
 ## Fonts
 
-- A categorized `.cpfont` system organized by Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. A family exposes the sizes and up to four real styles actually installed; the standard personal generator uses six sizes from 10–20 pt.
+- A categorized `.cpfont` system organized by Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. A family exposes the sizes and up to four real styles actually installed; the SD-card generator supports six sizes from 10–20 pt.
 - **A/B comparison view** at matched sizes, compact Normal/Italic/Bold specimens, real face detection, and synthetic bold/italic fallbacks when a family lacks those files.
 - A cached font catalog avoids rescanning every installed family on each boot. On the maintainer's development cards this reduced discovery to a small fraction of the prior path; exact timing varies with card and font set.
 
-The initial alpha includes the licensed font families already built into the firmware. The personal development font collection is not a release asset. A separate optional SD-card font pack may follow only after every family, generated file, Reserved Font Name decision, license, and checksum is reviewed. See [FONT_SOURCES.md](FONT_SOURCES.md).
+The initial alpha includes the licensed font families already built into the firmware. A separate optional SD-card font pack may follow after its source, license, and generated-file review is complete. See [FONT_SOURCES.md](FONT_SOURCES.md).
 
 ## Apps
 
@@ -210,7 +210,7 @@ This firmware exists because a chain of generous projects shared their work. Dir
 - **[CPR-vCodex](https://github.com/franssjz/cpr-vcodex)** by franssjz — the StarDict dictionary engine and UI, the first 62 achievement milestones, and the reading-identity philosophy (and original radar) behind this fork's statistics lab.
 - **[CrossPet](https://github.com/trilwu/crosspet)** by trilwu — the Dashboard Extended layout lineage and the awake multi-click Power detector.
 - **[Biscuit](https://github.com/yattsu/biscuit)** by yattsu — the Tetris implementation this fork's version is adapted from.
-- **Font projects** — every redistributed family is openly licensed (OFL and similar); sources, revisions, and per-family licenses in `FONT_SOURCES.md`. Proprietary system fonts are excluded from the public pack.
+- **Font projects** — every redistributed family is openly licensed (OFL and similar), with sources, revisions, and per-family licenses recorded in `FONT_SOURCES.md`.
 
 Original to this fork: the current Nearby reading-statistics merge protocol and attribution ledger, the statistics lab and its chart pages, the Home Stats picker, session logging, the hot-file relocation and the rest of the performance program, 46 achievements, and the two-device reliability work throughout.
 

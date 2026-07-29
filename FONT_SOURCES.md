@@ -2,13 +2,13 @@
 
 ## Packaging rule
 
-The initial public alpha is a firmware-only package. It includes the notices for the fonts already baked into the X3 and X4 BINs, but it does not redistribute Lauren's private SD-card font collection.
+The initial public alpha is a firmware-only package. It includes the notices for the fonts already baked into the X3 and X4 BINs.
 
 A later optional font pack may include a ready-to-copy SD-card font folder. Those `.cpfont` files are separate release assets, not bytes embedded in the firmware BIN.
 
 Only fonts with confirmed redistribution rights, complete copyright notices, and the applicable license text may enter the public bundle. This is a source and packaging audit, not legal advice.
 
-The canonical personal pack currently contains 130 families and 780 generated `.cpfont` files at 10, 12, 14, 16, 18, and 20 pt. It is about 643 MB uncompressed. The public font folder must be generated from reviewed manifests rather than copied from that personal folder.
+The public font folder must be generated from reviewed manifests.
 
 ## Built-in firmware fonts
 
@@ -45,7 +45,7 @@ The public bundle may include the 37-family collection from [nicoverbruggen/eboo
 
 The repository documents the original source and modification history for each family. Most are SIL OFL 1.1. NV Charter uses the Bitstream Charter license, and NV Adelph uses the Open Inclusive Font License. The original notice for each family must be copied into the release's `licenses/fonts/` directory.
 
-[Readerly](https://github.com/nicoverbruggen/readerly), pinned at revision `8f72824a9d1b3a182fa1aa1e8c3b9fd180c43a73`, is based on Newsreader and is licensed under SIL OFL 1.1. Readerly changes metrics and glyph details toward an e-reader-oriented result; it does not redistribute Bookerly outlines.
+[Readerly](https://github.com/nicoverbruggen/readerly), pinned at revision `8f72824a9d1b3a182fa1aa1e8c3b9fd180c43a73`, is based on Newsreader and is licensed under SIL OFL 1.1. Readerly changes metrics and glyph details toward an e-reader-oriented result.
 
 The generated XTEINK set uses the optimized NV variant in place of a redundant ordinary family where appropriate: NV Bitter, NV Garamond, NV Literata, NV Plex Serif, NV Source Serif, and NV Newsreader. Distinct choices such as Readerly, Libron, Sourcerer, and NV Palatium remain separate.
 
@@ -67,20 +67,6 @@ These additional families were built from official open sources and can be consi
 
 Optimized equivalents already supplied by the NV collection should replace duplicate ordinary builds: Ancizar Serif, Castoro, Erewhon, fbb, Kierkegaard, Literata, and Zilla Slab. Alegreya, Merriweather, Noto Serif Extended, Roboto Slab, and Vollkorn are already represented elsewhere in the canonical source set.
 
-## Private-Only Families
-
-These legitimately owned or operating-system-provided faces may remain in the private 130-family pack, but must not be included in a public repository, release ZIP, font-only ZIP, screenshot source bundle, or automated font build:
-
-- Apple Chancery
-- Arial Rounded
-- Bookerly
-- Bradley Hand
-- Georgia
-- Herculanum
-- Skia
-
-Caecilia is not included and must not be added without a source license that expressly permits redistribution.
-
 ## Generated `.cpfont` Files
 
 The XTEINK build process rasterizes selected source faces into device-specific `.cpfont` files, subsets glyph coverage, extracts static instances from variable fonts, and may synthesize missing bold or italic faces. Public output therefore needs its own generated-asset manifest containing:
@@ -98,4 +84,4 @@ The generator configuration and conversion scripts should be public so the font 
 
 ## Publication Gate
 
-The font package is ready only when all included families are generated from the public manifests, every output maps to a source and license, any Reserved Font Name requirements are satisfied, the private-only list is absent, the family/size/style inventory validates, and the release ZIP includes the license directory plus a checksum manifest.
+The font package is ready only when all included families are generated from the public manifests, every output maps to a source and license, any Reserved Font Name requirements are satisfied, the family/size/style inventory validates, and the release ZIP includes the license directory plus a checksum manifest.

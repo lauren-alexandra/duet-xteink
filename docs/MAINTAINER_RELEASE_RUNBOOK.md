@@ -59,7 +59,7 @@ Then verify:
 - both BIN names contain the intended version;
 - the firmware size checks pass;
 - the simulator used fabricated reading data;
-- no EPUB, extracted cover, personal catalog, device state, credential, or private font entered the public tree;
+- no EPUB, extracted cover, personal catalog, device state, credential, or unreviewed font file entered the public tree;
 - changed third-party code or design lineage is recorded in `THIRD_PARTY_NOTICES.md`;
 - the matching release note exists at `docs/releases/v<VERSION>.md`.
 

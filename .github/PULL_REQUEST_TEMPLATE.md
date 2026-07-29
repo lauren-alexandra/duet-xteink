@@ -38,6 +38,6 @@ Identify any code, design, algorithm, font, or asset adapted from another projec
 - [ ] X3 and X4 behavior was considered.
 - [ ] Tests, docs, and release notes were updated where needed.
 - [ ] Compatibility with existing `/.crossink` and `/.crosspoint` state was considered.
-- [ ] No ebooks, credentials, private fonts, personal data, or device-state files are included.
+- [ ] No ebooks, credentials, unlicensed font files, personal data, or device-state files are included.
 - [ ] Third-party licenses and credits are complete.
 - [ ] Remaining physical-test gaps are stated plainly.
