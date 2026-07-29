@@ -175,7 +175,7 @@ Nearby Position Sync is **not** unique to Duet; it is inherited from CrossInk. K
 | X3 built-in sizes | 10, 12, 14, and 16 pt in `x3-public`. | CrossInk build variants; Duet public profile |
 | X4 built-in sizes | 16, 18, and 20 pt in `x4-public`. | CrossInk build variants; Duet public profile |
 | SD-card font families | `.cpfont` families discovered from `/.fonts/` or `/fonts/`, grouped as Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. | CrossPoint/CrossInk SD fonts; Duet catalog and grouping |
-| SD-card sizes | A family exposes the sizes actually installed. The standard personal generation set uses 10, 12, 14, 16, 18, and 20 pt, but the firmware does not invent missing files. | CrossInk format; Duet registry |
+| SD-card sizes | A family exposes the sizes actually installed. The standard Duet generation set uses 10, 12, 14, 16, 18, and 20 pt on either X3 or X4, but the firmware does not invent missing files. | CrossInk format; Duet registry |
 | Font styles | Real Regular, Italic, Bold, and Bold Italic where present; synthetic bold and/or italic when a family lacks a face. | CrossPoint/CrossInk format; Duet fallbacks |
 | Font picker | Category browsing, compact Normal/Italic/Bold specimen rows, style-availability handling, and consistent preview sizing. | Duet |
 | A/B comparison | Two installed families rendered side by side at matched sizes. | Duet |

@@ -463,7 +463,7 @@ class SimulatorSmokeTest {
     insights.topGenres[2] = {"Fantasy", 17u * 3600u, 44, 6, 3};
     insights.topAuthorCount = 3;
     insights.topAuthors[0] = {"Sarah J. Maas", 18u * 3600u, 7, 2, 3};
-    insights.topAuthors[1] = {"Ali Hazelwood", 11u * 3600u, 5, 1, 3};
+    insights.topAuthors[1] = {"Jane Austen", 11u * 3600u, 5, 1, 3};
     insights.topAuthors[2] = {"Emily Henry", 8u * 3600u, 4, 1, 2};
     insights.spiceLevelCount = 6;
     insights.spiceLevels[0] = {"Spice 0 - None or Not Romance", 12u * 3600u, 81, 4, 3};
@@ -1075,6 +1075,7 @@ class SimulatorSmokeTest {
     ReadingJournal::recordSession({{2026, 7, 14}, 10, 20, 0}, 77u * 60u, 28);
     HomeActivity readingHome(renderer, mappedInputManager);
     readingHome.onEnter();
+    readingHome.simulatorOverrideBookWordCount(16800);
     readingHome.render(RenderLock{});
     readingHome.render(RenderLock{});
     readingHome.render(RenderLock{});

@@ -1,6 +1,6 @@
 # Duet Alpha.6 Screenshot Gallery
 
-These screenshots were generated at native X3 and X4 resolution from the Duet v0.1.0-alpha.6 simulator path. Real book titles and cover art appear only as incidental interface content. Every reading statistic, progress value, date, achievement state, device name, and sync value is deterministic fabricated test data. No EPUB, extracted cover asset, personal catalog, credential, contact detail, or real device-state file is included.
+These screenshots were generated at native X3 and X4 resolution from the Duet v0.1.0-alpha.6 simulator path. The main gallery mixes recognizable books from Lauren's library with public-domain classics so the interface looks like a real, varied reader. Every reading statistic, progress value, date, achievement state, device name, and sync value is deterministic fabricated test data. No EPUB, extracted cover asset, personal catalog, credential, contact detail, or real device-state file is included.
 
 ## Feature Overviews
 
@@ -37,6 +37,10 @@ Additional captures show [Book Info from the reader](x4/reader-book-info.png) an
 ## Complete Reading Stats Gallery
 
 The [complete X3/X4 Reading Stats gallery](stats/README.md) contains all 33 top-level pages and 10 alternate or detail states for each device, for 86 native-resolution images.
+
+## Reproducible Classics Demo
+
+The separate [X3](demo/x3/) and [X4](demo/x4/) demo folders use only public-domain classics and the checked-in [`public-classics-library-catalog.tsv`](../../../scripts/fixtures/public-classics-library-catalog.tsv) fixture. They provide neutral, reproducible references for the cover grid, carousel, Reading Home, More Info, and autocomplete search without requiring Lauren's library. The underlying Project Gutenberg EPUBs and extracted cover files are not part of the repository.
 
 ## Evidence Boundary
 

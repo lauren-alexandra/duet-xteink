@@ -34,7 +34,7 @@ Developers are especially welcome. Duet is currently maintained by Lauren alone,
 
 ## Screenshots and demos
 
-These native-resolution alpha.6 simulator captures use real book titles and covers inside the interface, with completely fabricated reading history, dates, progress, achievements, device names, and sync data. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
+These native-resolution alpha.6 simulator captures use a mix of recognizable books from Lauren's library and public-domain classics as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. A separate all-classics demo set is reproducible from the checked-in catalog fixture. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
 
 | X4 feature overview | X3 feature overview |
 | --- | --- |
@@ -60,7 +60,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 - A **quick overlay menu** in every book: Chapter picker, Dictionary, Go To %, Sync (with a KOReader-or-Nearby chooser), Reading Stats, Tilt page-turn (on devices with an accelerometer), Auto Page Turn, line spacing, and Reader Options — plus a full menu with bookmarks, clippings, screenshots, QR sharing, and Book Info.
 - **Refresh modes** (Auto / Fast / Half / Full), **Text Darkness** (Normal / Dark / Extra Dark), **Bionic Reading** (Off / Normal / Subtle), Dark Reader Mode, orientation control, and status-bar customization.
 - **Guarded chapter pre-indexing**: the next chapter can build silently in the background while you read, cooperatively yielding and cancelling at safe checkpoints when input arrives. Timing logs expose completion, cancellation, low-memory deferral, and failure.
-- Device-tuned built-in sizes with real layout reflow: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. SD-card families expose whichever sizes are installed.
+- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install an SD-card font family with the standard Duet set to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
 - Per-book progress survives updates and restarts, and **Quick Resume** can preserve the visible page while sleeping.
 - Reading position, bookmarks, clippings, and stats are debounce-persisted; active reading time is committed before deep sleep through an idempotent path.
 

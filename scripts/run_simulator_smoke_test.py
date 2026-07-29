@@ -398,16 +398,15 @@ def write_book_info_catalog_fixture(temp_root: Path, device_path: str) -> None:
     if not cover_path.exists():
         write_cover_thumbnail(cover_path, 7, 120, 180)
     description = (
-        "A sharp, character-driven story about an impossible choice, a complicated relationship, "
-        "and what happens when the life you planned collides with the life you actually want."
+        "Alice follows a hurried White Rabbit into Wonderland, where riddles, strange rules, "
+        "and unforgettable characters turn an ordinary afternoon into a surreal adventure."
     )
     catalog.write_text(
-        "M\t2\t1\t1\t1\t1\t1\n"
-        "A\t0\tTest Author\n"
-        "S\t0\tTest Series\n"
-        "G\t0\tRomance\n"
-        "P\t0\tSpice 3 - Open Door\n"
-        f"B\t1\t0\t0\t0\t0\t2\t{device_path}\tA Very Long Book Title for More Info Layout Testing\t{description}\n",
+        "M\t2\t1\t1\t0\t1\t1\n"
+        "A\t0\tLewis Carroll\n"
+        "G\t0\tClassic Fantasy\n"
+        "P\t0\tNo romance\n"
+        f"B\t1\t0\t-1\t0\t0\t2\t{device_path}\tAlice's Adventures in Wonderland\t{description}\n",
         encoding="utf-8",
     )
 
@@ -529,6 +528,10 @@ def run_smoke(args: argparse.Namespace) -> int:
             write_cover_signal_fixtures(
                 temp_root, reading_home_sources, args.device, args.real_cover_fixtures
             )
+        elif args.book_info_screenshot and args.real_cover_fixtures:
+            # More Info uses the same hydrated 120x180 cache variant as the
+            # device library. Seed it from the real EPUB cover for public media.
+            write_cover_signal_fixtures(temp_root, [book], args.device, True)
         if args.dashboard_home_screenshot:
             write_dashboard_home_fixture(temp_root, simulator_book_path)
         if args.reading_home_screenshot:

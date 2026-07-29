@@ -33,7 +33,7 @@ For books that are slow to index or fail because of complex publisher styling, s
 
 ## Font Sizes And Downloadable Font Ranges
 
-The public X3 build includes 10, 12, 14, and 16 pt for both selectable built-in families. The public X4 build includes 16, 18, and 20 pt. SD-card families expose the point sizes actually installed for that family.
+The firmware-only X3 fallback fonts include 10, 12, 14, and 16 pt. The firmware-only X4 fallbacks include 16, 18, and 20 pt. These device-specific built-in sets save flash space; they are not a limit on custom fonts. A standard Duet SD-card family can expose 10, 12, 14, 16, 18, and 20 pt on either device, while any manually installed family exposes the point sizes actually present.
 
 The reader can also use SD-card font packs with selectable font-size ranges. This lets you keep the installed firmware smaller while still using extra sizes or custom fonts from the SD card.
 

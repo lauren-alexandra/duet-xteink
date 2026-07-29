@@ -1,6 +1,6 @@
 # Public Screenshot and Demo Plan
 
-Public media should show Duet clearly without publishing Lauren's library, reading history, contact details, credentials, or device identifiers.
+Public media should show Duet clearly without publishing Lauren's ebook files, catalogs, reading history, contact details, credentials, or device identifiers.
 
 ## Demo Data
 
@@ -41,7 +41,7 @@ The soft launch does not need all fourteen scenes. Publish these first:
 6. Nearby Sync showing both device names with fictional or generic labels.
 7. The System page showing the exact Duet alpha version.
 
-Hold back any screen that still misstates data, stalls during the recording, or contains real library or account details. A smaller honest set is better than an exhaustive set from an older build.
+Hold back any screen that still misstates data, stalls during the recording, or contains private catalog, account, contact, or device details. A smaller honest set is better than an exhaustive set from an older build.
 
 ## Short Videos
 
@@ -72,6 +72,7 @@ Keep each clip focused and short enough that viewers can see responsiveness with
 ```text
 docs/media/
 |-- alpha-0.1.0/
+|   |-- demo/
 |   |-- x3/
 |   |-- x4/
 |   |-- web/
@@ -87,7 +88,7 @@ The public repository contains the reviewed native-resolution simulator gallery 
 
 ## Current Candidate Coverage
 
-The public alpha.6 gallery now contains 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. It also includes fresh X3/X4 Dashboard, Reading Home, hydrated grid, carousel, search, More Info, reader overlay, dictionary, achievement, utility, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
+The public alpha.6 gallery now contains 43 fresh Reading Stats captures for each device: all 33 top-level pages plus 10 useful alternate and detail states. Its main gallery mixes approved real-library covers with public-domain classics, and its separate reproducible demo uses only public-domain classics and a checked-in catalog fixture. It also includes fresh X3/X4 Dashboard, Reading Home, hydrated grid, carousel, search, More Info, reader overlay, dictionary, achievement, utility, and font captures generated from the current source. Alpha.3 and alpha.5 captures remain private reference material and are not represented as current alpha.6 evidence.
 
 Real book titles and rendered cover art appear in the library, dashboard, search, More Info, and reader scenes. All reading statistics, progress, sessions, streaks, achievements, sync results, and device names are fabricated.
 
