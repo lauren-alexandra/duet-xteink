@@ -28,9 +28,9 @@ Do not publish the private working history as the initial public history. It con
 
 Duet uses semantic prerelease versions:
 
-- `0.1.0-alpha.6` for the current public-alpha candidate;
-- `0.1.0-alpha.7` for the next public alpha with changed firmware;
-- `0.1.0-alpha.6-rc.1` for an optional release candidate.
+- `0.1.0-alpha.7` for the current public-alpha candidate;
+- `0.1.0-alpha.8` for the next public alpha with changed firmware;
+- `0.1.0-alpha.7-rc.1` for an optional release candidate.
 
 Any firmware change after a candidate has been flashed must receive a distinguishable version. Do not silently replace a BIN while keeping the same version string.
 
@@ -83,6 +83,20 @@ This produces:
 - a firmware-only ZIP;
 - installation, testing, troubleshooting, attribution, and license files.
 
+Build the optional WordNet 3.0 dictionary asset from the reviewed StarDict source directory:
+
+```bash
+python3 scripts/package_wordnet_dictionary.py \
+  --source-dir <WORDNET-STARDICT-DIR> \
+  --output-dir .pio/build
+```
+
+The script accepts only the reviewed Alpha.7 `.ifo`, `.idx`, `.dict`, and `.syn` hashes, adds the original WordNet license and copy instructions, and creates `Duet-WordNet-3.0-StarDict.zip`. Test the ZIP before publication:
+
+```bash
+unzip -t .pio/build/Duet-WordNet-3.0-StarDict.zip
+```
+
 Verify the hashes before either BIN reaches a device:
 
 ```bash
@@ -133,9 +147,10 @@ For the first alpha, prefer a reviewed manual dispatch:
 3. Confirm the workflow audit, X3 build, X4 build, package, checksums, and catalog generation all succeeded.
 4. Download the workflow artifacts and compare their SHA-256 hashes with the physically accepted BINs.
 5. Review the generated draft GitHub release.
-6. Verify the release is marked **prerelease**.
-7. Review release notes, known issues, recovery instructions, credits, and attached files.
-8. Publish only after the hashes match the accepted record.
+6. Upload the reviewed optional dictionary asset to the draft with `gh release upload v<VERSION> .pio/build/Duet-WordNet-3.0-StarDict.zip`.
+7. Verify the release is marked **prerelease**.
+8. Review release notes, known issues, recovery instructions, credits, and attached files.
+9. Publish only after the hashes match the accepted record.
 
 The release workflow creates a draft. A maintainer must still perform the acceptance and hash comparison before publication. The public update catalog is attached to the draft but is not written to the website source until the GitHub release is actually published. Publication opens a catalog-update pull request so branch protection and human review remain intact.
 

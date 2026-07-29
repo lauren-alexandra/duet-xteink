@@ -16,7 +16,6 @@
 #include "CrossPointSettings.h"
 #include "MappedInputManager.h"
 #include "SdCardFontSystem.h"
-#include "SilentRestart.h"
 #include "activities/network/WifiSelectionActivity.h"
 #include "activities/util/ConfirmationActivity.h"
 #include "components/UITheme.h"
@@ -113,12 +112,10 @@ FontDownloadActivity::FontDownloadActivity(GfxRenderer& renderer, MappedInputMan
 
 void FontDownloadActivity::onEnter() {
   Activity::onEnter();
-  // Free the whole SD font registry, not just the active glyph font, before the
-  // network + manifest work. With many families installed the registry, the
-  // parsed manifest, and the families_ list would otherwise all be resident at
-  // once and exhaust the heap, aborting during manifest parse. Matches the
-  // pre-network release done by the KOReader sync/auth activities.
-  sdFontSystem.releaseForNetwork(renderer);
+  // Free only the active glyph font while WiFi selection is on screen. If the
+  // user backs out here, keep the installed-font registry intact and avoid the
+  // heavy unload/reload path that made Manage Fonts look like a crash.
+  sdFontSystem.releaseLoadedFont(renderer);
   WiFi.mode(WIFI_STA);
   startActivityForResult(std::make_unique<WifiSelectionActivity>(renderer, mappedInput),
                          [this](const ActivityResult& result) { onWifiSelectionComplete(!result.isCancelled); });
@@ -130,7 +127,7 @@ void FontDownloadActivity::onExit() {
   if (WiFi.getMode() != WIFI_MODE_NULL) {
     WiFi.disconnect(false);
     delay(30);
-    silentRestart();
+    WiFi.mode(WIFI_OFF);
   }
 
   sdFontSystem.ensureLoaded(renderer);
@@ -141,6 +138,11 @@ void FontDownloadActivity::onWifiSelectionComplete(const bool success) {
     finish();
     return;
   }
+
+  // Now that WiFi is connected and we are actually about to download/parse the
+  // manifest, free the full SD font registry so the registry and manifest JSON
+  // are not resident at the same time on low-heap devices.
+  sdFontSystem.releaseForNetwork(renderer);
 
   {
     RenderLock lock(*this);

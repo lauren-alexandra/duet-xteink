@@ -1,21 +1,19 @@
-# Alpha.6 Public Media Manifest
+# Alpha.7 Public Media Manifest
 
 ## Release Identity
 
-- Duet version: `0.1.0-alpha.6`
-- X3 firmware SHA-256: `0db9b7712cda235b54e064403510480a577334b8faf5eeb61fa7c2eef26f22ef`
-- X4 firmware SHA-256: `9ba44d3b3a7a524173748901124b8557516605fff1aeef9a017d49e475e41d4f`
-- Capture source: alpha.6 public release checkout, deterministic statistics fixture, and a private mixed-library input set for the gallery
-- Native dimensions: X3 `528x792`; X4 `480x800`
+- Duet version: `0.1.0-alpha.7`
+- X3 firmware SHA-256: `e27ede316b5fce4729395b7d68c18fed9be6b18507919a13b6e38c474b0629ba`
+- X4 firmware SHA-256: `c38ed35ccd48df2d2dda3507fece1f843eb43005b934a4d629219e10540fa583`
+- Capture source: alpha.7 release-candidate checkout, deterministic statistics fixture, and a private mixed-library input set for the gallery
+- Representative simulator dimensions: X4 `480x800`
 
 ## Inventory
 
-- 43 X3 Reading Stats screenshots
-- 43 X4 Reading Stats screenshots
-- 22 curated X3 feature/app screenshots plus one X3 overview sheet
-- 21 curated X4 feature/app screenshots plus one X4 overview sheet
-- 4 X4 font previews
-- Total: 135 PNG files
+- 43 representative Reading Stats screenshots: all 33 top-level pages plus 10 detail or alternate states
+- 21 feature and app screenshots plus one feature overview sheet
+- 4 font-picker comparisons
+- Total: 69 PNG files
 
 ## Data Provenance
 
@@ -23,13 +21,13 @@ The gallery uses recognizable books from Lauren's library inside the simulated D
 
 ## Review
 
-- All 135 PNG files decode successfully through ImageMagick.
+- All 69 PNG files decode successfully through ImageMagick.
 - Every local image and gallery link in the README and media indexes resolves.
-- X3 and X4 feature overview sheets were reviewed for hydrated covers, density, footer fit, and visible metadata.
-- Representative dense statistics pages were reviewed side by side at native aspect ratio, including Current, Heatmap, Reader DNA, Wrapped, Library, Started, Devices, and Trends.
+- The representative feature overview was reviewed for hydrated covers, density, footer fit, and visible metadata.
+- Representative dense statistics pages were reviewed at native aspect ratio, including Current, Heatmap, Reader DNA, Wrapped, Library, Started, Devices, and Trends.
 - The four font-picker captures show eight distinct families by pairing a different current font with each preview font.
 - No personal contact details, credentials, account data, device identifiers, real reading history, or filesystem paths are intentionally present.
 
 ## Evidence Boundary
 
-These images verify deterministic simulator rendering from the release source. They do not verify physical e-ink refresh behavior, ghosting, SD-card timing, radio sync, sleep/wake, or long-session stability. Physical evidence remains tracked separately in the test matrix.
+Duet uses the same interface and feature code on X3 and X4, so shared screens are published once at representative X4 resolution instead of as duplicate device sets. Both simulator targets remain part of release regression testing. These images verify deterministic simulator rendering from the release source; they do not verify physical e-ink refresh behavior, ghosting, SD-card timing, radio sync, sleep/wake, or long-session stability. Physical evidence remains tracked separately in the test matrix.

@@ -24,15 +24,16 @@ For the complete public-facing story in one place, including how the features wo
 
 ## Downloads
 
-The current tester release is **Duet v0.1.0-alpha.6**:
+The current tester release is **Duet v0.1.0-alpha.7**:
 
-- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin)
-- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin)
-- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-v0.1.0-alpha.6-firmware.zip)
-- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/SHA256SUMS.txt)
-- [Read the alpha.6 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.6)
+- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin)
+- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin)
+- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-v0.1.0-alpha.7-firmware.zip)
+- [Download the ready-to-copy WordNet 3.0 dictionary pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-WordNet-3.0-StarDict.zip)
+- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
+- [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
 
-Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**, or downloaded manually from the compatible [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases).
+Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**. During Alpha.7, that on-device downloader uses CrossInk's credited 24-family compatibility catalog; the expanded Duet development collection is not yet a public download. See [SD-card fonts](docs/sd-card-fonts.md) for the exact status and manual installation options.
 
 ## Start here
 
@@ -40,17 +41,17 @@ New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the 
 
 - **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
 - **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
-- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library) and the full [User Guide](USER_GUIDE.md).
-- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), including a ready-to-paste [computer-assistant prompt](docs/AI_COVER_PREFILL_PROMPT.md).
+- **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library), [Dictionary Setup](docs/DICTIONARY_SETUP.md), and the full [User Guide](USER_GUIDE.md).
+- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), with the complete computer-assistant prompt directly on the page and also available as a [standalone prompt](docs/AI_COVER_PREFILL_PROMPT.md).
 - **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
-- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.6 Acceptance Quickstart](docs/ALPHA6_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
+- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
 - **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
 
 ---
 
 ## Alpha status
 
-Duet v0.1.0-alpha.6 already runs on both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, and repeated two-device sync.
+Duet v0.1.0-alpha.7 targets both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include statistics responsiveness and WPM estimates, first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, font-download back-out, and repeated two-device sync.
 
 See [Duet Alpha Testing](docs/ALPHA_TESTING.md) for the current known issues, test matrix, privacy rules, and useful logs. A successful build or simulator run is not presented as physical-device acceptance. Use the repository's **Alpha Test Report** form for successful or mixed sessions and **Alpha Bug Report** for one reproducible defect. Maintainer-side publication follows the [release runbook](docs/MAINTAINER_RELEASE_RUNBOOK.md); incoming reports follow the [alpha triage guide](docs/ISSUE_TRIAGE.md).
 
@@ -60,11 +61,9 @@ Developers are especially welcome. Duet is currently maintained by Lauren alone,
 
 ## Screenshots and demos
 
-These native-resolution alpha.6 simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
+Duet uses the same interface and feature code on X3 and X4, so the gallery shows each shared screen once at representative X4 resolution instead of duplicating every image. These simulator captures use recognizable books from Lauren's library as interface examples. Every reading-history value, date, progress value, achievement state, device name, and sync value is fabricated. No EPUBs, extracted cover files, personal catalogs, or real device-state files are included.
 
-| X4 feature overview | X3 feature overview |
-| --- | --- |
-| [![Duet alpha.6 on X4](docs/media/alpha-0.1.0/x4/feature-overview.png)](docs/media/alpha-0.1.0/x4/feature-overview.png) | [![Duet alpha.6 on X3](docs/media/alpha-0.1.0/x3/feature-overview.png)](docs/media/alpha-0.1.0/x3/feature-overview.png) |
+[![Duet feature overview](docs/media/alpha-0.1.0/x4/feature-overview.png)](docs/media/alpha-0.1.0/x4/feature-overview.png)
 
 | Dashboard | Cover grid | Carousel |
 | --- | --- | --- |
@@ -82,7 +81,7 @@ These native-resolution alpha.6 simulator captures use recognizable books from L
 | --- | --- | --- |
 | [![Duet Apps](docs/media/alpha-0.1.0/x4/apps.png)](docs/media/alpha-0.1.0/x4/apps.png) | [![Duet Favorites](docs/media/alpha-0.1.0/x4/favorites.png)](docs/media/alpha-0.1.0/x4/favorites.png) | [![Duet achievements](docs/media/alpha-0.1.0/x4/achievements.png)](docs/media/alpha-0.1.0/x4/achievements.png) |
 
-Browse the [complete 135-image alpha.6 media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state on both X3 and X4. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
+Browse the [complete 69-image media gallery](docs/media/alpha-0.1.0/README.md), including every current Reading Stats page and detail state once for the shared X3/X4 interface. The [Public Screenshot and Demo Plan](docs/SCREENSHOT_PLAN.md) tracks the remaining real-device photos and unsped videos.
 
 ---
 
@@ -94,7 +93,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 - A **quick overlay menu** in every book: Chapter picker, Dictionary, Go To %, Sync (with a KOReader-or-Nearby chooser), Reading Stats, Tilt page-turn (on devices with an accelerometer), Auto Page Turn, line spacing, and Reader Options — plus a full menu with bookmarks, clippings, screenshots, QR sharing, and Book Info.
 - **Refresh modes** (Auto / Fast / Half / Full), **Text Darkness** (Normal / Dark / Extra Dark), **Bionic Reading** (Off / Normal / Subtle), Dark Reader Mode, orientation control, and status-bar customization.
 - **Guarded chapter pre-indexing**: the next chapter can build silently in the background while you read, cooperatively yielding and cancelling at safe checkpoints when input arrives. Timing logs expose completion, cancellation, low-memory deferral, and failure.
-- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install an SD-card font family with the standard Duet set to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
+- The firmware-only fallback fonts are device-tuned for flash space: **10 / 12 / 14 / 16 pt on X3** and **16 / 18 / 20 pt on X4**. Install a compatible six-size SD-card family to use **10 / 12 / 14 / 16 / 18 / 20 pt on either device**, with real layout reflow at every installed size.
 - Per-book progress survives updates and restarts, and **Quick Resume** can preserve the visible page while sleeping.
 - Reading position, bookmarks, clippings, and stats are debounce-persisted; active reading time is committed before deep sleep through an idempotent path.
 
@@ -144,6 +143,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 
 - **StarDict format** (`.ifo` / `.idx` / `.dict` / optional `.syn`) under `/dictionaries/<Name>/` — multi-dictionary, with in-book word selection, suggestions, definitions, and per-book looked-up-words history (engine lineage: CPR-vCodex, hardened with CrumBLE's SEEK-derived recovery patterns).
 - Corrupt-cache recovery, watchdog-safe yielding index scans, visible build progress, and low-memory preflight.
+- The current release includes a separate, ready-to-copy WordNet 3.0 StarDict ZIP with its original license. Follow [Dictionary Setup](docs/DICTIONARY_SETUP.md) to install it, prepare the index, look up a word, or troubleshoot a third-party package.
 
 ## Fonts
 
@@ -180,7 +180,7 @@ Public alpha downloads will be published only through this repository's [Release
 Read the [Start Here guide](docs/START_HERE.md) and [full installation instructions](docs/installation.md) before flashing. The short version is:
 
 1. **Back up your SD card.**
-2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.6.bin` or `Duet-X4-v0.1.0-alpha.6.bin`).
+2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.7.bin` or `Duet-X4-v0.1.0-alpha.7.bin`).
 3. For a first Duet installation or recovery, use the CrossPoint web installer's **Custom .bin** option.
 4. For a Duet-to-Duet update, put exactly one firmware BIN at the SD-card root, then choose **Settings → System → SD Firmware Update**.
 5. After flashing, confirm **Settings → System** shows the expected Duet version before a long reading session.

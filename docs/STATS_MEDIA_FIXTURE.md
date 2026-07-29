@@ -25,36 +25,36 @@ The gallery captures all 33 top-level Reading Stats tabs:
 1. Current
 2. Progress
 3. Book
-4. Trends
-5. Activity
-6. 90 Days
-7. Calendar
-8. Heatmap
-9. Profile
-10. Goals
-11. Sessions
-12. Weekdays
-13. Pace
-14. Time of Day
-15. Months
-16. Year
-17. Devices
-18. Sessions Mix
-19. Streaks
-20. Start/Finish
-21. Dates
-22. Reader DNA
-23. DNA Details
-24. Signature
-25. Signature Details
-26. Fastest
-27. Wrapped
-28. Started
-29. Library
-30. Taste
-31. Series
-32. Device
-33. Synced
+4. Device
+5. Synced
+6. Devices
+7. Trends
+8. Activity
+9. 90 Days
+10. Calendar
+11. Heatmap
+12. Profile
+13. Goals
+14. Sessions
+15. Weekdays
+16. Pace
+17. Time of Day
+18. Months
+19. Year
+20. Sessions Mix
+21. Streaks
+22. Start/Finish
+23. Dates
+24. Reader DNA
+25. DNA Details
+26. Signature
+27. Signature Details
+28. Fastest
+29. Wrapped
+30. Started
+31. Library
+32. Taste
+33. Series
 
 It also captures ten useful alternate and detail states:
 
@@ -69,7 +69,7 @@ It also captures ten useful alternate and detail states:
 - Book Dates locked.
 - Book Dates in edit mode.
 
-That produces 43 native-resolution BMP files in one run.
+That produces 43 native-resolution BMP files in one run. The public gallery publishes the representative X4 set once because X3 and X4 share the same stats interface, while both simulator targets remain part of release regression testing.
 
 ## Regenerate
 
@@ -86,7 +86,7 @@ The script creates a new isolated temporary simulator filesystem on every run be
 
 ## Publication Gate
 
-The alpha.6 gallery is generated directly from the public-release checkout. It remains private review media until native-resolution inspection, OCR, metadata, and release-version checks pass.
+The alpha.7 gallery is generated directly from the release-candidate checkout. It remains review media until native-resolution inspection, OCR, metadata, and release-version checks pass.
 
 After the source is synchronized:
 

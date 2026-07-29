@@ -2,31 +2,31 @@
   "schema_version": 1,
   "releases": [
     {
-      "id": "alpha-0.1.0-alpha.6-x3",
+      "id": "alpha-0.1.0-alpha.7-x3",
       "channel": "alpha",
-      "name": "0.1.0-alpha.6",
-      "version": "0.1.0-alpha.6",
+      "name": "0.1.0-alpha.7",
+      "version": "0.1.0-alpha.7",
       "variant": "x3",
-      "released_at": "2026-07-29T00:01:09Z",
-      "notes": "Duet 0.1.0-alpha.6 public alpha firmware",
-      "firmware_url": "https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X3-v0.1.0-alpha.6.bin",
-      "firmware_sha256": "0db9b7712cda235b54e064403510480a577334b8faf5eeb61fa7c2eef26f22ef",
-      "size": 5937136,
+      "released_at": "2026-07-29T19:57:27Z",
+      "notes": "Duet 0.1.0-alpha.7 public alpha firmware",
+      "firmware_url": "https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin",
+      "firmware_sha256": "e27ede316b5fce4729395b7d68c18fed9be6b18507919a13b6e38c474b0629ba",
+      "size": 5941904,
       "supported_devices": [
         "x3"
       ]
     },
     {
-      "id": "alpha-0.1.0-alpha.6-x4",
+      "id": "alpha-0.1.0-alpha.7-x4",
       "channel": "alpha",
-      "name": "0.1.0-alpha.6",
-      "version": "0.1.0-alpha.6",
+      "name": "0.1.0-alpha.7",
+      "version": "0.1.0-alpha.7",
       "variant": "x4",
-      "released_at": "2026-07-29T00:01:09Z",
-      "notes": "Duet 0.1.0-alpha.6 public alpha firmware",
-      "firmware_url": "https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.6/Duet-X4-v0.1.0-alpha.6.bin",
-      "firmware_sha256": "9ba44d3b3a7a524173748901124b8557516605fff1aeef9a017d49e475e41d4f",
-      "size": 5800048,
+      "released_at": "2026-07-29T19:57:27Z",
+      "notes": "Duet 0.1.0-alpha.7 public alpha firmware",
+      "firmware_url": "https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin",
+      "firmware_sha256": "c38ed35ccd48df2d2dda3507fece1f843eb43005b934a4d629219e10540fa583",
+      "size": 5804864,
       "supported_devices": [
         "x4"
       ]

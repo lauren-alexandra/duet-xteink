@@ -37,29 +37,6 @@ Source: [ideo2004-afk/crosspoint-reader-lua](https://github.com/ideo2004-afk/cro
 
 CrossPoint Flow informed the cover-forward browsing direction and interaction model. Duet does not claim its Lua implementation as original Duet code. The audited reference revision is `6bc3bcd92f9c8db991ac59a262df3ac00948bae1`.
 
-## CrossInk Carousel
-
-Source:
-[chintanvajariya/CrossInk-Carousel](https://github.com/chintanvajariya/CrossInk-Carousel)
-
-Adapted or informed work:
-
-- The home-carousel engine reused and substantially extended for Duet's
-  five-cover library carousel.
-- Cover-first navigation, centered selection, and adjacent-cover presentation
-  in `src/activities/home/RecentBooksActivity.*`.
-
-The exact source revision will be pinned before a tagged public release.
-
-## CrossPoint Flow
-
-Source:
-[ideo2004-afk/crosspoint-reader-lua](https://github.com/ideo2004-afk/crosspoint-reader-lua)
-
-CrossPoint Flow informed the cover-forward browsing direction and interaction
-model. Duet does not claim its Lua implementation as original Duet code. The
-exact reference revision will be pinned before a tagged public release.
-
 ## CrumBLE
 
 Source: [imshentastic/CrumBLE](https://github.com/imshentastic/CrumBLE)
@@ -110,7 +87,13 @@ This branch uses its own bounded generated-cover cache instead of CrossPet's ful
 
 ## Font Projects
 
-Fonts are licensed independently of the firmware. Source repositories, revisions, excluded private faces, and release packaging requirements are in [FONT_SOURCES.md](FONT_SOURCES.md). A public release must also include the exact license and copyright notice for every redistributed font file.
+Fonts are licensed independently of the firmware. Source repositories, revisions, and release packaging requirements are in [FONT_SOURCES.md](FONT_SOURCES.md). A public release must also include the exact license and copyright notice for every redistributed font file.
+
+## WordNet 3.0
+
+Source: [WordNet](https://wordnet.princeton.edu/)
+
+The optional `Duet-WordNet-3.0-StarDict.zip` release asset is an uncompressed StarDict 2.4.2 conversion of WordNet 3.0 for Duet's offline dictionary reader. It is not embedded in either firmware BIN. The archive carries the original WordNet license beside the dictionary files, and the source record and reviewed file hashes are preserved under `licenses/dictionaries/WordNet-3.0/`.
 
 ## Shared MIT License
 

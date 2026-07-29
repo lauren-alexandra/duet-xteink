@@ -9,8 +9,11 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <string_view>
 
 #include "CrossPointSettings.h"
+#include "EpubReaderUtils.h"
 #include "LibraryInsights.h"
 #include "MappedInputManager.h"
 #include "ReadingLedger.h"
@@ -265,6 +268,142 @@ void formatWordsPerMinute(const BookReadingStats& stats, const uint32_t totalWor
   } else {
     snprintf(buf, len, "-");
   }
+}
+
+template <size_t N>
+size_t splitTabFields(const std::string& line, std::array<std::string_view, N>& fields) {
+  size_t count = 0;
+  size_t start = 0;
+  while (count < N) {
+    const size_t tab = line.find('\t', start);
+    if (tab == std::string::npos) {
+      fields[count++] = std::string_view(line).substr(start);
+      break;
+    }
+    fields[count++] = std::string_view(line).substr(start, tab - start);
+    start = tab + 1;
+  }
+  return count;
+}
+
+bool resolveCatalogPathForCacheKey(const uint64_t wantedKey, std::string& devicePath) {
+  FsFile file;
+  if (!Storage.openFileForRead("WPMCAT", LibraryInsights::CATALOG_PATH, file)) return false;
+
+  std::string line;
+  line.reserve(768);
+  std::array<std::string_view, 10> fields{};
+  while (file.available() > 0) {
+    line.clear();
+    while (file.available() > 0) {
+      const int value = file.read();
+      if (value < 0) break;
+      if (value == '\n') break;
+      if (value == '\r') continue;
+      if (line.size() < 2048) line.push_back(static_cast<char>(value));
+    }
+    const size_t count = splitTabFields(line, fields);
+    if (count < 8 || fields[0] != "B") continue;
+    const std::string candidatePath(fields[7]);
+    const std::string candidateCachePath = Epub::cachePathForFilePath(candidatePath, DUET_BOOKS_ROOT_PATH "");
+    if (LibraryInsights::keyForCachePath(candidateCachePath) == wantedKey) {
+      devicePath = candidatePath;
+      file.close();
+      return true;
+    }
+  }
+
+  file.close();
+  return false;
+}
+
+struct BookWpmEstimate {
+  uint64_t key = 0;
+  uint32_t wpmX10 = 0;
+  bool known = false;
+  bool valid = false;
+};
+
+class BookWpmResolver {
+ public:
+  uint32_t wpmX10ForCachePath(const char* cachePath) {
+    if (cachePath == nullptr || cachePath[0] == '\0') return 0;
+    const std::string cache(cachePath);
+    const uint64_t key = LibraryInsights::keyForCachePath(cache);
+    for (const BookWpmEstimate& estimate : cache_) {
+      if (estimate.known && estimate.key == key) return estimate.wpmX10;
+    }
+
+    const uint32_t wpmX10 = computeWpmX10(cache, key);
+    remember(key, wpmX10);
+    return wpmX10;
+  }
+
+ private:
+  static uint32_t computeWpmX10(const std::string& cachePath, const uint64_t key) {
+    BookReadingStats stats = BookReadingStats::load(cachePath);
+    LibraryInsights::mergeSyncedBookStats(cachePath, stats);
+    if (stats.totalReadingSeconds < 10) return 0;
+
+    std::string devicePath;
+    if (!resolveCatalogPathForCacheKey(key, devicePath)) return 0;
+
+    Epub epub(devicePath, DUET_BOOKS_ROOT_PATH "");
+    if (!epub.load(false, true)) return 0;
+    const uint32_t totalWords = epub.getTotalWords();
+    if (totalWords == 0) return 0;
+
+    float progressPercent = -1.0f;
+    if (!EpubReaderUtils::loadProgressPercent(cachePath, progressPercent, "WPM")) {
+      EpubReaderUtils::Progress progress;
+      if (EpubReaderUtils::loadProgress(cachePath, progress, "WPM") && progress.hasPageCount &&
+          progress.pageCount > 0) {
+        const float chapterProgress =
+            static_cast<float>(progress.pageNumber + 1) / static_cast<float>(progress.pageCount);
+        progressPercent =
+            std::clamp(epub.calculateProgress(progress.spineIndex, chapterProgress) * 100.0f, 0.0f, 100.0f);
+      }
+    }
+    if (stats.isCompleted && progressPercent < 100.0f) progressPercent = 100.0f;
+    const uint32_t wordsRead = estimatedWordsRead(totalWords, progressPercent);
+    if (wordsRead == 0) return 0;
+    return static_cast<uint32_t>(std::min<uint64_t>(
+        (static_cast<uint64_t>(wordsRead) * 600ULL + stats.totalReadingSeconds / 2ULL) / stats.totalReadingSeconds,
+        UINT32_MAX));
+  }
+
+  void remember(const uint64_t key, const uint32_t wpmX10) {
+    cache_[next_] = BookWpmEstimate{key, wpmX10, true, wpmX10 > 0};
+    next_ = (next_ + 1) % cache_.size();
+  }
+
+  std::array<BookWpmEstimate, 24> cache_{};
+  size_t next_ = 0;
+};
+
+struct WordPaceDay {
+  uint64_t words = 0;
+  uint32_t seconds = 0;
+};
+
+uint32_t journalSecondsForDay(const ReadingJournal* journal, const uint32_t dayIndex, const uint32_t todayDayIndex,
+                              const ReadingSessionSnapshot& session);
+
+WordPaceDay wordPaceForDay(const ReadingJournal* journal, const uint32_t dayIndex, const uint32_t today,
+                           const ReadingSessionSnapshot& session, BookWpmResolver& resolver) {
+  const uint32_t daySeconds = journalSecondsForDay(journal, dayIndex, today, session);
+  ReadingLedgerDaySummary summary;
+  WordPaceDay out;
+  if (!ReadingLedger::summarizeDay(dayIndex, daySeconds, summary)) return out;
+
+  for (uint8_t i = 0; i < summary.bookCount; ++i) {
+    const ReadingLedgerDayBook& book = summary.books[i];
+    const uint32_t wpmX10 = resolver.wpmX10ForCachePath(book.cachePath);
+    if (wpmX10 == 0 || book.readingSeconds == 0) continue;
+    out.words += (static_cast<uint64_t>(book.readingSeconds) * wpmX10 + 300ULL) / 600ULL;
+    out.seconds = UINT32_MAX - out.seconds < book.readingSeconds ? UINT32_MAX : out.seconds + book.readingSeconds;
+  }
+  return out;
 }
 
 uint32_t addSaturatedValue(const uint32_t current, const uint32_t value) {
@@ -1371,6 +1510,8 @@ struct ReadingMetricWindow {
   uint32_t bestDailyPages = 0;
   uint32_t bestDailySessions = 0;
   uint32_t bestDailyPaceX10 = 0;
+  uint32_t wordPaceSeconds = 0;
+  uint64_t words = 0;
 };
 
 uint16_t trackedReadingDays(const ReadingJournal* journal, const GlobalReadingStats& history,
@@ -1387,7 +1528,7 @@ uint16_t trackedReadingDays(const ReadingJournal* journal, const GlobalReadingSt
 ReadingMetricWindow collectReadingWindow(const ReadingJournal* journal, const GlobalReadingStats& history,
                                          const ReadingSessionSnapshot& session, const uint32_t today,
                                          const uint16_t startOffset, const uint16_t requestedDays,
-                                         const uint32_t goalSeconds) {
+                                         const uint32_t goalSeconds, BookWpmResolver* wpmResolver = nullptr) {
   ReadingMetricWindow window;
   bool weekActive = false;
   uint16_t daysInWeek = 0;
@@ -1407,6 +1548,16 @@ ReadingMetricWindow collectReadingWindow(const ReadingJournal* journal, const Gl
     window.seconds = addSaturatedValue(window.seconds, daySeconds);
     window.pages = addSaturatedValue(window.pages, dayPages);
     window.sessions = addSaturatedValue(window.sessions, daySessions);
+    if (wpmResolver != nullptr) {
+      const WordPaceDay wordPace = wordPaceForDay(journal, dayIndex, today, session, *wpmResolver);
+      window.words += wordPace.words;
+      window.wordPaceSeconds = addSaturatedValue(window.wordPaceSeconds, wordPace.seconds);
+      if (wordPace.seconds >= 5u * 60u && wordPace.words > 0) {
+        const uint32_t wpmX10 = static_cast<uint32_t>(
+            std::min<uint64_t>((wordPace.words * 600ULL + wordPace.seconds / 2ULL) / wordPace.seconds, UINT32_MAX));
+        window.bestDailyPaceX10 = std::max(window.bestDailyPaceX10, wpmX10);
+      }
+    }
     if (journal != nullptr) {
       window.completedBooks =
           addSaturatedValue16(window.completedBooks, journal->periodEndingOn(dayIndex, 1).completedBooks);
@@ -1418,7 +1569,7 @@ ReadingMetricWindow collectReadingWindow(const ReadingJournal* journal, const Gl
     if (goalSeconds > 0 && daySeconds >= goalSeconds) window.goalDays++;
     window.bestDailyPages = std::max(window.bestDailyPages, dayPages);
     window.bestDailySessions = std::max(window.bestDailySessions, daySessions);
-    if (daySeconds >= 5u * 60u && dayPages >= 3u) {
+    if (wpmResolver == nullptr && daySeconds >= 5u * 60u && dayPages >= 3u) {
       const uint32_t paceX10 = static_cast<uint32_t>((static_cast<uint64_t>(dayPages) * 600u) / daySeconds);
       window.bestDailyPaceX10 = std::max(window.bestDailyPaceX10, paceX10);
     }
@@ -1469,8 +1620,16 @@ void formatSignedPaceDelta(const int32_t deltaX10, char* out, const size_t outSi
     return;
   }
   const uint32_t magnitude = static_cast<uint32_t>(std::abs(deltaX10));
-  snprintf(out, outSize, "%c%lu.%lu %s", deltaX10 > 0 ? '+' : '-', static_cast<unsigned long>(magnitude / 10u),
-           static_cast<unsigned long>(magnitude % 10u), suffix);
+  snprintf(out, outSize, "%c%lu %s", deltaX10 > 0 ? '+' : '-', static_cast<unsigned long>((magnitude + 5u) / 10u),
+           suffix);
+}
+
+void formatWpmX10(const uint32_t wpmX10, char* out, const size_t outSize) {
+  if (wpmX10 == 0) {
+    snprintf(out, outSize, "-");
+    return;
+  }
+  snprintf(out, outSize, "%lu", static_cast<unsigned long>((wpmX10 + 5u) / 10u));
 }
 }  // namespace
 
@@ -1694,8 +1853,27 @@ std::vector<StartedBookStatsEntry> loadStartedBookStatsEntries() {
   return entries;
 }
 
-void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, const bool showButtonHints,
-                            const bool showMoreButton) {
+std::vector<FastestReadStatsEntry> loadFastestReadStatsEntries() {
+  std::vector<BookTitleIdentity> titles;
+  titles.reserve(32);
+  ReadingLedger::forEachRecord(&collectBookTitleIdentity, &titles);
+  FastestCollectBooks collect;
+  collect.titles = &titles;
+  LibraryInsights::forEachDetailedBookStats(&fastestBookVisit, &collect);
+
+  std::vector<FastestReadStatsEntry> entries;
+  entries.reserve(collect.count);
+  for (size_t i = 0; i < collect.count; ++i) {
+    const FastestEntry& entry = collect.top[i];
+    const char* title = titleForBookKey(titles, entry.key);
+    entries.push_back({title != nullptr ? title : tr(STR_STATS_UNKNOWN_BOOK), entry.days, entry.seconds});
+  }
+  return entries;
+}
+
+void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
+                            const std::vector<FastestReadStatsEntry>& books, const bool loading,
+                            const bool showButtonHints, const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_FASTEST_READS), true);
   const auto& metrics = UITheme::getInstance().getMetrics();
@@ -1704,31 +1882,22 @@ void renderFastestReadsPage(GfxRenderer& renderer, const MappedInputManager* map
   const int contentTop = statsContentTop(metrics, showButtonHints) + 10;
   const int contentBottom = renderer.getScreenHeight() - statsBottomInset(metrics, showButtonHints);
 
-  std::vector<BookTitleIdentity> titles;
-  titles.reserve(32);
-  ReadingLedger::forEachRecord(&collectBookTitleIdentity, &titles);
-  FastestCollectBooks collect;
-  collect.titles = &titles;
-  LibraryInsights::forEachDetailedBookStats(&fastestBookVisit, &collect);
-
-  if (collect.count == 0) {
-    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40, tr(STR_STATS_FASTEST_EMPTY));
+  if (loading || books.empty()) {
+    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40, loading ? tr(STR_LOADING) : tr(STR_STATS_FASTEST_EMPTY));
     drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
     return;
   }
 
-  const int rowHeight = std::max(48, std::min(72, (contentBottom - contentTop) / static_cast<int>(collect.count)));
+  const int rowHeight = std::max(48, std::min(72, (contentBottom - contentTop) / static_cast<int>(books.size())));
   const int lineH = renderer.getLineHeight(UI_10_FONT_ID);
   int rowY = contentTop + 4;
   char line[96];
-  for (size_t i = 0; i < collect.count && rowY + rowHeight <= contentBottom + 8; ++i) {
-    const FastestEntry& entry = collect.top[i];
-    const char* title = titleForBookKey(titles, entry.key);
+  for (size_t i = 0; i < books.size() && rowY + rowHeight <= contentBottom + 8; ++i) {
+    const FastestReadStatsEntry& entry = books[i];
     renderer.drawRect(contentX, rowY, contentWidth, rowHeight - 8, i == 0 ? 2 : 1, true);
     snprintf(line, sizeof(line), "%u.", static_cast<unsigned>(i + 1));
     renderer.drawText(UI_10_FONT_ID, contentX + 10, rowY + 8, line, true, EpdFontFamily::BOLD);
-    const std::string visibleTitle =
-        renderer.truncatedText(UI_10_FONT_ID, title != nullptr ? title : tr(STR_STATS_UNKNOWN_BOOK), contentWidth - 46);
+    const std::string visibleTitle = renderer.truncatedText(UI_10_FONT_ID, entry.title.c_str(), contentWidth - 46);
     renderer.drawText(UI_10_FONT_ID, contentX + 34, rowY + 8, visibleTitle.c_str(), true, EpdFontFamily::BOLD);
     char timeText[24];
     BookReadingStats::formatDuration(entry.seconds, timeText, sizeof(timeText));
@@ -1847,11 +2016,13 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
   ReadingStatsDateTime now;
   const bool hasNow = getCurrentLocalReadingStatsDateTime(now);
   const uint32_t today = hasNow ? readingStatsDayIndex(now.date) : 0;
+  BookWpmResolver wpmResolver;
   const ReadingMetricWindow current =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, 30, 0) : ReadingMetricWindow{};
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, 30, 0, &wpmResolver) : ReadingMetricWindow{};
   const uint16_t trackedDays = hasNow ? trackedReadingDays(journal, history, session, today) : 0;
   const ReadingMetricWindow tracked =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, 0) : ReadingMetricWindow{};
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, 0, &wpmResolver)
+             : ReadingMetricWindow{};
   const ReadingStreakSummary streaks =
       hasNow ? summarizeReadingStreaks(journal, history, session, today, ReadingJournal::HISTORY_DAYS)
              : ReadingStreakSummary{};
@@ -1867,10 +2038,16 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
                                                         totalSessions))
                                   : 0;
   const uint32_t paceX10 =
-      totalSeconds > 60 ? static_cast<uint32_t>(std::min<uint64_t>(UINT32_MAX, totalPages * 600u / totalSeconds)) : 0;
+      tracked.wordPaceSeconds > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (tracked.words * 600ULL + tracked.wordPaceSeconds / 2ULL) / tracked.wordPaceSeconds, UINT32_MAX))
+          : 0;
   const uint32_t currentAvgSession = current.sessions > 0 ? current.seconds / current.sessions : 0;
   const uint32_t currentPaceX10 =
-      current.seconds > 60 ? static_cast<uint32_t>((static_cast<uint64_t>(current.pages) * 600u) / current.seconds) : 0;
+      current.wordPaceSeconds > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
+          : 0;
 
   char valueTime[32];
   BookReadingStats::formatDuration(static_cast<uint32_t>(std::min<uint64_t>(totalSeconds, UINT32_MAX)), valueTime,
@@ -1888,8 +2065,7 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
   char valueAvgSession[32];
   BookReadingStats::formatDuration(avgSession, valueAvgSession, sizeof(valueAvgSession));
   char valuePace[32];
-  snprintf(valuePace, sizeof(valuePace), "%lu.%lu", static_cast<unsigned long>(paceX10 / 10u),
-           static_cast<unsigned long>(paceX10 % 10u));
+  formatWpmX10(paceX10, valuePace, sizeof(valuePace));
   const std::array<const char*, 8> values = {
       valueTime, valuePages, valueSessions, valueFinished, valueReadDays, valueStreak, valueAvgSession, valuePace,
   };
@@ -1917,8 +2093,9 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
   BookReadingStats::formatDuration(currentAvgSession, recentDuration, sizeof(recentDuration));
   snprintf(deltaAvgSession, sizeof(deltaAvgSession), "%s: %s", tr(STR_STATS_LAST_30_DAYS), recentDuration);
   char deltaPace[48];
-  snprintf(deltaPace, sizeof(deltaPace), "%s: %lu.%lu", tr(STR_STATS_LAST_30_DAYS),
-           static_cast<unsigned long>(currentPaceX10 / 10u), static_cast<unsigned long>(currentPaceX10 % 10u));
+  char recentPace[16];
+  formatWpmX10(currentPaceX10, recentPace, sizeof(recentPace));
+  snprintf(deltaPace, sizeof(deltaPace), "%s: %s", tr(STR_STATS_LAST_30_DAYS), recentPace);
   const std::array<const char*, 8> comparisons = {
       deltaTime, deltaPages, deltaSessions, deltaFinished, deltaReadDays, deltaStreak, deltaAvgSession, deltaPace,
   };
@@ -1957,12 +2134,13 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   const uint16_t currentDays = std::min<uint16_t>(30, trackedDays);
   const uint16_t previousDays = trackedDays > currentDays ? std::min<uint16_t>(30, trackedDays - currentDays) : 0;
   const uint32_t goalSeconds = std::max<uint32_t>(1u, static_cast<uint32_t>(goalMinutes) * 60u);
+  BookWpmResolver wpmResolver;
   const ReadingMetricWindow current =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds)
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
-  const ReadingMetricWindow previous =
-      hasNow ? collectReadingWindow(journal, history, session, today, currentDays, previousDays, goalSeconds)
-             : ReadingMetricWindow{};
+  const ReadingMetricWindow previous = hasNow ? collectReadingWindow(journal, history, session, today, currentDays,
+                                                                     previousDays, goalSeconds, &wpmResolver)
+                                              : ReadingMetricWindow{};
   const ReadingMetricWindow currentWeek = hasNow ? collectReadingWindow(journal, history, session, today, 0,
                                                                         std::min<uint16_t>(7, trackedDays), goalSeconds)
                                                  : ReadingMetricWindow{};
@@ -1971,11 +2149,14 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
                                                                    std::min<uint16_t>(7, trackedDays - 7), goalSeconds)
                                             : ReadingMetricWindow{};
   const ReadingMetricWindow tracked =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, goalSeconds)
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
   const uint32_t avgReadDay = current.activeDays > 0 ? current.seconds / current.activeDays : 0;
   const uint32_t paceX10 =
-      current.seconds > 60 ? static_cast<uint32_t>((static_cast<uint64_t>(current.pages) * 600u) / current.seconds) : 0;
+      current.wordPaceSeconds > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
+          : 0;
   const uint32_t currentVarietyStart = currentDays > 0 && today + 1u >= currentDays ? today + 1u - currentDays : 0;
   const uint32_t previousVarietyStart =
       previousDays > 0 && today + 1u >= currentDays + previousDays ? today + 1u - currentDays - previousDays : 0;
@@ -2020,9 +2201,11 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   snprintf(rawFocusRatio, sizeof(rawFocusRatio), "%u/%u %s", static_cast<unsigned>(current.goalDays),
            static_cast<unsigned>(current.activeDays), tr(STR_STATS_DAYS));
   char rawPace[40];
-  snprintf(rawPace, sizeof(rawPace), "%lu.%lu / %lu.%lu", static_cast<unsigned long>(paceX10 / 10u),
-           static_cast<unsigned long>(paceX10 % 10u), static_cast<unsigned long>(tracked.bestDailyPaceX10 / 10u),
-           static_cast<unsigned long>(tracked.bestDailyPaceX10 % 10u));
+  char currentWpm[16];
+  char bestWpm[16];
+  formatWpmX10(paceX10, currentWpm, sizeof(currentWpm));
+  formatWpmX10(tracked.bestDailyPaceX10, bestWpm, sizeof(bestWpm));
+  snprintf(rawPace, sizeof(rawPace), "%s / %s", currentWpm, bestWpm);
   char rawMomentum[48];
   char currentWeekTime[24];
   char priorWeekTime[24];
@@ -2086,12 +2269,13 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   const uint16_t currentDays = std::min<uint16_t>(30, trackedDays);
   const uint16_t previousDays = trackedDays > currentDays ? std::min<uint16_t>(30, trackedDays - currentDays) : 0;
   const uint32_t goalSeconds = std::max<uint32_t>(1u, static_cast<uint32_t>(goalMinutes) * 60u);
+  BookWpmResolver wpmResolver;
   const ReadingMetricWindow current =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds)
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
-  const ReadingMetricWindow previous =
-      hasNow ? collectReadingWindow(journal, history, session, today, currentDays, previousDays, goalSeconds)
-             : ReadingMetricWindow{};
+  const ReadingMetricWindow previous = hasNow ? collectReadingWindow(journal, history, session, today, currentDays,
+                                                                     previousDays, goalSeconds, &wpmResolver)
+                                              : ReadingMetricWindow{};
   const ReadingMetricWindow currentWeek =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, std::min<uint16_t>(7, trackedDays), 0)
              : ReadingMetricWindow{};
@@ -2102,10 +2286,15 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   const uint32_t currentAvgReadDay = current.activeDays > 0 ? current.seconds / current.activeDays : 0;
   const uint32_t previousAvgReadDay = previous.activeDays > 0 ? previous.seconds / previous.activeDays : 0;
   const uint32_t currentPaceX10 =
-      current.seconds > 60 ? static_cast<uint32_t>((static_cast<uint64_t>(current.pages) * 600u) / current.seconds) : 0;
+      current.wordPaceSeconds > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (current.words * 600ULL + current.wordPaceSeconds / 2ULL) / current.wordPaceSeconds, UINT32_MAX))
+          : 0;
   const uint32_t previousPaceX10 =
-      previous.seconds > 60 ? static_cast<uint32_t>((static_cast<uint64_t>(previous.pages) * 600u) / previous.seconds)
-                            : 0;
+      previous.wordPaceSeconds > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (previous.words * 600ULL + previous.wordPaceSeconds / 2ULL) / previous.wordPaceSeconds, UINT32_MAX))
+          : 0;
   const uint32_t currentVarietyStart = currentDays > 0 && today + 1u >= currentDays ? today + 1u - currentDays : 0;
   const uint32_t previousVarietyStart =
       previousDays > 0 && today + 1u >= currentDays + previousDays ? today + 1u - currentDays - previousDays : 0;
@@ -2123,8 +2312,7 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   snprintf(valueFocus, sizeof(valueFocus), "%u / %u %s", static_cast<unsigned>(current.goalDays),
            static_cast<unsigned>(current.activeDays), tr(STR_STATS_DAYS));
   char valuePace[32];
-  snprintf(valuePace, sizeof(valuePace), "%lu.%lu", static_cast<unsigned long>(currentPaceX10 / 10u),
-           static_cast<unsigned long>(currentPaceX10 % 10u));
+  formatWpmX10(currentPaceX10, valuePace, sizeof(valuePace));
   char valueMomentum[32];
   if (currentWeek.seconds > priorWeek.seconds) {
     snprintf(valueMomentum, sizeof(valueMomentum), "%s", tr(STR_STATS_READING_TIME_RISING));
@@ -2155,7 +2343,7 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   formatSignedCountDelta(static_cast<int64_t>(current.goalDays) - previous.goalDays, deltaFocus, sizeof(deltaFocus),
                          tr(STR_STATS_DAYS), tr(STR_STATS_VS_PRIOR_30_DAYS));
   char deltaPace[48];
-  if (previous.seconds <= 60 || previous.pages == 0) {
+  if (previous.wordPaceSeconds == 0 || previous.words == 0) {
     snprintf(deltaPace, sizeof(deltaPace), "%s", tr(STR_STATS_NOT_ENOUGH_DATA));
   } else {
     formatSignedPaceDelta(static_cast<int32_t>(currentPaceX10) - static_cast<int32_t>(previousPaceX10), deltaPace,
@@ -2486,7 +2674,7 @@ void renderStreakMilestonesPage(GfxRenderer& renderer, const MappedInputManager*
   uint16_t nextMilestone = milestones.back();
   bool foundNextMilestone = false;
   for (const uint16_t candidate : milestones) {
-    if (candidate > streaks.current) {
+    if (candidate > streaks.longest) {
       nextMilestone = candidate;
       foundNextMilestone = true;
       break;
@@ -2496,7 +2684,7 @@ void renderStreakMilestonesPage(GfxRenderer& renderer, const MappedInputManager*
     constexpr std::array<uint16_t, 4> futureMilestones = {1250, 1460, 1825, 3650};
     nextMilestone = futureMilestones.back();
     for (const uint16_t candidate : futureMilestones) {
-      if (candidate > streaks.current) {
+      if (candidate > streaks.longest) {
         nextMilestone = candidate;
         break;
       }
@@ -2542,8 +2730,9 @@ void renderStreakMilestonesPage(GfxRenderer& renderer, const MappedInputManager*
 
   renderer.drawRoundedRect(contentX, nextCardTop, contentWidth, nextCardHeight, 1, 8, true);
   char nextLabel[64];
+  const uint16_t daysRemaining = streaks.current >= nextMilestone ? 0 : nextMilestone - streaks.current;
   snprintf(nextLabel, sizeof(nextLabel), "%s: %u %s", tr(STR_STATS_NEXT_MILESTONE),
-           static_cast<unsigned>(nextMilestone), tr(STR_STATS_DAYS));
+           static_cast<unsigned>(daysRemaining), tr(STR_STATS_DAYS));
   renderer.drawText(UI_10_FONT_ID, contentX + 10, nextCardTop + 8, nextLabel, true, EpdFontFamily::BOLD);
   char progressLabel[32];
   snprintf(progressLabel, sizeof(progressLabel), "%u / %u", static_cast<unsigned>(streaks.current),
@@ -2612,7 +2801,37 @@ void tallyStartFinish(const uint64_t key, const BookReadingStats& stats, void* c
 }
 }  // namespace
 
-void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, const bool showButtonHints,
+StartFinishStatsSummary loadStartFinishStatsSummary() {
+  StartFinishStatsSummary summary;
+  ReadingStatsDateTime now;
+  if (!getCurrentLocalReadingStatsDateTime(now)) {
+    return summary;
+  }
+
+  std::vector<BookTitleIdentity> titles;
+  titles.reserve(32);
+  ReadingLedger::forEachRecord(&collectBookTitleIdentity, &titles);
+
+  StartFinishTally tally;
+  tally.nowMonth = now.date.month;
+  tally.nowYear = now.date.year;
+  tally.titles = &titles;
+  tally.seenIdentities.reserve(titles.size());
+  LibraryInsights::forEachDetailedBookStats(&tallyStartFinish, &tally);
+
+  summary.nowMonth = tally.nowMonth;
+  summary.started = tally.started;
+  summary.finished = tally.finished;
+  for (size_t i = 0; i < 12; ++i) {
+    summary.totalStarted += summary.started[i];
+    summary.totalFinished += summary.finished[i];
+  }
+  summary.available = true;
+  return summary;
+}
+
+void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
+                               const StartFinishStatsSummary& summary, const bool showButtonHints,
                                const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_STARTED_FINISHED), true);
@@ -2622,28 +2841,15 @@ void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* 
   const int contentTop = statsContentTop(metrics, showButtonHints) + 10;
   const int contentBottom = renderer.getScreenHeight() - statsBottomInset(metrics, showButtonHints);
 
-  ReadingStatsDateTime now;
-  StartFinishTally tally;
-  uint32_t totalStarted = 0;
-  uint32_t totalFinished = 0;
-  if (getCurrentLocalReadingStatsDateTime(now)) {
-    std::vector<BookTitleIdentity> titles;
-    titles.reserve(32);
-    ReadingLedger::forEachRecord(&collectBookTitleIdentity, &titles);
-    tally.nowMonth = now.date.month;
-    tally.nowYear = now.date.year;
-    tally.titles = &titles;
-    tally.seenIdentities.reserve(titles.size());
-    LibraryInsights::forEachDetailedBookStats(&tallyStartFinish, &tally);
-    for (size_t i = 0; i < 12; ++i) {
-      totalStarted += tally.started[i];
-      totalFinished += tally.finished[i];
-    }
+  if (!summary.available) {
+    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40, tr(STR_LOADING));
+    drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
+    return;
   }
 
   uint8_t maxCount = 1;
   for (size_t i = 0; i < 12; ++i) {
-    maxCount = std::max(maxCount, std::max(tally.started[i], tally.finished[i]));
+    maxCount = std::max(maxCount, std::max(summary.started[i], summary.finished[i]));
   }
 
   constexpr int summaryHeight = 112;
@@ -2670,21 +2876,21 @@ void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* 
   for (size_t i = 0; i < 12; ++i) {
     const int slotX = chartLeft + static_cast<int>(i) * slotWidth + (slotWidth - pairWidth) / 2;
     const int startedHeight =
-        tally.started[i] > 0
-            ? std::max(2, static_cast<int>((static_cast<uint64_t>(chartHeight) * tally.started[i]) / maxCount))
+        summary.started[i] > 0
+            ? std::max(2, static_cast<int>((static_cast<uint64_t>(chartHeight) * summary.started[i]) / maxCount))
             : 0;
     if (startedHeight > 0) {
       renderer.drawRect(slotX, chartBottom - startedHeight, barWidth, startedHeight);
     }
     const int finishedHeight =
-        tally.finished[i] > 0
-            ? std::max(2, static_cast<int>((static_cast<uint64_t>(chartHeight) * tally.finished[i]) / maxCount))
+        summary.finished[i] > 0
+            ? std::max(2, static_cast<int>((static_cast<uint64_t>(chartHeight) * summary.finished[i]) / maxCount))
             : 0;
     if (finishedHeight > 0) {
       renderer.fillRect(slotX + barWidth + 2, chartBottom - finishedHeight, barWidth, finishedHeight, true);
     }
     if (i % 2 == 1 || i == 11) {
-      int month = tally.nowMonth - (11 - static_cast<int>(i));
+      int month = summary.nowMonth - (11 - static_cast<int>(i));
       while (month <= 0) month += 12;
       char monthLabel[6];
       snprintf(monthLabel, sizeof(monthLabel), "%d", month);
@@ -2696,9 +2902,9 @@ void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* 
   renderer.drawRect(contentX, summaryTop, contentWidth, summaryHeight);
   const int halfWidth = contentWidth / 2;
   char value[40];
-  snprintf(value, sizeof(value), "%lu", static_cast<unsigned long>(totalStarted));
+  snprintf(value, sizeof(value), "%lu", static_cast<unsigned long>(summary.totalStarted));
   drawStatCell(renderer, contentX, halfWidth, summaryTop, summaryHeight, value, tr(STR_STATS_STARTED_12MO));
-  snprintf(value, sizeof(value), "%lu", static_cast<unsigned long>(totalFinished));
+  snprintf(value, sizeof(value), "%lu", static_cast<unsigned long>(summary.totalFinished));
   drawStatCell(renderer, contentX + halfWidth, contentWidth - halfWidth, summaryTop, summaryHeight, value,
                tr(STR_STATS_FINISHED_12MO));
 
@@ -2960,9 +3166,17 @@ void renderMonthlyTrendPage(GfxRenderer& renderer, const MappedInputManager* map
   drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
 }
 
+DeviceSplitStatsSummary loadDeviceSplitStatsSummary() {
+  DeviceSplitStatsSummary summary;
+  summary.peerCount = GlobalReadingStats::loadSyncedPeers(summary.peers.data(), summary.peerNames.data(),
+                                                          DeviceSplitStatsSummary::MAX_PEERS);
+  summary.loaded = true;
+  return summary;
+}
+
 void renderDeviceSplitPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
-                           const GlobalReadingStats& localStats, const bool showButtonHints,
-                           const bool showMoreButton) {
+                           const GlobalReadingStats& localStats, const DeviceSplitStatsSummary& devices,
+                           const bool showButtonHints, const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_DEVICE_SPLIT), true);
   const auto& metrics = UITheme::getInstance().getMetrics();
@@ -2971,17 +3185,20 @@ void renderDeviceSplitPage(GfxRenderer& renderer, const MappedInputManager* mapp
   const int contentTop = statsContentTop(metrics, showButtonHints) + 10;
   const int contentBottom = renderer.getScreenHeight() - statsBottomInset(metrics, showButtonHints);
 
-  constexpr uint8_t maxPeers = 3;
-  std::array<GlobalReadingStats, maxPeers> peers{};
-  std::array<std::string, maxPeers> peerNames{};
-  const uint8_t peerCount = GlobalReadingStats::loadSyncedPeers(peers.data(), peerNames.data(), maxPeers);
+  if (!devices.loaded) {
+    renderer.drawCenteredText(UI_10_FONT_ID, contentTop + 40, tr(STR_LOADING));
+    drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
+    return;
+  }
+
+  const uint8_t peerCount = devices.peerCount;
   const int deviceCount = 1 + peerCount;
 
   uint64_t totalSeconds = localStats.totalReadingSeconds;
   uint64_t maxSeconds = std::max<uint64_t>(60, localStats.totalReadingSeconds);
   for (uint8_t i = 0; i < peerCount; ++i) {
-    totalSeconds += peers[i].totalReadingSeconds;
-    maxSeconds = std::max<uint64_t>(maxSeconds, peers[i].totalReadingSeconds);
+    totalSeconds += devices.peers[i].totalReadingSeconds;
+    maxSeconds = std::max<uint64_t>(maxSeconds, devices.peers[i].totalReadingSeconds);
   }
 
   // One row per device: name, share bar, and the key totals.
@@ -2992,7 +3209,7 @@ void renderDeviceSplitPage(GfxRenderer& renderer, const MappedInputManager* mapp
   char value[48];
   char line[96];
   for (int device = 0; device < deviceCount && rowY + rowHeight <= contentBottom + 4; ++device) {
-    const GlobalReadingStats& stats = device == 0 ? localStats : peers[static_cast<size_t>(device - 1)];
+    const GlobalReadingStats& stats = device == 0 ? localStats : devices.peers[static_cast<size_t>(device - 1)];
     renderer.drawRoundedRect(contentX, rowY, contentWidth, rowHeight, 1, 8, true);
     if (device == 0) {
       const char* localName = SETTINGS.getEffectiveDeviceName();
@@ -3001,7 +3218,7 @@ void renderDeviceSplitPage(GfxRenderer& renderer, const MappedInputManager* mapp
                tr(STR_STATS_THIS_DEVICE_SCREEN));
       renderer.drawText(UI_10_FONT_ID, contentX + 12, rowY + 8, line, true, EpdFontFamily::BOLD);
     } else {
-      const std::string& peerName = peerNames[static_cast<size_t>(device - 1)];
+      const std::string& peerName = devices.peerNames[static_cast<size_t>(device - 1)];
       if (!peerName.empty()) {
         renderer.drawText(UI_10_FONT_ID, contentX + 12, rowY + 8, peerName.c_str(), true, EpdFontFamily::BOLD);
       } else {
@@ -3144,31 +3361,31 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   const bool hasNow = getCurrentLocalReadingStatsDateTime(now);
   const uint32_t today = hasNow ? readingStatsDayIndex(now.date) : 0;
 
-  // Daily pace in pages-per-minute x10 fixed point over the last 30 days.
+  // Daily pace in words-per-minute x10 fixed point over the last 30 days.
   constexpr size_t dayCount = 30;
   std::array<uint16_t, dayCount> paceX10{};
-  uint32_t maxPaceX10 = 10;
-  uint64_t recentPagesWeek = 0;
+  uint32_t maxPaceX10 = 1000;
+  uint64_t recentWordsWeek = 0;
   uint64_t recentSecondsWeek = 0;
-  uint64_t pagesMonth = 0;
+  uint64_t wordsMonth = 0;
   uint64_t secondsMonth = 0;
+  BookWpmResolver wpmResolver;
   for (size_t i = 0; i < dayCount && hasNow; ++i) {
     const uint32_t offset = static_cast<uint32_t>(dayCount - 1 - i);
     if (today < offset) continue;
     const uint32_t dayIndex = today - offset;
-    const uint32_t seconds = journalSecondsForDay(journal, dayIndex, today, session);
-    uint32_t pages = journal != nullptr ? journal->pagesOnDay(dayIndex) : 0;
-    if (dayIndex == today) pages += session.screenPages;
-    // Under two minutes of reading produces meaningless pace noise.
-    if (seconds < 120 || pages == 0) continue;
-    const uint32_t pace = static_cast<uint32_t>((static_cast<uint64_t>(pages) * 600u) / seconds);
+    const WordPaceDay paceDay = wordPaceForDay(journal, dayIndex, today, session, wpmResolver);
+    // Under two minutes of attributable reading produces meaningless pace noise.
+    if (paceDay.seconds < 120 || paceDay.words == 0) continue;
+    const uint32_t pace = static_cast<uint32_t>(
+        std::min<uint64_t>((paceDay.words * 600ULL + paceDay.seconds / 2ULL) / paceDay.seconds, UINT32_MAX));
     paceX10[i] = static_cast<uint16_t>(std::min<uint32_t>(pace, UINT16_MAX));
     maxPaceX10 = std::max(maxPaceX10, pace);
-    pagesMonth += pages;
-    secondsMonth += seconds;
+    wordsMonth += paceDay.words;
+    secondsMonth += paceDay.seconds;
     if (offset < 7) {
-      recentPagesWeek += pages;
-      recentSecondsWeek += seconds;
+      recentWordsWeek += paceDay.words;
+      recentSecondsWeek += paceDay.seconds;
     }
   }
 
@@ -3186,8 +3403,7 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   renderer.drawLine(chartLeft, chartBottom, chartRight, chartBottom);
 
   char scaleText[20];
-  snprintf(scaleText, sizeof(scaleText), "%lu.%lu", static_cast<unsigned long>(maxPaceX10 / 10),
-           static_cast<unsigned long>(maxPaceX10 % 10));
+  formatWpmX10(maxPaceX10, scaleText, sizeof(scaleText));
   renderer.drawText(SMALL_FONT_ID, contentX, chartTop - renderer.getLineHeight(SMALL_FONT_ID) / 2, scaleText);
 
   const int slotWidth = std::max(1, plotWidth / static_cast<int>(dayCount));
@@ -3219,13 +3435,17 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   const int thirdWidth = contentWidth / 3;
   char value[40];
   const uint32_t weekPaceX10 =
-      recentSecondsWeek > 0 ? static_cast<uint32_t>((recentPagesWeek * 600u) / recentSecondsWeek) : 0;
-  const uint32_t monthPaceX10 = secondsMonth > 0 ? static_cast<uint32_t>((pagesMonth * 600u) / secondsMonth) : 0;
-  snprintf(value, sizeof(value), "%lu.%lu", static_cast<unsigned long>(weekPaceX10 / 10),
-           static_cast<unsigned long>(weekPaceX10 % 10));
+      recentSecondsWeek > 0
+          ? static_cast<uint32_t>(std::min<uint64_t>(
+                (recentWordsWeek * 600ULL + recentSecondsWeek / 2ULL) / recentSecondsWeek, UINT32_MAX))
+          : 0;
+  const uint32_t monthPaceX10 = secondsMonth > 0
+                                    ? static_cast<uint32_t>(std::min<uint64_t>(
+                                          (wordsMonth * 600ULL + secondsMonth / 2ULL) / secondsMonth, UINT32_MAX))
+                                    : 0;
+  formatWpmX10(weekPaceX10, value, sizeof(value));
   drawStatCell(renderer, contentX, thirdWidth, summaryTop, summaryHeight, value, tr(STR_STATS_PACE_7D));
-  snprintf(value, sizeof(value), "%lu.%lu", static_cast<unsigned long>(monthPaceX10 / 10),
-           static_cast<unsigned long>(monthPaceX10 % 10));
+  formatWpmX10(monthPaceX10, value, sizeof(value));
   drawStatCell(renderer, contentX + thirdWidth, thirdWidth, summaryTop, summaryHeight, value, tr(STR_STATS_PACE_30D));
   const char* trend = weekPaceX10 == 0 || monthPaceX10 == 0            ? "-"
                       : weekPaceX10 > monthPaceX10 + monthPaceX10 / 20 ? tr(STR_STATS_TREND_UP)

@@ -20,7 +20,7 @@ REQUIRED_FILES = (
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
     "docs/ALPHA_TESTING.md",
-    "docs/ALPHA6_ACCEPTANCE_QUICKSTART.md",
+    "docs/ALPHA7_ACCEPTANCE_QUICKSTART.md",
     "docs/COVER_PREFILL.md",
     "docs/PHYSICAL_TEST_MATRIX.md",
     "release/README-FIRST.txt",

@@ -124,6 +124,7 @@ void BookStatsActivity::saveStats() {
   globalStats.save();
   refreshAllDevicesStats();
   readingDatesLoaded = false;
+  invalidateDerivedStatsCaches();
   didChangeStats = false;
 }
 
@@ -409,11 +410,55 @@ void BookStatsActivity::ensureReadingDates() {
   readingDatesLoaded = true;
 }
 
+void BookStatsActivity::ensureFastestReads() {
+  if (fastestReadsLoaded) return;
+  fastestReads = loadFastestReadStatsEntries();
+  fastestReadsLoaded = true;
+}
+
+void BookStatsActivity::ensureStartFinishSummary() {
+  if (startFinishSummaryLoaded) return;
+  startFinishSummary = loadStartFinishStatsSummary();
+  startFinishSummaryLoaded = true;
+}
+
+void BookStatsActivity::ensureDeviceSplitSummary() {
+  if (deviceSplitSummary.loaded) return;
+  deviceSplitSummary = loadDeviceSplitStatsSummary();
+}
+
+void BookStatsActivity::invalidateDerivedStatsCaches() {
+  fastestReadsLoaded = false;
+  fastestReads.clear();
+  startFinishSummaryLoaded = false;
+  startFinishSummary = StartFinishStatsSummary{};
+  deviceSplitSummary = DeviceSplitStatsSummary{};
+}
+
+bool BookStatsActivity::processDerivedStatsLoadStep() {
+  if (page == Page::FastestReads && !fastestReadsLoaded) {
+    ensureFastestReads();
+    requestUpdate();
+    return true;
+  }
+  if (page == Page::StartedFinished && !startFinishSummaryLoaded) {
+    ensureStartFinishSummary();
+    requestUpdate();
+    return true;
+  }
+  if (page == Page::DeviceSplit && !deviceSplitSummary.loaded) {
+    ensureDeviceSplitSummary();
+    requestUpdate();
+    return true;
+  }
+  return false;
+}
+
 void BookStatsActivity::moveReadingDatesSelection(const int delta) {
   ensureReadingDates();
   if (readingDates.empty() || delta == 0) return;
-  const size_t next = static_cast<size_t>(std::clamp<int64_t>(
-      static_cast<int64_t>(readingDatesSelected) + delta, 0, static_cast<int64_t>(readingDates.size() - 1)));
+  const size_t next = static_cast<size_t>(std::clamp<int64_t>(static_cast<int64_t>(readingDatesSelected) + delta, 0,
+                                                              static_cast<int64_t>(readingDates.size() - 1)));
   if (next == readingDatesSelected) return;
   readingDatesSelected = next;
   requestUpdate();
@@ -624,24 +669,39 @@ void BookStatsActivity::exitStatsActivity(const bool viaBack) {
 
 size_t BookStatsActivity::buildVisiblePages(std::array<Page, 35>& pages) const {
   const std::array<Page, 33> allPages = {
-      Page::CurrentBook,      Page::BookProgress,
+      Page::CurrentBook,
+      Page::BookProgress,
       Page::BookPatterns,
+      Page::ThisDevice,
+      Page::AllDevices,
+      Page::DeviceSplit,
       Page::Trends,
-      Page::ActivityChart,    Page::DailyMinutes,
-      Page::MonthlyCalendar,  Page::Heatmap,
-      Page::ReadingProfile,   Page::Goals,
-      Page::RecentSessions,   Page::WeekdayPattern,
-      Page::PaceTrend,        Page::TimeOfDay,
-      Page::MonthlyTrend,     Page::YearLine,
-      Page::DeviceSplit,      Page::SessionLengths,
-      Page::StreakMilestones, Page::StartedFinished,
+      Page::ActivityChart,
+      Page::DailyMinutes,
+      Page::MonthlyCalendar,
+      Page::Heatmap,
+      Page::ReadingProfile,
+      Page::Goals,
+      Page::RecentSessions,
+      Page::WeekdayPattern,
+      Page::PaceTrend,
+      Page::TimeOfDay,
+      Page::MonthlyTrend,
+      Page::YearLine,
+      Page::SessionLengths,
+      Page::StreakMilestones,
+      Page::StartedFinished,
       Page::ReadingDates,
-      Page::ReaderRadar,      Page::ReaderDnaDetails,
-      Page::ReaderSignature,  Page::ReaderSignatureDetails,
-      Page::FastestReads,     Page::Wrapped,
-      Page::StartedBooks,     Page::LibraryOverview,
-      Page::ReadingTaste,     Page::SeriesProgress,
-      Page::ThisDevice,       Page::AllDevices,
+      Page::ReaderRadar,
+      Page::ReaderDnaDetails,
+      Page::ReaderSignature,
+      Page::ReaderSignatureDetails,
+      Page::FastestReads,
+      Page::Wrapped,
+      Page::StartedBooks,
+      Page::LibraryOverview,
+      Page::ReadingTaste,
+      Page::SeriesProgress,
   };
   size_t count = 0;
   for (const Page candidate : allPages) {
@@ -966,7 +1026,9 @@ void BookStatsActivity::loop() {
   }
   if (mappedInput.wasPressed(MappedInputManager::Button::Down)) {
     cyclePage(1);
+    return;
   }
+  processDerivedStatsLoadStep();
 }
 
 void BookStatsActivity::render(RenderLock&&) {
@@ -1050,7 +1112,7 @@ void BookStatsActivity::render(RenderLock&&) {
       renderMonthlyTrendPage(renderer, &mappedInput, readingJournal.get(), sessionSnapshot, true, true);
       break;
     case Page::DeviceSplit:
-      renderDeviceSplitPage(renderer, &mappedInput, globalStats, true, true);
+      renderDeviceSplitPage(renderer, &mappedInput, globalStats, deviceSplitSummary, true, true);
       break;
     case Page::YearLine:
       renderYearLinePage(renderer, &mappedInput, readingJournal.get(), sessionSnapshot, true, true);
@@ -1063,7 +1125,7 @@ void BookStatsActivity::render(RenderLock&&) {
                                  true);
       break;
     case Page::StartedFinished:
-      renderStartedFinishedPage(renderer, &mappedInput, true, true);
+      renderStartedFinishedPage(renderer, &mappedInput, startFinishSummary, true, true);
       break;
     case Page::ReadingDates:
       renderReadingDatesPage(renderer, &mappedInput, readingDates, readingDatesSelected, !readingDatesLoaded, true,
@@ -1086,7 +1148,7 @@ void BookStatsActivity::render(RenderLock&&) {
                                         SETTINGS.readingGoalMinutes, true, true);
       break;
     case Page::FastestReads:
-      renderFastestReadsPage(renderer, &mappedInput, true, true);
+      renderFastestReadsPage(renderer, &mappedInput, fastestReads, !fastestReadsLoaded, true, true);
       break;
     case Page::Wrapped:
       renderReadingWrappedPage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot, true, true);

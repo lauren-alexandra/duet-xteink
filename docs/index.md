@@ -18,11 +18,12 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 - [User Guide](../USER_GUIDE.md)
 - [Alpha Testing](./ALPHA_TESTING.md)
 - [Troubleshooting](./troubleshooting.md)
-- [Alpha.6 Acceptance Quickstart](./ALPHA6_ACCEPTANCE_QUICKSTART.md)
+- [Alpha.7 Acceptance Quickstart](./ALPHA7_ACCEPTANCE_QUICKSTART.md)
 
 ## Features And Daily Use
 
 - [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.md)
+- [Dictionary Setup](./DICTIONARY_SETUP.md)
 - [Font Build Variants](./font-build-variants.md)
 - [SD-Card Fonts](./sd-card-fonts.md)
 - [Reader Features](./reader-features.md)
@@ -38,9 +39,9 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 ## Library And Media
 
 - [Desktop Cover Prefill](./COVER_PREFILL.md)
-- [Alpha.6 Release Notes](./releases/v0.1.0-alpha.6.md)
-- [Alpha.6 Screenshot Gallery](./media/alpha-0.1.0/README.md)
-- [Complete X3/X4 Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
+- [Alpha.7 Release Notes](./releases/v0.1.0-alpha.7.md)
+- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.md)
+- [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
 
 ## Testing, Development, And Community
 

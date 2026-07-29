@@ -88,6 +88,11 @@ class BookStatsActivity final : public Activity {
   std::vector<ReadingDateStatsEntry> readingDates;
   size_t readingDatesSelected = 0;
   bool readingDatesLoaded = false;
+  std::vector<FastestReadStatsEntry> fastestReads;
+  bool fastestReadsLoaded = false;
+  StartFinishStatsSummary startFinishSummary;
+  bool startFinishSummaryLoaded = false;
+  DeviceSplitStatsSummary deviceSplitSummary;
   bool dayDetailsOpen = false;
   bool dayCorrectionEditMode = false;
   ReadingStatsDate dayDetailsDate;
@@ -117,6 +122,11 @@ class BookStatsActivity final : public Activity {
   void ensureReadingDates();
   void moveReadingDatesSelection(int delta);
   void openSelectedReadingDatesBook();
+  void ensureFastestReads();
+  void ensureStartFinishSummary();
+  void ensureDeviceSplitSummary();
+  void invalidateDerivedStatsCaches();
+  bool processDerivedStatsLoadStep();
   void openDayDetails(const ReadingStatsDate* date = nullptr);
   void refreshDayDetails();
   void changeDayDetailsDate(int delta);
@@ -135,14 +145,12 @@ class BookStatsActivity final : public Activity {
                     const std::string& bookCachePath, const BookReadingStats& stats, float progressPercent,
                     bool hasEstimatedTimeLeft, uint32_t estimatedTimeLeftSeconds, const GlobalReadingStats& globalStats,
                     bool returnToHomeOnExit = false, const ReadingSessionSnapshot& sessionSnapshot = {},
-                    uint32_t bookWordCount = 0,
-                    InitialPage initialPage = InitialPage::CurrentBook);
+                    uint32_t bookWordCount = 0, InitialPage initialPage = InitialPage::CurrentBook);
   BookStatsActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, const std::string& title,
                     const std::string& bookCachePath, const BookReadingStats& stats, float progressPercent,
                     bool hasEstimatedTimeLeft, uint32_t estimatedTimeLeftSeconds, const GlobalReadingStats& globalStats,
                     const GlobalReadingStats& allDevicesStats, bool returnToHomeOnExit = false,
-                    const ReadingSessionSnapshot& sessionSnapshot = {},
-                    uint32_t bookWordCount = 0,
+                    const ReadingSessionSnapshot& sessionSnapshot = {}, uint32_t bookWordCount = 0,
                     InitialPage initialPage = InitialPage::CurrentBook);
 
   void onEnter() override;

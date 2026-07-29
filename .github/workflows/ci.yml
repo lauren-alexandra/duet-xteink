@@ -25,7 +25,8 @@ jobs:
           python3 -m py_compile \
             scripts/audit_public_release.py \
             scripts/generate_release_catalog.py \
-            scripts/package_release.py
+            scripts/package_release.py \
+            scripts/package_wordnet_dictionary.py
 
       - name: Audit public release inputs
         run: python3 scripts/audit_public_release.py
