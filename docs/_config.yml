@@ -1,0 +1,8 @@
+remote_theme: just-the-docs/just-the-docs
+title: Duet
+description: Reading-first firmware for the Xteink X3 and X4
+url: https://lauren-alexandra.github.io
+baseurl: /duet-xteink
+repository: lauren-alexandra/duet-xteink
+mermaid:
+  version: "10.9.0"

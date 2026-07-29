@@ -1,0 +1,3 @@
+add_executable(power_button_click_detector_test PowerButtonClickDetectorTest.cpp)
+target_link_libraries(power_button_click_detector_test PRIVATE crosspoint_test_common GTest::gtest_main)
+gtest_discover_tests(power_button_click_detector_test)

@@ -1,0 +1,168 @@
+name: Alpha Test Report
+description: Share a Duet X3/X4 test session, including successful and mixed results
+title: "[Alpha test]: "
+labels:
+  - alpha
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing Duet. Successful tests and useful timings matter just as much as bugs. Please remove credentials, contact details, device identifiers, personal reading history, and identifying paths. Never upload an ebook or a complete SD-card archive.
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - X3
+        - X4
+        - Both
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Exact Duet Version
+      description: Copy the value shown in Settings > System on every tested device.
+      placeholder: Ex. X3 Duet 0.1.0-alpha.6; X4 Duet 0.1.0-alpha.6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: overall-result
+    attributes:
+      label: Overall Result
+      options:
+        - Passed everything tested
+        - Mostly passed with minor rough edges
+        - Mixed results
+        - Failed or required recovery
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: Install Type
+      options:
+        - First Duet flash through the web installer
+        - Duet update through SD Firmware Update
+        - Recovery or rollback test
+        - No new installation in this session
+    validations:
+      required: true
+
+  - type: input
+    id: sd-card
+    attributes:
+      label: SD Card
+      description: Brand, capacity, filesystem, and approximate free space if known.
+      placeholder: Ex. SanDisk 32 GB, exFAT, 8 GB free
+    validations:
+      required: true
+
+  - type: input
+    id: library
+    attributes:
+      label: Library Size
+      description: Approximate total books and the largest tested folder.
+      placeholder: Ex. 640 books total; largest folder about 510 paths
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prefill
+    attributes:
+      label: Desktop Cover Prefill
+      options:
+        - Not run
+        - Passed with no failed books
+        - Completed with failed books
+        - Not applicable to this test
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: areas
+    attributes:
+      label: Areas Tested
+      options:
+        - label: Installation, boot, and version display
+        - label: Sleep, wake, and book resume
+        - label: Book open, page turns, and chapter transitions
+        - label: List and folder navigation
+        - label: 2x2, 3x3, or 4x4 cover grids
+        - label: Five-cover carousel
+        - label: Search and More Info
+        - label: Reading Stats pages
+        - label: Fonts and font styles
+        - label: Dictionary lookup
+        - label: Nearby Stats Sync
+        - label: Nearby or KOReader position sync
+        - label: Recovery or rollback
+
+  - type: textarea
+    id: observations
+    attributes:
+      label: What Happened
+      description: Summarize what worked, what felt slow, and anything unexpected.
+      placeholder: |
+        Passed:
+        Rough edges:
+        Failed:
+    validations:
+      required: true
+
+  - type: textarea
+    id: timings
+    attributes:
+      label: Useful Timings
+      description: Approximate real elapsed times are enough. Do not speed up videos.
+      placeholder: |
+        Cold boot:
+        Open book:
+        Return Home:
+        First grid paint:
+        Covers hydrated:
+        Carousel first paint:
+        Chapter transition:
+        Sleep / wake:
+
+  - type: textarea
+    id: sync
+    attributes:
+      label: Two-Device Sync Details
+      description: Complete this only when testing two readers. Include direction, confirmation text, and whether values converged.
+      placeholder: |
+        Started from:
+        Position or stats:
+        Result on X3:
+        Result on X4:
+        Repeated sync result:
+
+  - type: dropdown
+    id: filesystem-check
+    attributes:
+      label: Read-Only Filesystem Check
+      options:
+        - Not run
+        - Passed
+        - Reported errors
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Privacy-Reviewed Evidence
+      description: Attach only the smallest useful logs, photos, or unsped clips.
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy Check
+      options:
+        - label: I removed ebooks, credentials, contact details, device identifiers, private reading history, and identifying paths.
+          required: true

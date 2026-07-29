@@ -1,0 +1,157 @@
+diff --git a/src/HalStorage.cpp b/src/HalStorage.cpp
+index fa04604..e8ce756 100644
+--- a/src/HalStorage.cpp
++++ b/src/HalStorage.cpp
+@@ -76,6 +76,90 @@ bool ensureParentDirectories(const std::string &full) {
+   }
+   return ::mkdir(parent.c_str(), 0777) == 0 || errno == EEXIST;
+ }
++
++bool logicalPathExists(const char *path) {
++  const std::string full = resolveStoragePath(path);
++  if (full.empty()) {
++    return false;
++  }
++  struct stat info;
++  return stat(full.c_str(), &info) == 0;
++}
++
++const char *resolveReadPath(const char *requestedPath,
++                            std::string &resolvedPath) {
++  if (!requestedPath || !*requestedPath ||
++      logicalPathExists(requestedPath)) {
++    return requestedPath;
++  }
++  const auto candidates =
++      DuetStorage::legacyReadCandidates(requestedPath);
++  for (size_t i = 0; i < candidates.count; ++i) {
++    if (logicalPathExists(candidates.paths[i].c_str())) {
++      resolvedPath = candidates.paths[i];
++      return resolvedPath.c_str();
++    }
++  }
++  return requestedPath;
++}
++
++bool importLegacyFileBeforeUpdate(const char *requestedPath) {
++  if (!requestedPath || !*requestedPath ||
++      logicalPathExists(requestedPath) ||
++      !DuetStorage::isCanonicalPath(requestedPath)) {
++    return true;
++  }
++
++  const auto candidates =
++      DuetStorage::legacyReadCandidates(requestedPath);
++  const char *sourcePath = nullptr;
++  for (size_t i = 0; i < candidates.count; ++i) {
++    if (logicalPathExists(candidates.paths[i].c_str())) {
++      sourcePath = candidates.paths[i].c_str();
++      break;
++    }
++  }
++  if (!sourcePath) {
++    return true;
++  }
++
++  const std::string source = resolveStoragePath(sourcePath);
++  const std::string destination = resolveStoragePath(requestedPath);
++  const std::string temporary = destination + ".duet-cow.tmp";
++  if (source.empty() || destination.empty() ||
++      !ensureParentDirectories(destination)) {
++    return false;
++  }
++
++  ::remove(temporary.c_str());
++  const int input = ::open(source.c_str(), O_RDONLY);
++  const int output =
++      ::open(temporary.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
++  if (input < 0 || output < 0) {
++    if (input >= 0) ::close(input);
++    if (output >= 0) ::close(output);
++    ::remove(temporary.c_str());
++    return false;
++  }
++
++  uint8_t buffer[512];
++  bool ok = true;
++  while (true) {
++    const ssize_t count = ::read(input, buffer, sizeof(buffer));
++    if (count == 0) break;
++    if (count < 0 || ::write(output, buffer, static_cast<size_t>(count)) !=
++                         count) {
++      ok = false;
++      break;
++    }
++  }
++  ::close(input);
++  if (ok) ok = fsync(output) == 0;
++  if (::close(output) != 0) ok = false;
++  if (ok) ok = ::rename(temporary.c_str(), destination.c_str()) == 0;
++  if (!ok) ::remove(temporary.c_str());
++  return ok;
++}
+ } // namespace
+ 
+ bool HalStorage::begin() {
+@@ -295,7 +379,15 @@ bool HalFile::isOpen() const {
+ HalFile::operator bool() const { return isOpen(); }
+ 
+ HalFile HalStorage::open(const char *path, const oflag_t oflag) {
+-  std::string full = resolveStoragePath(path);
++  std::string resolvedPath;
++  const bool readOnly = (oflag & (O_WRONLY | O_RDWR)) == 0;
++  if (!readOnly && (oflag & O_TRUNC) == 0 &&
++      !importLegacyFileBeforeUpdate(path)) {
++    return HalFile();
++  }
++  const char *selectedPath =
++      readOnly ? resolveReadPath(path, resolvedPath) : path;
++  std::string full = resolveStoragePath(selectedPath);
+   HalFile f;
+   if (full.empty()) {
+     return f;
+@@ -333,6 +425,13 @@ bool HalStorage::exists(const char *path) {
+   struct stat buffer;
+   return (stat(full.c_str(), &buffer) == 0);
+ }
++bool HalStorage::existsForRead(const char *path) {
++  std::string resolvedPath;
++  return logicalPathExists(resolveReadPath(path, resolvedPath));
++}
++bool HalStorage::existsForRead(const std::string &path) {
++  return existsForRead(path.c_str());
++}
+ bool HalStorage::remove(const char *path) {
+   std::string full = resolveStoragePath(path);
+   if (full.empty()) {
+@@ -457,7 +556,9 @@ bool HalStorage::openFileForWrite(const char *moduleName, const String &path,
+ 
+ std::vector<String> HalStorage::listFiles(const char *path, int maxFiles) {
+   std::vector<String> result;
+-  std::string full = resolveStoragePath(path);
++  std::string resolvedPath;
++  std::string full =
++      resolveStoragePath(resolveReadPath(path, resolvedPath));
+   if (full.empty()) {
+     return result;
+   }
+diff --git a/src/HalStorage.h b/src/HalStorage.h
+index 9cab192..aa2e8d8 100644
+--- a/src/HalStorage.h
++++ b/src/HalStorage.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ 
++#include <DuetStoragePaths.h>
+ #include <Print.h>
+ #include <Stream.h>
+ #include <common/FsApiConstants.h> // for oflag_t
+@@ -41,6 +42,8 @@ public:
+   HalFile open(const char *path, const oflag_t oflag = O_RDONLY);
+   bool mkdir(const char *path, const bool pFlag = true);
+   bool exists(const char *path);
++  bool existsForRead(const char *path);
++  bool existsForRead(const std::string &path);
+   bool remove(const char *path);
+   bool rename(const char *oldPath, const char *newPath);
+   bool rmdir(const char *path);

@@ -1,0 +1,16 @@
+Duet
+Copyright (c) 2026 Lauren Landau
+
+Official source:
+https://github.com/lauren-alexandra/duet-xteink
+
+Duet is an independent open-source firmware fork for the Xteink X3 and X4.
+It is based on CrossInk and CrossPoint Reader and incorporates or adapts work
+from other open-source firmware projects.
+
+The software is distributed under the MIT License. Upstream copyright notices
+and permissions remain in force. See LICENSE, AUTHORS.md, and
+THIRD_PARTY_NOTICES.md for the complete attribution and license record.
+
+The Duet name and project artwork identify official builds maintained by
+Lauren Landau. See PROJECT_IDENTITY.md for the project identity policy.

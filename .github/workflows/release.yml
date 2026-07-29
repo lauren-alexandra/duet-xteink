@@ -1,0 +1,104 @@
+name: Build Duet Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact Duet version without v, for example 0.1.0-alpha.6"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: duet-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('platformio.ini', 'platformio.local.example.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install PlatformIO Core
+        run: uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+
+      - name: Resolve release version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version must look like 0.1.0-alpha.6 or 0.1.0"
+            exit 1
+          fi
+          if [ ! -f "docs/releases/v${VERSION}.md" ]; then
+            echo "::error::Missing docs/releases/v${VERSION}.md"
+            exit 1
+          fi
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          sed -i "s/crossink_version = .*/crossink_version = $VERSION/" platformio.ini
+          sed -i "s/crossink_public_version = .*/crossink_public_version = $VERSION/" platformio.ini
+
+      - name: Audit public release inputs
+        run: python3 scripts/audit_public_release.py
+
+      - name: Build Duet X3 and X4
+        env:
+          CROSSPOINT_RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+        run: pio run -e x3-public -e x4-public
+
+      - name: Generate release catalog
+        run: |
+          python3 scripts/generate_release_catalog.py \
+            --version "${{ env.RELEASE_VERSION }}" \
+            --repo "${{ github.repository }}" \
+            --firmware ".pio/build/x3-public/Duet-X3-v${{ env.RELEASE_VERSION }}.bin" \
+            --firmware ".pio/build/x4-public/Duet-X4-v${{ env.RELEASE_VERSION }}.bin" \
+            --output ".pio/build/catalog"
+
+      - name: Package release files
+        run: |
+          python3 scripts/package_release.py \
+            --version "${RELEASE_VERSION}" \
+            --x3 ".pio/build/x3-public/Duet-X3-v${RELEASE_VERSION}.bin" \
+            --x4 ".pio/build/x4-public/Duet-X4-v${RELEASE_VERSION}.bin" \
+            --output-dir ".pio/build"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}
+          target_commitish: ${{ github.sha }}
+          draft: true
+          prerelease: ${{ contains(env.RELEASE_VERSION, 'alpha') || contains(env.RELEASE_VERSION, 'beta') || contains(env.RELEASE_VERSION, 'rc') || contains(env.RELEASE_VERSION, 'RC') }}
+          body_path: .pio/build/RELEASE_NOTES-v${{ env.RELEASE_VERSION }}.md
+          files: |
+            .pio/build/x3-public/Duet-X3-v${{ env.RELEASE_VERSION }}.bin
+            .pio/build/x4-public/Duet-X4-v${{ env.RELEASE_VERSION }}.bin
+            .pio/build/SHA256SUMS.txt
+            .pio/build/Duet-v${{ env.RELEASE_VERSION }}-firmware.zip
+            .pio/build/catalog

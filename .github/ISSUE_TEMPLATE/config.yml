@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions, feedback, and ideas
+    url: https://github.com/lauren-alexandra/duet-xteink/discussions
+    about: Ask for help or share feature, UX, accessibility, documentation, visual, and general feedback.
+  - name: Help develop Duet
+    url: https://github.com/lauren-alexandra/duet-xteink/blob/main/CONTRIBUTING.md
+    about: See how to contribute code, testing, documentation, tooling, accessibility work, or release QA.
+  - name: Private security report
+    url: https://github.com/lauren-alexandra/duet-xteink/security/advisories/new
+    about: Privately report credential exposure, update vulnerabilities, or destructive storage behavior.

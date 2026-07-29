@@ -1,0 +1,186 @@
+name: Alpha Bug Report
+description: Report unexpected Duet behavior on an Xteink X3 or X4
+title: "[Bug]: "
+labels:
+  - alpha
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Duet. Please include the smallest useful evidence and remove personal book paths, device names, account details, and reading history. Never upload an ebook or a complete SD-card archive. Feature requests belong in [Duet Discussions](https://github.com/lauren-alexandra/duet-xteink/discussions/categories/ideas).
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Device
+      description: Which device is this affecting?
+      options:
+        - X4
+        - X3
+        - Both
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Duet Version
+      description: Copy the exact value shown in Settings > System.
+      placeholder: Ex. Duet 0.1.0-alpha.6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: Install Type
+      options:
+        - First Duet flash through the web installer
+        - Duet update through SD Firmware Update
+        - Recovery or rollback test
+        - No new installation in this session
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      options:
+        - Installation, update, or recovery
+        - Boot, Home, or menus
+        - Reader, page turns, or chapters
+        - Library list, grid, carousel, search, or More Info
+        - Reading stats or achievements
+        - Nearby or KOReader sync
+        - Sleep, wake, lock image, or ghosting
+        - Fonts
+        - Dictionary
+        - Web portal or file transfer
+        - Other or not sure
+    validations:
+      required: true
+
+  - type: input
+    id: sd-card
+    attributes:
+      label: SD Card
+      description: Brand, capacity, filesystem, and approximate free space if known.
+      placeholder: Ex. SanDisk 32 GB, exFAT, 8 GB free
+    validations:
+      required: true
+
+  - type: input
+    id: folder
+    attributes:
+      label: Affected Folder, If Relevant
+      description: Folder path and approximate number of book files. Use a privacy-safe path if needed; leave blank for non-library issues.
+      placeholder: Ex. /Books/All Books, about 500 paths
+
+  - type: input
+    id: view-sort
+    attributes:
+      label: View and Sort
+      description: Library view, density, and sort mode when the issue occurred.
+      placeholder: Ex. 3x3 grid, title sort
+
+  - type: dropdown
+    id: prefill-state
+    attributes:
+      label: Desktop Cover Prefill
+      options:
+        - Not run
+        - Passed with no failed books
+        - Completed with failed books
+        - Not applicable
+    validations:
+      required: true
+
+  - type: dropdown
+    id: filesystem-check
+    attributes:
+      label: Filesystem Verification
+      description: Did a read-only filesystem check pass?
+      options:
+        - Not run
+        - Passed
+        - Reported errors
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder:
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Clearly list the steps necessary to reproduce the unexpected behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Select '...'
+        3. Crash
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproduction Frequency
+      options:
+        - Every time
+        - Often
+        - Intermittent
+        - Happened once
+    validations:
+      required: true
+
+  - type: input
+    id: timing
+    attributes:
+      label: Timing
+      description: Approximate seconds or minutes before the screen responded, failed, or recovered.
+      placeholder: Ex. cursor moved immediately; covers took 18 seconds
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: recovery
+    attributes:
+      label: Recovery
+      options:
+        - Recovered without a restart
+        - Recovered after sleep and wake
+        - Required a restart
+        - Required recovery mode or a firmware rollback
+        - Still not recovered
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs and Screenshots
+      description: Attach only the smallest relevant timing or crash files and privacy-safe media. Review every file before uploading.
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy Check
+      options:
+        - label: I removed ebooks, credentials, personal contact details, private reading history, and identifying book paths from this report.
+          required: true

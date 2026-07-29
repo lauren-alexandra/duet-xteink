@@ -1,0 +1,72 @@
+name: Publish Duet Release Catalog
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: duet-release-catalog
+  cancel-in-progress: false
+
+jobs:
+  publish-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Download the reviewed release catalog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          mkdir -p ".release-assets"
+          gh release download "$RELEASE_TAG" \
+            --pattern "catalog" \
+            --dir ".release-assets"
+          test -s ".release-assets/catalog"
+
+      - name: Open the catalog update pull request
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cp ".release-assets/catalog" "docs/catalog"
+          if git diff --quiet -- docs/catalog; then
+            echo "docs/catalog is already current"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="automation/catalog-${RELEASE_TAG}"
+          git checkout -B "$BRANCH"
+          git add docs/catalog
+          git commit -m "Publish Duet catalog for ${RELEASE_TAG}"
+          git push --force-with-lease origin "HEAD:${BRANCH}"
+
+          existing_url=$(gh pr list \
+            --base "$DEFAULT_BRANCH" \
+            --head "$BRANCH" \
+            --state open \
+            --json url \
+            --jq '.[0].url // empty')
+          if [ -n "$existing_url" ]; then
+            echo "Catalog pull request already open: $existing_url"
+            exit 0
+          fi
+
+          gh pr create \
+            --base "$DEFAULT_BRANCH" \
+            --head "$BRANCH" \
+            --title "Publish Duet catalog for ${RELEASE_TAG}" \
+            --body "Publishes the reviewed firmware catalog attached to ${RELEASE_TAG}."

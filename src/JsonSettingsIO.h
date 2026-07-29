@@ -1,0 +1,36 @@
+#pragma once
+
+class CrossPointSettings;
+class CrossPointState;
+class WifiCredentialStore;
+class RecentBooksStore;
+class FavoritesStore;
+class OpdsServerStore;
+
+namespace JsonSettingsIO {
+
+// CrossPointSettings
+bool saveSettings(const CrossPointSettings& s, const char* path);
+bool loadSettings(CrossPointSettings& s, const char* json, bool* needsResave = nullptr);
+
+// CrossPointState
+bool saveState(const CrossPointState& s, const char* path);
+bool loadState(CrossPointState& s, const char* json);
+
+// WifiCredentialStore
+bool saveWifi(const WifiCredentialStore& store, const char* path);
+bool loadWifi(WifiCredentialStore& store, const char* json, bool* needsResave = nullptr);
+
+// RecentBooksStore
+bool saveRecentBooks(const RecentBooksStore& store, const char* path);
+bool loadRecentBooks(RecentBooksStore& store, const char* json);
+
+// FavoritesStore
+bool saveFavorites(const FavoritesStore& store, const char* path);
+bool loadFavorites(FavoritesStore& store, const char* json);
+
+// OpdsServerStore
+bool saveOpds(const OpdsServerStore& store, const char* path);
+bool loadOpds(OpdsServerStore& store, const char* json, bool* needsResave = nullptr);
+
+}  // namespace JsonSettingsIO

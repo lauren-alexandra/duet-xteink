@@ -1,0 +1,140 @@
+#include "IfFoundActivity.h"
+
+#include <GfxRenderer.h>
+#include <I18n.h>
+
+#include <algorithm>
+
+#include "components/CompactHeader.h"
+#include "components/UITheme.h"
+#include "fontIds.h"
+#include "util/IfFoundFile.h"
+
+namespace {
+std::string trim(const std::string& value) {
+  const auto begin = value.find_first_not_of(" \t\r\n");
+  if (begin == std::string::npos) return "";
+  const auto end = value.find_last_not_of(" \t\r\n");
+  return value.substr(begin, end - begin + 1);
+}
+
+std::vector<std::string> splitLinesPreserveEmpty(const std::string& value) {
+  std::vector<std::string> lines;
+  size_t start = 0;
+  while (start <= value.size()) {
+    const size_t end = value.find('\n', start);
+    if (end == std::string::npos) {
+      lines.push_back(value.substr(start));
+      break;
+    }
+    lines.push_back(value.substr(start, end - start));
+    start = end + 1;
+  }
+  return lines;
+}
+}  // namespace
+
+void IfFoundActivity::loadContent() {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int textWidth = renderer.getScreenWidth() - metrics.contentSidePadding * 2 - metrics.scrollBarWidth -
+                        metrics.scrollBarRightOffset - 8;
+
+  introLines = renderer.wrappedText(UI_10_FONT_ID, tr(STR_IF_FOUND_MESSAGE), textWidth, 8);
+  std::string body = IfFoundFile::readNormalized(IfFoundFile::findPath());
+  if (trim(body).empty()) body = tr(STR_IF_FOUND_FILE_HINT);
+
+  bodyLines.clear();
+  for (const auto& rawLine : splitLinesPreserveEmpty(body)) {
+    if (trim(rawLine).empty()) {
+      bodyLines.emplace_back("");
+      continue;
+    }
+    const auto wrapped = renderer.wrappedText(UI_10_FONT_ID, rawLine.c_str(), textWidth, 64, EpdFontFamily::BOLD);
+    if (wrapped.empty()) {
+      bodyLines.push_back(rawLine);
+    } else {
+      bodyLines.insert(bodyLines.end(), wrapped.begin(), wrapped.end());
+    }
+  }
+  while (!bodyLines.empty() && bodyLines.back().empty()) bodyLines.pop_back();
+  scrollOffset = std::clamp(scrollOffset, 0, getMaxScrollOffset());
+}
+
+int IfFoundActivity::getVisibleBodyLineCount() const {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int lineHeight = renderer.getLineHeight(UI_10_FONT_ID);
+  const int contentTop = CompactHeader::contentTop(metrics) + metrics.verticalSpacing;
+  const int bodyTop = contentTop + static_cast<int>(introLines.size()) * lineHeight + 16;
+  const int viewportHeight = renderer.getScreenHeight() - bodyTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
+  return std::max(1, viewportHeight / lineHeight);
+}
+
+int IfFoundActivity::getMaxScrollOffset() const {
+  return std::max(0, static_cast<int>(bodyLines.size()) - getVisibleBodyLineCount());
+}
+
+void IfFoundActivity::onEnter() {
+  Activity::onEnter();
+  loadContent();
+  requestUpdate();
+}
+
+void IfFoundActivity::loop() {
+  if (mappedInput.wasReleased(MappedInputManager::Button::Back)) {
+    finish();
+    return;
+  }
+  buttonNavigator.onNext([this] {
+    if (scrollOffset >= getMaxScrollOffset()) return;
+    scrollOffset++;
+    requestUpdate();
+  });
+  buttonNavigator.onPrevious([this] {
+    if (scrollOffset <= 0) return;
+    scrollOffset--;
+    requestUpdate();
+  });
+}
+
+void IfFoundActivity::render(RenderLock&&) {
+  renderer.clearScreen();
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int pageWidth = renderer.getScreenWidth();
+  const int lineHeight = renderer.getLineHeight(UI_10_FONT_ID);
+  const int sidePadding = metrics.contentSidePadding;
+  int currentY = CompactHeader::contentTop(metrics) + metrics.verticalSpacing;
+
+  CompactHeader::drawTitle(renderer, tr(STR_IF_FOUND_RETURN_ME), true);
+  for (const auto& line : introLines) {
+    renderer.drawText(UI_10_FONT_ID, sidePadding, currentY, line.c_str());
+    currentY += lineHeight;
+  }
+
+  currentY += 8;
+  renderer.drawLine(sidePadding, currentY, pageWidth - sidePadding, currentY);
+  currentY += 8;
+
+  const int bodyTop = currentY;
+  const int viewportHeight = renderer.getScreenHeight() - bodyTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
+  const int visibleLines = std::max(1, viewportHeight / lineHeight);
+  const int endLine = std::min(static_cast<int>(bodyLines.size()), scrollOffset + visibleLines);
+  for (int i = scrollOffset; i < endLine; ++i) {
+    if (!bodyLines[i].empty()) {
+      renderer.drawText(UI_10_FONT_ID, sidePadding, currentY, bodyLines[i].c_str(), true, EpdFontFamily::BOLD);
+    }
+    currentY += lineHeight;
+  }
+
+  if (static_cast<int>(bodyLines.size()) > visibleLines) {
+    const int maxOffset = getMaxScrollOffset();
+    const int trackX = pageWidth - metrics.scrollBarRightOffset;
+    const int barHeight = std::max(18, viewportHeight * visibleLines / static_cast<int>(bodyLines.size()));
+    const int barY = bodyTop + (viewportHeight - barHeight) * scrollOffset / std::max(1, maxOffset);
+    renderer.drawLine(trackX, bodyTop, trackX, bodyTop + viewportHeight);
+    renderer.fillRect(trackX - metrics.scrollBarWidth + 1, barY, metrics.scrollBarWidth, barHeight);
+  }
+
+  const auto labels = mappedInput.mapLabels(tr(STR_BACK), "", tr(STR_DIR_UP), tr(STR_DIR_DOWN));
+  GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
+  renderer.displayBuffer();
+}

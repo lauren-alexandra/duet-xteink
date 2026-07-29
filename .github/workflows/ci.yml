@@ -1,0 +1,176 @@
+name: CI (build)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  public-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Compile release scripts
+        run: |
+          python3 -m py_compile \
+            scripts/audit_public_release.py \
+            scripts/generate_release_catalog.py \
+            scripts/package_release.py
+
+      - name: Audit public release inputs
+        run: python3 scripts/audit_public_release.py
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install clang-format-21
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt-get update
+          sudo apt-get install -y clang-format-21
+
+      - name: Run clang-format
+        run: |
+          PATH="/usr/lib/llvm-21/bin:$PATH" ./bin/clang-format-fix
+          git diff --exit-code || (echo "Please run 'bin/clang-format-fix' to fix formatting issues" && exit 1)
+
+  cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('platformio.ini', 'platformio.local.example.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install PlatformIO Core
+        run: uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+
+      - name: Run cppcheck
+        run: pio check --fail-on-defect medium --fail-on-defect high
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Configure host unit tests
+        run: cmake -S test -B build/test -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build host unit tests
+        run: cmake --build build/test
+
+      - name: Run host unit tests
+        run: ctest --test-dir build/test --output-on-failure -j
+
+  build:
+    needs:
+      - public-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-platformio-${{ hashFiles('platformio.ini', 'platformio.local.example.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-
+
+      - name: Install PlatformIO Core
+        run: uv pip install --system -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+
+      - name: Build public Duet X3 and X4 targets
+        run: |
+          set -euo pipefail
+          pio run -e x3-public -e x4-public | tee pio.log
+
+      - name: Extract firmware stats
+        run: |
+          set -euo pipefail
+          {
+            echo "## Firmware build stats"
+            grep -E "RAM:\s|Flash:\s" pio.log | while read -r line; do echo "- ${line}"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Duet-X3-X4
+          path: |
+            .pio/build/x3-public/firmware-x3-public.bin
+            .pio/build/x3-public/Duet-X3-v*.bin
+            .pio/build/x4-public/firmware-x4-public.bin
+            .pio/build/x4-public/Duet-X4-v*.bin
+          if-no-files-found: error
+
+  # This job is used as the PR required actions check, allows for changes to other steps in the future without breaking
+  # PR requirements.
+  test-status:
+    name: Test Status
+    needs:
+      - build
+      - clang-format
+      - cppcheck
+      - public-audit
+      - unit-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail because needed jobs failed
+        # Fail if any job failed or was cancelled (skipped jobs are ok)
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
+      - name: Success
+        run: exit 0
