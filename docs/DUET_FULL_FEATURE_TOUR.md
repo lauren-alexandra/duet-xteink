@@ -411,10 +411,11 @@ Two Duet readers directly exchange:
 - Daily journal
 - Per-date attribution ledger
 - Stats Date
+- Achievement milestones
 - Device name
 - Retained peer snapshots
 
-The merge is designed to be idempotent so repeated exchanges converge without double-counting. Repeated real-device convergence, interrupted sync, and asymmetric X3/X4 completion are still explicit alpha test targets.
+Protocol v6 retains each peer achievement ledger and merges every metric to its highest unlocked milestone, so imported progress cannot erase a stronger local unlock. The complete merge is designed to be idempotent so repeated exchanges converge without double-counting. Both readers must use protocol v6; it does not pair with Alpha.7's protocol v5 implementation. Repeated real-device convergence, interrupted sync, and asymmetric X3/X4 completion are still explicit alpha test targets.
 
 ### KOReader Sync
 
@@ -435,9 +436,7 @@ The CPR-vCodex set covers books started, sessions, books finished, reading time,
 
 The Duet set covers reading days, reading streaks, screen pages, series started, series completed, spice levels, morning reading, night reading, weekend reading, and using two devices.
 
-Unlocks persist in `/.duet/state/achievements.bin`, recover from a backup file, and can be retroactively adopted from existing history if the unlock ledger is missing. A popup can list every achievement unlocked in one batch and open **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
-
-The unlock ledger is not currently stored inside `.cstats`; restored reading history can re-derive many milestones.
+Unlocks persist in `/.duet/state/achievements.bin`, recover from a backup file, and can be retroactively adopted from existing history if the unlock ledger is missing. Protocol v6 Nearby Stats Sync retains peer ledgers under `/.duet/state/synced_achievements/` and merges milestone progress without replaying old notifications. Complete `.cstats` archives include local and synced achievement ledgers, while older archives that omit them preserve the current state. A popup can list every achievement unlocked in one batch and open **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
 
 ## Fonts
 
@@ -645,7 +644,7 @@ Duet is a fork and says so plainly. "Unique to Duet" means the named implementat
 
 ### Device-to-device statistics
 
-- The current Nearby Reading Stats Sync protocol and merge layer
+- The current Nearby Reading Stats Sync protocol v6 and merge layer, including milestone-wise achievement convergence
 - Idempotent repeated convergence, retained peer snapshots, and device identity
 - Separate This Device and All Devices views feeding calendars, streaks, profiles, and library analytics
 
@@ -658,7 +657,7 @@ Nearby Position Sync is inherited from CrossInk. KOReader Sync is inherited from
 - Duet's expanded Power-action system around credited CrossPet/CrossInk foundations
 - Shared X3/X4 integration with device-specific geometry, memory, refresh, and ghosting work
 - Canonical `/.duet` state, books, cache, backup, and migration areas with non-destructive legacy import
-- Complete `.cstats` archives with validation, CRCs, safety export, staged restore, and rollback
+- Complete `.cstats` archives spanning statistics and achievement state, with validation, CRCs, safety export, legacy achievement preservation, staged restore, and rollback
 - Cache-safe book moves, breadcrumb performance telemetry, expanded simulators, physical-acceptance records, and deterministic public-release tooling
 
 The canonical item-by-item inventory is the [Features Unique To Duet](https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md#features-unique-to-duet) section of the feature catalog. The next section records upstream lineage instead of flattening everything into "ours" or "theirs."
@@ -718,7 +717,7 @@ Known constraints:
 - A difficult EPUB chapter can still need visible layout work when background indexing could not finish.
 - X3 and X4 can behave differently under the same library and SD-card load.
 - Damaged SD-card filesystems can imitate firmware defects because the books and persistent state live on the card.
-- The achievement unlock ledger is not yet part of `.cstats`.
+- Protocol v6 Nearby Stats Sync requires a v6-capable build on both readers and does not pair with Alpha.7's protocol v5 implementation.
 - Physical acceptance of the exact public candidate is still pending.
 
 ## Testing and privacy

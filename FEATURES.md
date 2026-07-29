@@ -93,7 +93,7 @@ The exact file-level attribution and transitive SEEK/aalu credits are in [THIRD_
 
 ### Device-To-Device Statistics
 
-- The current Nearby Reading Stats Sync protocol and merge layer for global totals, per-book summaries/details, journals, attribution ledgers, Stats Date, device names, and retained peer snapshots.
+- The current Nearby Reading Stats Sync protocol v6 and merge layer for global totals, per-book summaries/details, journals, attribution ledgers, Stats Date, achievement milestones, device names, and retained peer snapshots.
 - Idempotent repeated-merge behavior designed to converge without double-counting.
 - Device-local and person-level aggregate separation across calendars, streaks, profiles, and library analytics.
 - Device Split and synced-device identity records.
@@ -321,7 +321,7 @@ Duet exposes **108 persistent milestones**:
 - **62 thresholds adapted from CPR-vCodex**: 5 books-started, 6 sessions, 24 books-finished, 7 reading-time, 5 goal-days, 5 goal-streak, 4 bookmarks, and 6 longest-session milestones.
 - **46 Duet milestones**: 8 reading-days, 6 reading-streak, 7 screen-pages, 4 series-started, 4 series-completed, 4 spice-level, 4 morning-reading, 4 night-reading, 4 weekend-reading, and 1 cross-device milestone.
 
-Unlocks persist in `/.duet/state/achievements.bin`, recover from its `.bak`, and are retroactively adopted from existing reading history if no unlock file exists. Achievement state is restart-persistent, but the unlock ledger is not currently included in `.cstats` archives; `.cstats` restores reading statistics from which many milestones can be re-derived.
+Unlocks persist in `/.duet/state/achievements.bin`, recover from its `.bak`, and are retroactively adopted from existing reading history if no unlock file exists. Protocol v6 Nearby Stats Sync retains each peer ledger under `/.duet/state/synced_achievements/` and merges each achievement metric to its highest unlocked milestone, so imported progress cannot erase a stronger local unlock. Complete `.cstats` archives include local and synced achievement ledgers; older archives that omit them preserve the current ledger during restore.
 
 Popups can list every milestone unlocked in the batch and offer **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
 
@@ -341,7 +341,7 @@ Popups can list every milestone unlocked in the batch and offer **See All**. Ach
 | --- | --- | --- |
 | KOReader Sync | Account setup plus in-book remote/local position comparison, Apply Remote, and Upload Local. | CrossPoint base; Duet UI integration |
 | Nearby Position Sync | Two Duet devices compare the current EPUB position over ESP-NOW and move only after explicit Apply. | CrossInk; Duet shared-build integration and reliability hardening |
-| Nearby Reading Stats Sync | Direct device-to-device exchange of global totals, per-book summaries/details, journal, ledger, Stats Date, device name, and retained peer snapshots. | CrossInk two-device stats-sync concept; Duet protocol and merge layer |
+| Nearby Reading Stats Sync | Protocol v6 direct device-to-device exchange of global totals, per-book summaries/details, journal, ledger, Stats Date, achievement milestones, device name, and retained peer snapshots. Both readers must use protocol v6. | CrossInk two-device stats-sync concept; Duet protocol and merge layer |
 | Person-level aggregate | This Device and All Devices totals stay separate; calendars, streaks, profiles, and library analytics can use merged data. | Duet |
 | Idempotent merge design | Repeated exchanges are designed to converge without double-counting. Repeated real-device convergence remains an alpha acceptance target. | Duet |
 | Device names | X3/X4 records can be distinguished in Device Split and synced-state files. | Duet |

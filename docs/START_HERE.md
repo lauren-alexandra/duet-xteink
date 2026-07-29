@@ -39,9 +39,9 @@ More Info descriptions and library categories use an optional Calibre-generated 
 
 ## Using an X3 and X4 together
 
-Run the same Duet release on both devices. [Nearby Position Sync](nearby-position-sync.md) compares the current book position and moves only after confirmation. [Nearby Reading Stats Sync](reading-stats-sync.md) exchanges reading totals, per-book statistics, sessions, journals, dates, and retained device snapshots. KOReader Sync remains available for remote book-position synchronization.
+Run the same Duet release on both devices. [Nearby Position Sync](nearby-position-sync.md) compares the current book position and moves only after confirmation. [Nearby Reading Stats Sync](reading-stats-sync.md) exchanges reading totals, per-book statistics, sessions, journals, dates, achievement milestones, and retained device snapshots. Protocol v6 requires a v6-capable build on both readers and does not pair with Alpha.7's protocol v5 implementation. KOReader Sync remains available for remote book-position synchronization.
 
-Position sync requires the same book identity on both readers. Statistics and achievements have separate persistence rules, so read the sync guides before assuming every screen or unlock notification will be identical.
+Position sync requires the same book identity on both readers. Achievement progress merges by highest milestone rather than replaying old popup notifications, so the ledgers can converge without both devices showing the same unlock alert at the same moment.
 
 ## Testing the alpha
 

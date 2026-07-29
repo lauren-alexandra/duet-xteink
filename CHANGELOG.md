@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+### Added
+
+- Nearby Reading Stats Sync protocol v6 now exchanges `achievements.bin`, retains each peer ledger under `/.duet/state/synced_achievements/`, and merges the highest unlocked milestone for every achievement metric without replacing stronger local progress.
+- Complete `.cstats` archives now include local and synced achievement ledgers. Restoring an older archive that predates achievement storage preserves the current achievement state instead of treating the omitted files as deletions.
+
 ### Fixed
 
 - The deterministic public statistics fixture now connects its dummy Pace history to staged EPUB word counts, so the Pace Trend gallery screenshot contains representative WPM bars, 7-day and 30-day averages, and a trend instead of an empty chart.

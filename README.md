@@ -101,7 +101,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 
 Own two devices? They talk **directly to each other** over ESP-NOW radio. No WiFi network. No cloud. No account. Both on the sync screen, one press, seconds.
 
-- **Nearby Stats Sync** exchanges complete reading histories: global totals, per-book time/sessions/pace/dates/status, the daily journal, the per-day book-attribution ledger, and the readers' Stats Date. Its merge records are designed to be idempotent; repeated two-device convergence remains an explicit alpha test target.
+- **Nearby Stats Sync** exchanges complete reading histories: global totals, per-book time/sessions/pace/dates/status, the daily journal, the per-day book-attribution ledger, the readers' Stats Date, and persistent achievement milestones. Its merge records are designed to be idempotent; repeated two-device convergence remains an explicit alpha test target.
 - **Nearby Position Sync** (inherited from CrossInk) shows both devices' positions in the current book side by side and moves you only when you explicitly apply.
 - After a successful merge, stats are intended to become **person-level**: streaks, calendars, heatmaps, day counts, and averages should agree on both devices.
 - Library indexes are cached per device and rebuilt when the library changes; later sync preparation reuses that cache.
@@ -118,7 +118,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 - **The daily record**: 14-day activity chart, 12-month heatmap, monthly calendar with per-day book drill-down and safe per-book time corrections, 90-day exact daily minutes, trends, goals and goal streaks, recent sessions, and Started Books with estimated finish dates.
 - **Full session logging**: every session's exact start time, duration, pages, and book — the foundation for future hour-by-hour reading-rhythm analytics.
 - **Designed for repairability**: journal, ledger, session log, and per-book records live in separate CRC-checked files so one damaged record does not erase the rest of the history. Books under `/ignore_stats/` keep progress without polluting statistics.
-- **Complete stats archives**: validated `.cstats` exports include global, session, date, sync, library, and per-book statistics from Duet's canonical `/.duet` namespace. Restore validates structure and per-entry CRCs, accepts mapped legacy `/.crossink` and `/.crosspoint` records, and creates an automatic safety copy first. Non-empty content-level round trips pass both device simulators; physical X3/X4 verification remains an alpha acceptance item.
+- **Complete stats archives**: validated `.cstats` exports include global, session, date, sync, library, per-book, and achievement state from Duet's canonical `/.duet` namespace. Restore validates structure and per-entry CRCs, accepts mapped legacy `/.crossink` and `/.crosspoint` records, preserves achievements when importing older archives that predate them, and creates an automatic safety copy first. Non-empty content-level round trips pass both device simulators; physical X3/X4 verification remains an alpha acceptance item.
 - Clockless devices keep an editable, CRC-protected **Stats Date**, so daily history works without an RTC chip.
 
 ## Home, your way
@@ -155,7 +155,7 @@ The initial alpha includes the licensed font families already built into the fir
 
 ## Apps
 
-**Achievements** (108 — 62 CPR-vCodex thresholds plus 46 Duet milestones; retroactively adopted and restart-persistent) · **Favorites** · **Tetris** (adapted from Biscuit) · **If Found** contact card · **Screen Clean** deep-refresh cycles · on-device **Read Me** guide · **File Transfer** web portal · **OPDS** browsing/downloading · **KOReader Sync** setup · the Nearby sync screens. The exact launcher catalog is in [FEATURES.md](FEATURES.md#home-themes-and-launcher). The achievement unlock ledger is not currently included in `.cstats`, although restored reading history can re-derive many milestones.
+**Achievements** (108 — 62 CPR-vCodex thresholds plus 46 Duet milestones; retroactively adopted, restart-persistent, and included in protocol v6 Nearby Stats Sync and `.cstats`) · **Favorites** · **Tetris** (adapted from Biscuit) · **If Found** contact card · **Screen Clean** deep-refresh cycles · on-device **Read Me** guide · **File Transfer** web portal · **OPDS** browsing/downloading · **KOReader Sync** setup · the Nearby sync screens. The exact launcher catalog is in [FEATURES.md](FEATURES.md#home-themes-and-launcher).
 
 ## Sleep
 

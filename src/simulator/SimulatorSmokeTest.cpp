@@ -337,10 +337,8 @@ class SimulatorSmokeTest {
       mediaOffsets.push_back(mediaOffsetPool[index]);
     }
     std::sort(mediaOffsets.begin(), mediaOffsets.end(), std::greater<uint16_t>());
-    constexpr std::array<uint16_t, 16> mediaMinutes = {18, 31, 47, 63, 26, 82, 39, 55,
-                                                       21, 96, 44, 70, 34, 58, 76, 49};
-    constexpr std::array<uint16_t, 16> mediaPages = {12, 24, 39, 55, 18, 73, 31, 46,
-                                                     14, 86, 36, 61, 27, 50, 68, 41};
+    constexpr std::array<uint16_t, 16> mediaMinutes = {18, 31, 47, 63, 26, 82, 39, 55, 21, 96, 44, 70, 34, 58, 76, 49};
+    constexpr std::array<uint16_t, 16> mediaPages = {12, 24, 39, 55, 18, 73, 31, 46, 14, 86, 36, 61, 27, 50, 68, 41};
     uint32_t generatedSeconds = 0;
     uint32_t generatedPages = 0;
     for (size_t i = 0; i < mediaOffsets.size(); ++i) {
@@ -429,6 +427,10 @@ class SimulatorSmokeTest {
     if (!validateReadingStatsArchive(archivePath, &validatedFiles, nullptr) || validatedFiles != archivedFiles) {
       fail("Full reading-stats archive did not pass its CRC validation");
     }
+    constexpr char achievementPath[] = DUET_STATE_ROOT_PATH "/achievements.bin";
+    if (!Storage.existsForRead(achievementPath) || !Storage.remove(achievementPath)) {
+      fail("Achievement ledger was unavailable before archive restore");
+    }
     GlobalReadingStats changedHistory = GlobalReadingStats::load();
     changedHistory.totalReadingSeconds = 9999;
     changedHistory.save();
@@ -448,7 +450,7 @@ class SimulatorSmokeTest {
     // and must recover the archived fallback exactly.
     const bool restoredDateIsCorrect = restoredDateAvailable && (halClock.isAvailable() || restoredDateComparison == 0);
     if (!imported || restoredFiles != archivedFiles || restoredReadingSeconds != 4321 || safetyName[0] == '\0' ||
-        !restoredDateIsCorrect) {
+        !restoredDateIsCorrect || !Storage.existsForRead(achievementPath)) {
       LOG_ERR("SMOKE",
               "Stats archive restore mismatch: imported=%u files=%u/%u seconds=%lu safety=%u date=%04u-%02u-%02u "
               "expected=%04u-%02u-%02u comparison=%d",

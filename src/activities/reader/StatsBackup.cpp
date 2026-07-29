@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "AchievementStore.h"
 #include "GlobalReadingStats.h"
 #include "LibraryInsights.h"
 #include "ReadingStatsClock.h"
@@ -99,17 +100,15 @@ bool isRootStatsFileName(const char* name) {
   return name != nullptr &&
          (strcmp(name, "global_stats.bin") == 0 || strcmp(name, "reading_journal.bin") == 0 ||
           strcmp(name, "reading_ledger_v1.bin") == 0 || strcmp(name, "library_book_stats_v1.bin") == 0 ||
-          strcmp(name, "library_book_aliases_v1.bin") == 0 ||
-          strcmp(name, "library_book_details_v1.bin") == 0 ||
-          strcmp(name, "reading_stats_clock_v1.bin") == 0);
+          strcmp(name, "library_book_aliases_v1.bin") == 0 || strcmp(name, "library_book_details_v1.bin") == 0 ||
+          strcmp(name, "reading_stats_clock_v1.bin") == 0 || strcmp(name, "achievements.bin") == 0);
 }
 
 bool isSyncedStatsDirectory(const char* name) {
-  return name != nullptr &&
-         (strcmp(name, "synced_stats") == 0 || strcmp(name, "synced_book_stats") == 0 ||
-          strcmp(name, "synced_book_details") == 0 || strcmp(name, "synced_journals") == 0 ||
-          strcmp(name, "synced_ledgers") == 0 || strcmp(name, "synced_stats_dates") == 0 ||
-          strcmp(name, "synced_names") == 0);
+  return name != nullptr && (strcmp(name, "synced_stats") == 0 || strcmp(name, "synced_book_stats") == 0 ||
+                             strcmp(name, "synced_book_details") == 0 || strcmp(name, "synced_journals") == 0 ||
+                             strcmp(name, "synced_ledgers") == 0 || strcmp(name, "synced_stats_dates") == 0 ||
+                             strcmp(name, "synced_achievements") == 0 || strcmp(name, "synced_names") == 0);
 }
 
 bool isArchiveFileName(const char* name) {
@@ -138,8 +137,7 @@ void collectChildFiles(const std::string& scanDirectoryPath, const std::string& 
     file.close();
     if (isDirectory || nameLength == 0) continue;
     if (!syncedStats && !isBookStatsFileName(name)) continue;
-    if (syncedStats &&
-        (name[0] == '.' || strstr(name, ".tmp") != nullptr || strstr(name, ".part") != nullptr)) {
+    if (syncedStats && (name[0] == '.' || strstr(name, ".tmp") != nullptr || strstr(name, ".part") != nullptr)) {
       continue;
     }
     paths.push_back(logicalDirectoryPath + "/" + name);
@@ -196,8 +194,7 @@ bool isSafeCanonicalArchivePath(const std::string& path) {
   constexpr char cacheRootPrefix[] = DUET_BOOKS_ROOT_PATH "/";
   const bool hotRoot = path.rfind(hotRootPrefix, 0) == 0;
   const bool cacheRoot = path.rfind(cacheRootPrefix, 0) == 0;
-  const size_t rootPrefixLength =
-      hotRoot ? sizeof(hotRootPrefix) - 1 : (cacheRoot ? sizeof(cacheRootPrefix) - 1 : 0);
+  const size_t rootPrefixLength = hotRoot ? sizeof(hotRootPrefix) - 1 : (cacheRoot ? sizeof(cacheRootPrefix) - 1 : 0);
   if (rootPrefixLength == 0 || path.size() <= rootPrefixLength || path.find("..") != std::string::npos ||
       path.find("//") != std::string::npos || path.back() == '/') {
     return false;
@@ -362,15 +359,15 @@ bool parseArchive(const std::string& archivePath, std::vector<ArchiveEntry>& ent
       return false;
     }
     char pathBuffer[256] = {};
-    if (!archive.seek(cursor) ||
-        archive.read(pathBuffer, pathLength) != static_cast<int>(pathLength)) {
+    if (!archive.seek(cursor) || archive.read(pathBuffer, pathLength) != static_cast<int>(pathLength)) {
       archive.close();
       return false;
     }
     pathBuffer[pathLength] = '\0';
     const std::string path = canonicalArchivePath(std::string(pathBuffer, pathLength));
     if (!isSafeCanonicalArchivePath(path) ||
-        std::any_of(entries.begin(), entries.end(), [&path](const ArchiveEntry& entry) { return entry.path == path; })) {
+        std::any_of(entries.begin(), entries.end(),
+                    [&path](const ArchiveEntry& entry) { return entry.path == path; })) {
       archive.close();
       return false;
     }
@@ -380,8 +377,7 @@ bool parseArchive(const std::string& archivePath, std::vector<ArchiveEntry>& ent
     uint32_t remaining = dataLength;
     while (remaining > 0) {
       const size_t amount = std::min<size_t>(remaining, buffer.size());
-      if (!archive.seek(cursor) ||
-          archive.read(buffer.data(), amount) != static_cast<int>(amount)) {
+      if (!archive.seek(cursor) || archive.read(buffer.data(), amount) != static_cast<int>(amount)) {
         archive.close();
         return false;
       }
@@ -433,6 +429,11 @@ bool stageArchiveEntry(FsFile& archive, const ArchiveEntry& entry) {
 
 bool containsEntryPath(const std::vector<ArchiveEntry>& entries, const std::string& path) {
   return std::any_of(entries.begin(), entries.end(), [&path](const ArchiveEntry& entry) { return entry.path == path; });
+}
+
+bool preserveWhenArchiveOmits(const std::string& path) {
+  constexpr char syncedAchievementsPrefix[] = DUET_STATE_ROOT_PATH "/synced_achievements/";
+  return path == DUET_STATE_ROOT_PATH "/achievements.bin" || path.rfind(syncedAchievementsPrefix, 0) == 0;
 }
 
 void cleanStagedEntries(const std::vector<ArchiveEntry>& entries) {
@@ -690,8 +691,7 @@ bool exportAllReadingStats(char* outFileName, const size_t outFileNameLen, uint1
 
   const std::vector<std::string> paths = collectCurrentStatsPaths();
   if (paths.empty() || paths.size() > ARCHIVE_MAX_ENTRIES) {
-    LOG_ERR(LOG_TAG, "No reading-stats files to export, or too many files: %u",
-            static_cast<unsigned>(paths.size()));
+    LOG_ERR(LOG_TAG, "No reading-stats files to export, or too many files: %u", static_cast<unsigned>(paths.size()));
     return false;
   }
 
@@ -768,8 +768,8 @@ bool validateReadingStatsArchive(const std::string& archivePath, uint16_t* outFi
   return valid;
 }
 
-bool importAllReadingStats(const std::string& archivePath, char* outSafetyFileName,
-                           const size_t outSafetyFileNameLen, uint16_t* outRestoredFileCount) {
+bool importAllReadingStats(const std::string& archivePath, char* outSafetyFileName, const size_t outSafetyFileNameLen,
+                           uint16_t* outRestoredFileCount) {
   std::vector<ArchiveEntry> entries;
   uint32_t archiveDataBytes = 0;
   if (!parseArchive(archivePath, entries, archiveDataBytes)) {
@@ -804,6 +804,7 @@ bool importAllReadingStats(const std::string& archivePath, char* outSafetyFileNa
   bool prepared = true;
   for (const std::string& path : currentPaths) {
     if (containsEntryPath(entries, path)) continue;
+    if (preserveWhenArchiveOmits(path)) continue;
     const std::string omittedPath = path + ".import.omit";
     if (Storage.exists(omittedPath.c_str())) Storage.remove(omittedPath.c_str());
     if (!Storage.rename(path.c_str(), omittedPath.c_str())) {
@@ -861,11 +862,12 @@ bool importAllReadingStats(const std::string& archivePath, char* outSafetyFileNa
   }
   if (outRestoredFileCount) *outRestoredFileCount = static_cast<uint16_t>(entries.size());
   resetClocklessReadingStatsDateCache();
+  ACHIEVEMENT_STORE.reloadFromDisk();
   LibraryInsights::invalidateCache();
   // A restore replaces every book's stats wholesale; the published sync
   // snapshot is genuinely stale and must rebuild on the next sync.
   LibraryInsights::invalidateDetailedStatsSnapshot();
-  LOG_DBG(LOG_TAG, "Restored %u reading-stats files from %s; safety copy %s",
-          static_cast<unsigned>(entries.size()), archivePath.c_str(), safetyFileName);
+  LOG_DBG(LOG_TAG, "Restored %u reading-stats files from %s; safety copy %s", static_cast<unsigned>(entries.size()),
+          archivePath.c_str(), safetyFileName);
   return true;
 }

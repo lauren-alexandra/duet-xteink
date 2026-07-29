@@ -40,7 +40,7 @@ bool verifyFileSize(const char* path) {
 
 AchievementStore AchievementStore::instance;
 
-bool AchievementStore::loadFromPath(const char* path) {
+bool AchievementStore::readTargetsFromPath(const char* path, std::array<uint64_t, METRIC_COUNT>& targets) {
   FsFile file;
   if (!Storage.openFileForRead("ACHV", path, file)) return false;
 
@@ -54,9 +54,11 @@ bool AchievementStore::loadFromPath(const char* path) {
             version == ACHIEVEMENT_VERSION && metricCount == METRIC_COUNT && fileSize == ACHIEVEMENT_FILE_SIZE;
   for (auto& target : loadedTargets) ok = ok && readPod(file, target);
   file.close();
-  if (ok) highestUnlockedTarget = loadedTargets;
+  if (ok) targets = loadedTargets;
   return ok;
 }
+
+bool AchievementStore::loadFromPath(const char* path) { return readTargetsFromPath(path, highestUnlockedTarget); }
 
 bool AchievementStore::save(const bool rotateBackup) const {
   Storage.mkdir(DUET_STATE_ROOT_PATH "");
@@ -66,8 +68,8 @@ bool AchievementStore::save(const bool rotateBackup) const {
   FsFile file;
   if (!Storage.openFileForWrite("ACHV", tempPath.c_str(), file)) return false;
   const uint8_t metricCount = static_cast<uint8_t>(METRIC_COUNT);
-  bool ok = writePod(file, ACHIEVEMENT_MAGIC) && writePod(file, ACHIEVEMENT_VERSION) &&
-            writePod(file, metricCount) && writePod(file, ACHIEVEMENT_FILE_SIZE);
+  bool ok = writePod(file, ACHIEVEMENT_MAGIC) && writePod(file, ACHIEVEMENT_VERSION) && writePod(file, metricCount) &&
+            writePod(file, ACHIEVEMENT_FILE_SIZE);
   for (const auto target : highestUnlockedTarget) ok = ok && writePod(file, target);
   if (!ok) {
     file.close();
@@ -133,6 +135,26 @@ bool AchievementStore::begin() {
   return saved;
 }
 
+bool AchievementStore::reloadFromDisk() {
+  loaded = false;
+  return begin();
+}
+
+bool AchievementStore::mergeFromPath(const char* path) {
+  if (!begin()) return false;
+  std::array<uint64_t, METRIC_COUNT> peerTargets{};
+  if (!readTargetsFromPath(path, peerTargets)) return false;
+
+  bool changed = false;
+  for (size_t i = 0; i < METRIC_COUNT; ++i) {
+    if (peerTargets[i] > highestUnlockedTarget[i]) {
+      highestUnlockedTarget[i] = peerTargets[i];
+      changed = true;
+    }
+  }
+  return !changed || save();
+}
+
 void AchievementStore::applyPersistedUnlocks(std::vector<AchievementView>& views) {
   if (!begin()) return;
   for (auto& view : views) {
@@ -147,8 +169,7 @@ void AchievementStore::queueUnlockPopup(const std::vector<AchievementView>& newl
     return;
   }
 
-  snprintf(APP_STATE.pendingAlertTitle, sizeof(APP_STATE.pendingAlertTitle), "%s",
-           tr(STR_ACHIEVEMENT_UNLOCKED_TITLE));
+  snprintf(APP_STATE.pendingAlertTitle, sizeof(APP_STATE.pendingAlertTitle), "%s", tr(STR_ACHIEVEMENT_UNLOCKED_TITLE));
   std::string body;
   for (const auto& achievement : newlyUnlocked) {
     if (!body.empty()) body += '\n';
@@ -156,8 +177,7 @@ void AchievementStore::queueUnlockPopup(const std::vector<AchievementView>& newl
   }
   snprintf(APP_STATE.pendingAlertBody, sizeof(APP_STATE.pendingAlertBody), "%s", body.c_str());
   APP_STATE.pendingAlertGoHomeOnBack.store(false, std::memory_order_relaxed);
-  APP_STATE.pendingAlertAction.store(static_cast<uint8_t>(PendingAlertAction::Achievements),
-                                     std::memory_order_relaxed);
+  APP_STATE.pendingAlertAction.store(static_cast<uint8_t>(PendingAlertAction::Achievements), std::memory_order_relaxed);
   APP_STATE.hasPendingAlert.store(true, std::memory_order_release);
 }
 

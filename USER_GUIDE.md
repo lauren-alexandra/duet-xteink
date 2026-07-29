@@ -299,7 +299,7 @@ The Settings screen allows you to configure the device's behavior. There are a f
 
 - **Clean Library Cache**: Compare live books with cache directories and move confirmed orphans to recoverable `/.duet/books/.attic`. It refuses to clean after an incomplete or empty library scan.
 
-- **Stats Export / Restore**: Create or restore a validated `.cstats` archive under `/.duet/backups/reading-stats`. The archive covers recognized global, daily, session, sync, library, and per-book statistics and maps compatible legacy records during migration. Keep a normal SD-card backup as the primary recovery copy during the alpha.
+- **Stats Export / Restore**: Create or restore a validated `.cstats` archive under `/.duet/backups/reading-stats`. The archive covers recognized global, daily, session, sync, library, per-book, and achievement state and maps compatible legacy records during migration. Importing an older archive that does not contain achievements preserves the current achievement ledger. Keep a normal SD-card backup as the primary recovery copy during the alpha.
 
 - **Check for updates**: Check for Duet firmware updates over Wi-Fi. Firmware can also be updated without a USB connection by placing a `firmware.bin` file on the SD card.
 
@@ -541,15 +541,15 @@ Duet has 33 top-level statistics pages covering current-book progress, calendar 
 Nearby sync is direct between two Duet readers over ESP-NOW. It does not need a Wi-Fi network, cloud service, or account.
 
 - **Nearby Position Sync** compares the current EPUB position and moves only after you choose Apply.
-- **Nearby Stats Sync** exchanges global totals, per-book summaries/details, daily journal, attribution ledger, Stats Date, device name, and retained peer snapshots.
+- **Nearby Stats Sync** protocol v6 exchanges global totals, per-book summaries/details, daily journal, attribution ledger, Stats Date, persistent achievement milestones, device name, and retained peer snapshots.
 
-Keep both readers on the sync screen until both report success. Repeated merge convergence remains an alpha acceptance target. KOReader Sync is separate and handles remote reading position, not Duet's statistics.
+Both readers must run a protocol v6-capable Duet build; protocol v6 does not pair with the protocol v5 implementation in Alpha.7. Keep both readers on the sync screen until both report success. Repeated merge convergence remains an alpha acceptance target. KOReader Sync is separate and handles remote reading position, not Duet's statistics.
 
 ### 3.12 Apps and Utilities
 
 The customizable Apps launcher includes Browse Files, Search Library, Recent Books, Reading Stats, Heatmap, Reading Profile, Saved Items, Favorites, Achievements, Dictionary, Tetris, If Found, Screen Clean, Nearby Stats Sync, File Transfer, OPDS, KOReader setup, Sleep, Read Me, Customize Home & Apps, and Settings.
 
-Duet includes 108 persistent achievements: 62 thresholds adapted from CPR-vCodex and 46 Duet milestones. Unlocks persist across restarts and can be adopted retroactively from reading history. The achievement unlock ledger is not currently inside `.cstats`; restored statistics can re-derive many milestones.
+Duet includes 108 persistent achievements: 62 thresholds adapted from CPR-vCodex and 46 Duet milestones. Unlocks persist across restarts and can be adopted retroactively from reading history. Protocol v6 Nearby Stats Sync merges the highest milestone reached for each achievement metric, and `.cstats` includes both local and retained peer achievement ledgers.
 
 ---
 
