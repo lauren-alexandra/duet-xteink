@@ -49,6 +49,15 @@ Code review still found an installation-path weakness worth fixing before the ne
 | Complete stats archive export | Pending | Pending | Non-zero file/byte count and `.cstats` file under `/.duet/backups/reading-stats` |
 | Complete stats archive restore | Pending | Pending | Safety copy created; global, per-book, session, date, and synced figures restored |
 
+## Post-Alpha.7 WPM Sync Verification
+
+Matched private/test `v0.1.0-alpha.7.1` builds physically passed the WPM detail-sync repair on Lauren's X3 and X4. Current-book WPM displayed on both readers, and a fresh Nearby Stats Sync made the detailed current-book reading statistics and WPM converge across the two devices.
+
+- X3 SHA-256: `287e1ae508a59b3f4717bd98570d071537b1b59ea181954a48259c32759f23b4`
+- X4 SHA-256: `2bc4d7de14f732c6564fafc85250388e088e7d320615d35bae2195438412bb34`
+
+This result clears the hardware-verification gate for the Alpha.7.1 WPM/detail-snapshot repair. It does not retroactively mark the Alpha.7 rows above as passed because the published Alpha.7 BINs do not contain that final repair. The next public matched build must include the accepted source before testers can reproduce this result from a release download.
+
 ## Reporting a result
 
 Record:

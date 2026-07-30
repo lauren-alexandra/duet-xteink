@@ -34,6 +34,12 @@ Nearby Stats Sync does **not** transfer EPUB files, settings, WiFi passwords, bo
 
 The first sync after a library change can spend time preparing detailed book records. Later syncs reuse the cached snapshot. Back can cancel preparation.
 
+## Physical Verification
+
+Matched private/test `v0.1.0-alpha.7.1` builds have physically passed current-book WPM and detailed-stat convergence between Lauren's X3 and X4 after a fresh Nearby Stats Sync. The repair forces stale pre-WPM detailed snapshots to rebuild in the current format before reuse.
+
+The published Alpha.7 release still uses the older implementation and does not contain that final detail-snapshot repair. Testers should not mix Alpha.7 with a v6-capable build or expect the Alpha.7 download to reproduce the Alpha.7.1 result. The accepted repair will become publicly reproducible when it is included in the next matched X3/X4 release.
+
 ## Storage
 
 Canonical sync state lives under `/.duet/state`; durable per-book records live under `/.duet/books`. Inherited `/.crossink` and `/.crosspoint` files remain read/import fallbacks during migration.
