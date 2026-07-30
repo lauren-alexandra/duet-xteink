@@ -20,6 +20,11 @@ class FontSelectionActivity final : public Activity {
   void loop() override;
   void render(RenderLock&&) override;
 
+#ifdef SIMULATOR
+  bool simulatorPreviewFamily(const char* familyName);
+  void simulatorRenderPreviewSpecimen();
+#endif
+
  private:
   void handleSelection();
   void applyFontEntryForPreview(int index);

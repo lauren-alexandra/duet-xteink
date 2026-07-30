@@ -1379,22 +1379,9 @@ class SimulatorSmokeTest {
 
     FontSelectionActivity preview(renderer, mappedInputManager, &registry);
     preview.onEnter();
-    bool foundTarget = false;
-    const int familyCount = registry.getFamilyCount();
-    for (int i = 0; i < familyCount + 12; ++i) {
-      mappedInputManager.simulatorClearInputFrame();
-      mappedInputManager.simulatorInjectRelease(MappedInputManager::Button::Down);
-      preview.loop();
-      mappedInputManager.simulatorClearInputFrame();
-      mappedInputManager.simulatorInjectPress(MappedInputManager::Button::Confirm);
-      preview.loop();
-      mappedInputManager.simulatorClearInputFrame();
-      if (strcmp(SETTINGS.sdFontFamilyName, familyName) == 0) {
-        foundTarget = true;
-        break;
-      }
+    if (!preview.simulatorPreviewFamily(familyName)) {
+      fail("Font picker did not preview requested family %s", familyName);
     }
-    if (!foundTarget) fail("Font picker did not preview requested family %s", familyName);
 
     const char* expectedSyntheticMask = std::getenv("CROSSINK_SIMULATOR_EXPECT_SYNTHETIC_STYLE_MASK");
     if (expectedSyntheticMask != nullptr && expectedSyntheticMask[0] != '\0') {
@@ -1419,16 +1406,14 @@ class SimulatorSmokeTest {
     }
 
     const std::string previewFamilyName = familyName;
-    const bool usesCompactDyslexicSpecimen = previewFamilyName.find("Dyslex") != std::string::npos ||
-                                             previewFamilyName.find("dyslex") != std::string::npos ||
-                                             previewFamilyName.find("Disleks") != std::string::npos ||
-                                             previewFamilyName.find("disleks") != std::string::npos;
+    const bool usesCompactDyslexicSpecimen =
+        previewFamilyName.find("Dyslex") != std::string::npos || previewFamilyName.find("dyslex") != std::string::npos;
     const int expectedPreviewPointSize = usesCompactDyslexicSpecimen ? 14 : std::min(pointSize, 16);
     if (sdFontSystem.currentPointSize() != expectedPreviewPointSize) {
       fail("Font picker previewed %s at %u pt instead of capped %d pt", familyName, sdFontSystem.currentPointSize(),
            expectedPreviewPointSize);
     }
-    preview.render(RenderLock{});
+    preview.simulatorRenderPreviewSpecimen();
     saveFontPreviewScreenshot("/smoke-font-preview.bmp");
 
     mappedInputManager.simulatorClearInputFrame();

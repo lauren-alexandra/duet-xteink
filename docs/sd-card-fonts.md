@@ -8,11 +8,17 @@ has_children: true
 
 Duet loads `.cpfont` families from the SD card and organizes them as Serif, Sans Serif, Mono/Typewriter, Accessibility, Handwritten/Script, and Blackletter/Decorative. A complete six-size family provides 10, 12, 14, 16, 18, and 20 pt on both X3 and X4.
 
-## Where To Download Fonts Right Now
+## Download the Complete Duet Font Pack
+
+[Download all 123 font families](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip){: .btn .btn-primary }
+
+The 349 MB ZIP contains 738 validated `.cpfont` files, all six reader sizes, per-file checksums, exact upstream source links, and the applicable license notices. Its SHA-256 is `1d0b100683e05a3c2f9ad6e1fbf6f24c2c3674c3ee096ddfa32c383ccbf85c7c`.
+
+## Choose an Installation Route
 
 Choose whichever route fits how many fonts you want:
 
-- **Get the complete Duet collection:** download [`Duet-Open-Font-Pack-v1.zip`](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip). It contains 123 ready-to-copy families, 738 validated `.cpfont` files, all six reader sizes, per-file checksums, upstream source links, and license notices.
+- **Install the complete Duet collection:** use the download above, unzip it, and copy the family folders you want from its `fonts/` folder to `/.fonts/` or `/fonts/` on the SD card.
 - **Install only a few ready-made families:** connect the reader to Wi-Fi and open **Settings > Reader > Font Options > Manage Fonts**. This uses the credited 24-family CrossInk compatibility catalog.
 - **Choose individual families from their sources:** open `FONT_PACK_SOURCES.tsv` inside the complete pack or browse [Font Sources](font-sources.md), follow the upstream project link for the family you want, and convert the downloaded TTF/OTF files with Duet's checked-in conversion tool.
 - **Use CrossInk's ready-made catalog on a computer:** download compatible `.cpfont` files from the [CrossInk font releases](https://github.com/uxjulia/crossink-fonts/releases), then copy them to `/.fonts/` or `/fonts/`.
@@ -26,6 +32,12 @@ Each screenshot compares a different current family with a different preview fam
 | Merriweather / Readex Pro | NV Garamond / NV Bitter | Atkinson Hyperlegible Next / OpenDyslexic | Cormorant Garamond / Great Vibes |
 | --- | --- | --- | --- |
 | [![Merriweather current and Readex Pro preview](media/alpha-0.1.0/fonts/merriweather-readexpro.png)](media/alpha-0.1.0/fonts/merriweather-readexpro.png) | [![NV Garamond current and NV Bitter preview](media/alpha-0.1.0/fonts/nv-bitter.png)](media/alpha-0.1.0/fonts/nv-bitter.png) | [![Atkinson Hyperlegible Next current and OpenDyslexic preview](media/alpha-0.1.0/fonts/opendyslexic.png)](media/alpha-0.1.0/fonts/opendyslexic.png) | [![Cormorant Garamond current and Great Vibes preview](media/alpha-0.1.0/fonts/great-vibes.png)](media/alpha-0.1.0/fonts/great-vibes.png) |
+
+## Browse Every Font
+
+[Open the visual gallery of all 123 families](font-gallery.md){: .btn }
+
+The gallery uses the actual public `.cpfont` files and Duet's X4 simulator, so it shows the type as the reader renders it rather than substituting browser fonts. Families are grouped by source collection and labeled with their exact pack-folder names.
 
 ## Installing Fonts
 
