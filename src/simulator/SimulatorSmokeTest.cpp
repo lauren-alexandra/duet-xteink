@@ -720,7 +720,8 @@ class SimulatorSmokeTest {
     drawTabs(23);
     save("/smoke-stats-reader-dna.bmp");
     renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session,
-                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, true, true);
+                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, true,
+                               true);
     drawTabs(24);
     save("/smoke-stats-dna-details.bmp");
     renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session,

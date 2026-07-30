@@ -9,8 +9,8 @@
 
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <new>
 #include <string_view>
@@ -117,13 +117,12 @@ bool indexedStatsBefore(const IndexedBookStats& entry, const uint64_t key) { ret
 
 bool bookStatsAliasBefore(const BookStatsAlias& entry, const uint64_t key) { return entry.currentKey < key; }
 
-std::vector<IndexedBookStats>::iterator findIndexedStats(std::vector<IndexedBookStats>& entries,
-                                                          const uint64_t key) {
+std::vector<IndexedBookStats>::iterator findIndexedStats(std::vector<IndexedBookStats>& entries, const uint64_t key) {
   return std::lower_bound(entries.begin(), entries.end(), key, indexedStatsBefore);
 }
 
 std::vector<IndexedBookStats>::const_iterator findIndexedStats(const std::vector<IndexedBookStats>& entries,
-                                                                const uint64_t key) {
+                                                               const uint64_t key) {
   return std::lower_bound(entries.begin(), entries.end(), key, indexedStatsBefore);
 }
 
@@ -132,8 +131,7 @@ uint64_t canonicalBookStatsKey(uint64_t key);
 uint64_t canonicalBookStatsKey(const std::string& cachePath);
 
 bool isBookCacheDirectoryName(const char* name) {
-  return name && (strncmp(name, "epub_", 5) == 0 || strncmp(name, "xtc_", 4) == 0 ||
-                  strncmp(name, "txt_", 4) == 0);
+  return name && (strncmp(name, "epub_", 5) == 0 || strncmp(name, "xtc_", 4) == 0 || strncmp(name, "txt_", 4) == 0);
 }
 
 bool hasDetailedStats(const BookReadingStats& stats) {
@@ -212,8 +210,7 @@ bool parseInt(const std::string_view value, int& out) {
 bool validCount(const int value, const size_t maximum) { return value >= 0 && static_cast<size_t>(value) <= maximum; }
 
 bool hasBookProgress(const std::string& cachePath) {
-  return Storage.existsForRead(cachePath + "/progress.bin") ||
-         Storage.existsForRead(cachePath + "/progress.bin.bak");
+  return Storage.existsForRead(cachePath + "/progress.bin") || Storage.existsForRead(cachePath + "/progress.bin.bak");
 }
 
 bool loadBookStatsIndex(std::vector<IndexedBookStats>& entries) {
@@ -334,9 +331,7 @@ uint64_t resolveBookStatsAlias(uint64_t key, const std::vector<BookStatsAlias>& 
 
 uint64_t canonicalBookStatsKey(const uint64_t key) { return resolveBookStatsAlias(key, loadedBookStatsAliases()); }
 
-uint64_t canonicalBookStatsKey(const std::string& cachePath) {
-  return canonicalBookStatsKey(cachePathKey(cachePath));
-}
+uint64_t canonicalBookStatsKey(const std::string& cachePath) { return canonicalBookStatsKey(cachePathKey(cachePath)); }
 
 std::string localSyncedBookStatsFileName() {
   uint8_t mac[6] = {};
@@ -496,8 +491,9 @@ bool writeDetailedBookStats(FsFile& file, const uint64_t cacheKey, const BookRea
             serialization::tryWritePod(file, stats.paceSampleCount) &&
             serialization::tryWritePod(file, stats.estimatedTimeLeftSeconds) &&
             serialization::tryWritePod(file, stats.latestSessionReadingSeconds) &&
-            serialization::tryWritePod(file, stats.latestSessionScreenPages) && serialization::tryWritePod(file, flags) &&
-            writeDate(file, stats.startDate) && writeDate(file, stats.finishedDate);
+            serialization::tryWritePod(file, stats.latestSessionScreenPages) &&
+            serialization::tryWritePod(file, flags) && writeDate(file, stats.startDate) &&
+            writeDate(file, stats.finishedDate);
   for (const uint32_t seconds : stats.timeOfDaySeconds) ok = ok && serialization::tryWritePod(file, seconds);
   for (const uint32_t seconds : stats.dayOfWeekSeconds) ok = ok && serialization::tryWritePod(file, seconds);
   return ok && serialization::tryWritePod(file, stats.latestSessionDayIndex) &&
@@ -531,10 +527,10 @@ bool dateBefore(const ReadingStatsDate& left, const ReadingStatsDate& right) {
   return left.isValid() && (!right.isValid() || compareReadingStatsDate(left, right) < 0);
 }
 
-void mergeDate(ReadingStatsDate& target, bool& targetManual, const ReadingStatsDate& source,
-               const bool sourceManual) {
+void mergeDate(ReadingStatsDate& target, bool& targetManual, const ReadingStatsDate& source, const bool sourceManual) {
   if (!source.isValid()) return;
-  if (!target.isValid() || (sourceManual && !targetManual) || (sourceManual == targetManual && dateBefore(source, target))) {
+  if (!target.isValid() || (sourceManual && !targetManual) ||
+      (sourceManual == targetManual && dateBefore(source, target))) {
     target = source;
   }
   targetManual = targetManual || sourceManual;
@@ -556,10 +552,10 @@ void mergeDetailedStats(BookReadingStats& target, const BookReadingStats& source
     }
   }
 
-  const uint64_t targetLatest = static_cast<uint64_t>(target.latestSessionDayIndex) * 1440u +
-                                target.latestSessionStartMinute;
-  const uint64_t sourceLatest = static_cast<uint64_t>(source.latestSessionDayIndex) * 1440u +
-                                source.latestSessionStartMinute;
+  const uint64_t targetLatest =
+      static_cast<uint64_t>(target.latestSessionDayIndex) * 1440u + target.latestSessionStartMinute;
+  const uint64_t sourceLatest =
+      static_cast<uint64_t>(source.latestSessionDayIndex) * 1440u + source.latestSessionStartMinute;
   if ((sourceLatest > targetLatest) ||
       (targetLatest == 0 && target.latestSessionReadingSeconds == 0 && source.latestSessionReadingSeconds > 0)) {
     target.latestSessionReadingSeconds = source.latestSessionReadingSeconds;
@@ -790,20 +786,17 @@ bool loadCachedInsights(const uint64_t fingerprint, LibraryInsights& insights) {
   uint8_t topAuthorCount = 0;
   uint8_t spiceLevelCount = 0;
   uint8_t seriesProgressCount = 0;
-  const bool headerOk = serialization::tryReadPod(file, magic) && serialization::tryReadPod(file, version) &&
-                        serialization::tryReadPod(file, available) && serialization::tryReadPod(file, reserved) &&
-                        serialization::tryReadPod(file, cachedFingerprint) && magic == CACHE_MAGIC &&
-                        version == CACHE_VERSION && available == 1 && cachedFingerprint == fingerprint &&
-                        serialization::tryReadPod(file, insights.totalBooks) &&
-                        serialization::tryReadPod(file, insights.unreadBooks) &&
-                        serialization::tryReadPod(file, insights.readingBooks) &&
-                        serialization::tryReadPod(file, insights.finishedBooks) &&
-                        serialization::tryReadPod(file, insights.seriesStarted) &&
-                        serialization::tryReadPod(file, insights.totalReadingSeconds) &&
-                        serialization::tryReadPod(file, topGenreCount) &&
-                        serialization::tryReadPod(file, topAuthorCount) &&
-                        serialization::tryReadPod(file, spiceLevelCount) &&
-                        serialization::tryReadPod(file, seriesProgressCount);
+  const bool headerOk =
+      serialization::tryReadPod(file, magic) && serialization::tryReadPod(file, version) &&
+      serialization::tryReadPod(file, available) && serialization::tryReadPod(file, reserved) &&
+      serialization::tryReadPod(file, cachedFingerprint) && magic == CACHE_MAGIC && version == CACHE_VERSION &&
+      available == 1 && cachedFingerprint == fingerprint && serialization::tryReadPod(file, insights.totalBooks) &&
+      serialization::tryReadPod(file, insights.unreadBooks) && serialization::tryReadPod(file, insights.readingBooks) &&
+      serialization::tryReadPod(file, insights.finishedBooks) &&
+      serialization::tryReadPod(file, insights.seriesStarted) &&
+      serialization::tryReadPod(file, insights.totalReadingSeconds) && serialization::tryReadPod(file, topGenreCount) &&
+      serialization::tryReadPod(file, topAuthorCount) && serialization::tryReadPod(file, spiceLevelCount) &&
+      serialization::tryReadPod(file, seriesProgressCount);
   if (!headerOk || topGenreCount > insights.topGenres.size() || topAuthorCount > insights.topAuthors.size() ||
       spiceLevelCount > insights.spiceLevels.size() || seriesProgressCount > insights.seriesProgress.size()) {
     file.close();
@@ -835,23 +828,21 @@ bool saveCachedInsights(const uint64_t fingerprint, const LibraryInsights& insig
   const uint8_t topAuthorCount = static_cast<uint8_t>(insights.topAuthorCount);
   const uint8_t spiceLevelCount = static_cast<uint8_t>(insights.spiceLevelCount);
   const uint8_t seriesProgressCount = static_cast<uint8_t>(insights.seriesProgressCount);
-  const bool ok = serialization::tryWritePod(file, CACHE_MAGIC) &&
-                  serialization::tryWritePod(file, CACHE_VERSION) && serialization::tryWritePod(file, available) &&
-                  serialization::tryWritePod(file, reserved) && serialization::tryWritePod(file, fingerprint) &&
-                  serialization::tryWritePod(file, insights.totalBooks) &&
-                  serialization::tryWritePod(file, insights.unreadBooks) &&
-                  serialization::tryWritePod(file, insights.readingBooks) &&
-                  serialization::tryWritePod(file, insights.finishedBooks) &&
-                  serialization::tryWritePod(file, insights.seriesStarted) &&
-                  serialization::tryWritePod(file, insights.totalReadingSeconds) &&
-                  serialization::tryWritePod(file, topGenreCount) &&
-                  serialization::tryWritePod(file, topAuthorCount) &&
-                  serialization::tryWritePod(file, spiceLevelCount) &&
-                  serialization::tryWritePod(file, seriesProgressCount) &&
-                  writeCachedItems(file, insights.topGenres, insights.topGenreCount) &&
-                  writeCachedItems(file, insights.topAuthors, insights.topAuthorCount) &&
-                  writeCachedItems(file, insights.spiceLevels, insights.spiceLevelCount) &&
-                  writeCachedItems(file, insights.seriesProgress, insights.seriesProgressCount);
+  const bool ok =
+      serialization::tryWritePod(file, CACHE_MAGIC) && serialization::tryWritePod(file, CACHE_VERSION) &&
+      serialization::tryWritePod(file, available) && serialization::tryWritePod(file, reserved) &&
+      serialization::tryWritePod(file, fingerprint) && serialization::tryWritePod(file, insights.totalBooks) &&
+      serialization::tryWritePod(file, insights.unreadBooks) &&
+      serialization::tryWritePod(file, insights.readingBooks) &&
+      serialization::tryWritePod(file, insights.finishedBooks) &&
+      serialization::tryWritePod(file, insights.seriesStarted) &&
+      serialization::tryWritePod(file, insights.totalReadingSeconds) &&
+      serialization::tryWritePod(file, topGenreCount) && serialization::tryWritePod(file, topAuthorCount) &&
+      serialization::tryWritePod(file, spiceLevelCount) && serialization::tryWritePod(file, seriesProgressCount) &&
+      writeCachedItems(file, insights.topGenres, insights.topGenreCount) &&
+      writeCachedItems(file, insights.topAuthors, insights.topAuthorCount) &&
+      writeCachedItems(file, insights.spiceLevels, insights.spiceLevelCount) &&
+      writeCachedItems(file, insights.seriesProgress, insights.seriesProgressCount);
   file.close();
   if (!ok) {
     Storage.remove(CACHE_TMP_PATH);
@@ -997,8 +988,7 @@ std::unique_ptr<LibraryInsights> LibraryInsights::load() {
       addIndexToBookStats(stats, *syncedIndexed);
       hasProgress = hasProgress || (syncedIndexed->flags & BOOK_STATS_FLAG_PROGRESS) != 0;
     }
-    const bool reading =
-        !stats.isCompleted && (stats.sessionCount > 0 || stats.totalReadingSeconds > 0 || hasProgress);
+    const bool reading = !stats.isCompleted && (stats.sessionCount > 0 || stats.totalReadingSeconds > 0 || hasProgress);
 
     insights->totalBooks = addSaturated16(insights->totalBooks);
     insights->totalReadingSeconds = addSaturated(insights->totalReadingSeconds, stats.totalReadingSeconds);
@@ -1142,8 +1132,8 @@ bool LibraryInsights::registerMovedBookStatsAlias(const std::string& oldCachePat
   if (!saveBookStatsAliases(aliases)) return false;
   invalidateSharedBookStatsIndex();
   invalidateDetailedStatsSnapshot();
-  LOG_DBG("LIBALS", "Mapped moved book stats key %016llx -> %016llx",
-          static_cast<unsigned long long>(newKey), static_cast<unsigned long long>(canonicalKey));
+  LOG_DBG("LIBALS", "Mapped moved book stats key %016llx -> %016llx", static_cast<unsigned long long>(newKey),
+          static_cast<unsigned long long>(canonicalKey));
   return true;
 }
 
@@ -1163,7 +1153,8 @@ void LibraryInsights::forEachDetailedBookStats(const DetailedBookStatsVisitor vi
   FsFile dir = Storage.open(SYNCED_BOOK_DETAILS_DIR);
   if (!dir || !dir.isDirectory()) {
     if (dir) dir.close();
-    for (size_t i = 0; i < mergedKeys.size() && i < mergedStats.size(); ++i) visitor(mergedKeys[i], mergedStats[i], ctx);
+    for (size_t i = 0; i < mergedKeys.size() && i < mergedStats.size(); ++i)
+      visitor(mergedKeys[i], mergedStats[i], ctx);
     return;
   }
   const std::string localFileName = localSyncedBookStatsFileName();

@@ -4447,8 +4447,8 @@ void renderReadingTastePage(GfxRenderer& renderer, const MappedInputManager* map
     const int extra = std::max(0, availableHeight - gap - baseGenreHeight - baseAuthorHeight);
     const int genreHeight = baseGenreHeight + extra / 2;
     const int authorHeight = availableHeight - gap - genreHeight;
-    drawInsightListCard(renderer, x, top, width, genreHeight, tr(STR_STATS_FAVORITE_GENRES),
-                        insights->topGenres.data(), insights->topGenreCount, genreRows);
+    drawInsightListCard(renderer, x, top, width, genreHeight, tr(STR_STATS_FAVORITE_GENRES), insights->topGenres.data(),
+                        insights->topGenreCount, genreRows);
     drawInsightListCard(renderer, x, top + genreHeight + gap, width, authorHeight, tr(STR_STATS_FAVORITE_AUTHORS),
                         insights->topAuthors.data(), insights->topAuthorCount, authorRows);
     drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
