@@ -5,6 +5,7 @@
 - Nearby Reading Stats Sync protocol v6 now exchanges `achievements.bin`, retains each peer ledger under `/.duet/state/synced_achievements/`, and merges the highest unlocked milestone for every achievement metric without replacing stronger local progress.
 - Complete `.cstats` archives now include local and synced achievement ledgers. Restoring an older archive that predates achievement storage preserves the current achievement state instead of treating the omitted files as deletions.
 - `scripts/enrich_epub_locations.py` adds Duet word-location metadata for true WPM and reference-page statistics, with dry-run, skip-existing, forced-refresh, URL-escaped OPF path support, and collision-safe `.duetbak` backups that can be routed to a separate folder.
+- The Fonts documentation now includes a visual catalog of all 123 public families, rendered from the packaged `.cpfont` files through Duet's simulator with regular, italic, and bold specimens.
 
 ### Changed
 

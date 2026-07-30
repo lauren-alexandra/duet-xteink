@@ -35,12 +35,7 @@ enum FontCategory : uint8_t {
 };
 
 constexpr const char* CATEGORY_LABELS[CATEGORY_COUNT] = {
-    "Serif",
-    "Sans Serif",
-    "Mono / Typewriter",
-    "Accessibility",
-    "Handwritten / Script",
-    "Decorative",
+    "Serif", "Sans Serif", "Mono / Typewriter", "Accessibility", "Handwritten / Script", "Decorative",
 };
 
 std::string normalizedFamilyKey(const std::string& name) {
@@ -78,15 +73,15 @@ uint8_t categorizeFamily(const std::string& name) {
   const std::string key = normalizedFamilyKey(name);
 
   if (key.find("dyslex") != std::string::npos || key.find("disleks") != std::string::npos ||
-      key.find("legible") != std::string::npos ||
-      key.find("hyperlegible") != std::string::npos || keyMatchesAny(key, {"lexend", "lexenddeca", "readexpro", "andika"})) {
+      key.find("legible") != std::string::npos || key.find("hyperlegible") != std::string::npos ||
+      keyMatchesAny(key, {"lexend", "lexenddeca", "readexpro", "andika"})) {
     return CATEGORY_ACCESSIBILITY;
   }
 
-  if (keyMatchesAny(key, {"alexbrush", "allura", "applechancery", "bradleyhand", "caveat", "comicneue",
-                          "dancingscript", "greatvibes", "italianno", "kaushanscript", "lobster", "pacifico",
-                          "parisienne", "patrickhand", "petitformalscript", "pinyonscript", "sacramento",
-                          "tangerine", "yellowtail"})) {
+  if (keyMatchesAny(key,
+                    {"alexbrush", "allura", "applechancery", "bradleyhand", "caveat", "comicneue", "dancingscript",
+                     "greatvibes", "italianno", "kaushanscript", "lobster", "pacifico", "parisienne", "patrickhand",
+                     "petitformalscript", "pinyonscript", "sacramento", "tangerine", "yellowtail"})) {
     return CATEGORY_HANDWRITTEN_SCRIPT;
   }
 
@@ -94,8 +89,7 @@ uint8_t categorizeFamily(const std::string& name) {
     return CATEGORY_MONOSPACE;
   }
 
-  if (keyMatchesAny(key, {"abrilfatface", "bungee", "cinzel", "frederickathegreat", "herculanum", "monoton",
-                          "rye"})) {
+  if (keyMatchesAny(key, {"abrilfatface", "bungee", "cinzel", "frederickathegreat", "herculanum", "monoton", "rye"})) {
     return CATEGORY_DECORATIVE;
   }
 
@@ -249,8 +243,8 @@ void FontSelectionActivity::onEnter() {
     }
   }
 
-  const bool currentFamilyHidden = SETTINGS.sdFontFamilyName[0] != '\0' &&
-                                   shouldHideFamily(normalizedFamilyKey(SETTINGS.sdFontFamilyName));
+  const bool currentFamilyHidden =
+      SETTINGS.sdFontFamilyName[0] != '\0' && shouldHideFamily(normalizedFamilyKey(SETTINGS.sdFontFamilyName));
   selectedIndex_ = findCurrentFontRow(SETTINGS.sdFontFamilyName, SETTINGS.fontFamily);
   if (currentFamilyHidden) {
     // Do not strand the reader in a font we intentionally removed. Lexend
@@ -272,17 +266,57 @@ void FontSelectionActivity::onEnter() {
   applyOriginalFontForPreview();
   const int originalFontId = SETTINGS.getReaderFontId();
   originalFontLineHeight_ = renderer.getTextHeight(originalFontId);
-  originalPreviewTextLines_ = std::clamp(
-      static_cast<int>(fontPreviewLines(renderer, originalFontId,
-                                        renderer.getScreenWidth() - (metrics_.previewPadding * 2),
-                                        originalFontName_.c_str())
-                           .size()),
-      1, FONT_PREVIEW_MAX_TEXT_LINES);
+  originalPreviewTextLines_ =
+      std::clamp(static_cast<int>(fontPreviewLines(renderer, originalFontId,
+                                                   renderer.getScreenWidth() - (metrics_.previewPadding * 2),
+                                                   originalFontName_.c_str())
+                                      .size()),
+                 1, FONT_PREVIEW_MAX_TEXT_LINES);
 
   requestUpdate();
 }
 
 void FontSelectionActivity::onExit() { Activity::onExit(); }
+
+#ifdef SIMULATOR
+bool FontSelectionActivity::simulatorPreviewFamily(const char* familyName) {
+  if (!registry_ || !familyName || familyName[0] == '\0') return false;
+
+  for (int i = 0; i < static_cast<int>(fonts_.size()); i++) {
+    if (fonts_[i].isHeader || fonts_[i].name != familyName) continue;
+    selectedIndex_ = i;
+    previewFontIndex_ = i;
+    applyFontEntryForPreview(i);
+    requestUpdate();
+    return true;
+  }
+
+  const auto& families = registry_->getFamilies();
+  for (int i = 0; i < static_cast<int>(families.size()); i++) {
+    if (families[i].name != familyName) continue;
+    const int targetIndex = static_cast<int>(fonts_.size());
+    fonts_.push_back({families[i].name, false, false, static_cast<uint8_t>(CrossPointSettings::BUILTIN_FONT_COUNT + i),
+                      categorizeFamily(families[i].name)});
+    selectedIndex_ = targetIndex;
+    previewFontIndex_ = targetIndex;
+    applyFontEntryForPreview(targetIndex);
+    requestUpdate();
+    return true;
+  }
+
+  return false;
+}
+
+void FontSelectionActivity::simulatorRenderPreviewSpecimen() {
+  renderer.clearScreen();
+  const int previewFontId = SETTINGS.getReaderFontId();
+  const char* previewFontName = (previewFontIndex_ >= 0 && previewFontIndex_ < static_cast<int>(fonts_.size()))
+                                    ? fonts_[previewFontIndex_].name.c_str()
+                                    : nullptr;
+  renderSampleBlock(8, 284, previewFontId, "Preview", previewFontName, currentFontPointSize(registry_), true);
+  renderer.displayBuffer();
+}
+#endif
 
 void FontSelectionActivity::loop() {
   if (mappedInput.wasPressed(MappedInputManager::Button::Back)) {
@@ -576,16 +610,14 @@ void FontSelectionActivity::renderPreviewPane(const int top, const int height, c
   const int lineHeight = std::max(originalFontLineHeight_, renderer.getTextHeight(fontId));
   const int labelHeight = renderer.getTextHeight(UI_10_FONT_ID);
   const int styleHeight = renderer.getTextHeight(SMALL_FONT_ID);
-  const int comparisonTextLines = std::clamp(
-      static_cast<int>(fontPreviewLines(renderer, fontId,
-                                        renderer.getScreenWidth() - (metrics_.previewPadding * 2), fontName)
-                           .size()),
-      1, FONT_PREVIEW_MAX_TEXT_LINES);
-  const int referenceRequired = labelHeight + FONT_PREVIEW_SECTION_GAP +
-                                (originalPreviewTextLines_ * (lineHeight + 1));
-  const int comparisonRequired =
-      labelHeight + FONT_PREVIEW_SECTION_GAP + styleHeight + 1 + lineHeight + 1 +
-      (comparisonTextLines * (lineHeight + 1));
+  const int comparisonTextLines =
+      std::clamp(static_cast<int>(fontPreviewLines(renderer, fontId,
+                                                   renderer.getScreenWidth() - (metrics_.previewPadding * 2), fontName)
+                                      .size()),
+                 1, FONT_PREVIEW_MAX_TEXT_LINES);
+  const int referenceRequired = labelHeight + FONT_PREVIEW_SECTION_GAP + (originalPreviewTextLines_ * (lineHeight + 1));
+  const int comparisonRequired = labelHeight + FONT_PREVIEW_SECTION_GAP + styleHeight + 1 + lineHeight + 1 +
+                                 (comparisonTextLines * (lineHeight + 1));
   const int maxReferenceHeight = std::max(referenceRequired, height - comparisonRequired - FONT_PREVIEW_PANE_GAP);
   const int referenceHeight = std::min(std::max(referenceRequired, height * 40 / 100), maxReferenceHeight);
   const int comparisonTop = top + referenceHeight + FONT_PREVIEW_PANE_GAP;
@@ -622,10 +654,10 @@ void FontSelectionActivity::render(RenderLock&&) {
                                         renderer.getScreenWidth() - (metrics_.previewPadding * 2), previewFontName)
                            .size()),
       1, FONT_PREVIEW_MAX_TEXT_LINES);
-  const int requiredPreviewHeight =
-      labelHeight + FONT_PREVIEW_SECTION_GAP + (originalPreviewTextLines_ * (lineHeight + 1)) +
-      FONT_PREVIEW_PANE_GAP + labelHeight + FONT_PREVIEW_SECTION_GAP + styleHeight + 1 + lineHeight + 1 +
-      (comparisonTextLines * (lineHeight + 1));
+  const int requiredPreviewHeight = labelHeight + FONT_PREVIEW_SECTION_GAP +
+                                    (originalPreviewTextLines_ * (lineHeight + 1)) + FONT_PREVIEW_PANE_GAP +
+                                    labelHeight + FONT_PREVIEW_SECTION_GAP + styleHeight + 1 + lineHeight + 1 +
+                                    (comparisonTextLines * (lineHeight + 1));
   const int baselinePreviewHeight =
       std::max(usableHeight * metrics_.previewHeightPercent / 100, usableHeight * FONT_PREVIEW_MIN_PERCENT / 100);
   // Very wide faces may need a third preview line. Preserve three list rows
