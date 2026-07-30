@@ -21,14 +21,14 @@ PACK_CONFIG = ROOT / "release" / "public-font-pack.json"
 SMOKE_RUNNER = ROOT / "scripts" / "run_simulator_smoke_test.py"
 DEFAULT_OUTPUT_DIR = ROOT / "docs" / "media" / "fonts"
 DEFAULT_PAGE = ROOT / "docs" / "font-gallery.md"
-SOURCE_LABELS = {
-    "google-fonts": "Google Fonts",
-    "ebook-fonts": "E-reader-Optimized Families",
-    "crossink-fonts": "CrossInk Compatibility Families",
-    "ctan-open-fonts": "CTAN Open-Font Families",
-    "coelacanth": "Coelacanth",
-    "sil-gentium": "SIL Gentium",
-}
+DEVICE_CATEGORY_LABELS = (
+    "Serif",
+    "Sans Serif",
+    "Mono / Typewriter",
+    "Accessibility",
+    "Handwritten / Script",
+    "Decorative",
+)
 
 
 def slugify(value: str) -> str:
@@ -44,6 +44,103 @@ def load_config() -> dict:
 
 def all_families(config: dict) -> list[str]:
     return [family for group in config["source_groups"] for family in group["families"]]
+
+
+def source_group_families(config: dict, source_group_id: str) -> list[str]:
+    for group in config["source_groups"]:
+        if group["id"] == source_group_id:
+            return sorted(group["families"], key=str.casefold)
+    raise ValueError(f"Unknown public font source group: {source_group_id}")
+
+
+def normalized_family_key(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def categorize_family(name: str) -> str:
+    """Mirror the on-device picker categories in FontSelectionActivity.cpp."""
+    key = normalized_family_key(name)
+
+    if (
+        "dyslex" in key
+        or "disleks" in key
+        or "legible" in key
+        or "hyperlegible" in key
+        or key in {"lexend", "lexenddeca", "readexpro", "andika"}
+    ):
+        return "Accessibility"
+
+    if key in {
+        "alexbrush",
+        "allura",
+        "applechancery",
+        "bradleyhand",
+        "caveat",
+        "comicneue",
+        "dancingscript",
+        "greatvibes",
+        "italianno",
+        "kaushanscript",
+        "lobster",
+        "pacifico",
+        "parisienne",
+        "patrickhand",
+        "petitformalscript",
+        "pinyonscript",
+        "sacramento",
+        "tangerine",
+        "yellowtail",
+    }:
+        return "Handwritten / Script"
+
+    if key in {"courierprime", "ibmplexmono", "sourcecodepro", "specialelite", "texgyrecursor"}:
+        return "Mono / Typewriter"
+
+    if key in {
+        "abrilfatface",
+        "bungee",
+        "cinzel",
+        "frederickathegreat",
+        "herculanum",
+        "monoton",
+        "rye",
+        "unifrakturmaguntia",
+    }:
+        return "Decorative"
+
+    if "sans" in key or key in {
+        "archivonarrow",
+        "arialrounded",
+        "comfortaa",
+        "firasans",
+        "inter",
+        "lato",
+        "nunjito",
+        "nunito",
+        "nvancizarsans",
+        "nvjost",
+        "oswald",
+        "quicksand",
+        "sciencegothic",
+        "skia",
+        "texgyreadventor",
+        "texgyreheros",
+        "texgyreheroscondensed",
+        "ubuntu",
+        "ysabeau",
+    }:
+        return "Sans Serif"
+
+    return "Serif"
+
+
+def device_category_groups(families: list[str]) -> dict[str, list[str]]:
+    groups = {label: [] for label in DEVICE_CATEGORY_LABELS}
+    for family in families:
+        groups[categorize_family(family)].append(family)
+    for category_families in groups.values():
+        category_families.sort(key=str.casefold)
+    return groups
 
 
 def resolve_magick() -> str:
@@ -156,6 +253,8 @@ def table_rows(families: list[str], media_root: str) -> list[str]:
 
 
 def write_gallery_page(config: dict, page_path: Path) -> None:
+    category_groups = device_category_groups(all_families(config))
+    optimized_families = source_group_families(config, "ebook-fonts")
     lines = [
         "---",
         "title: All Font Previews",
@@ -165,15 +264,23 @@ def write_gallery_page(config: dict, page_path: Path) -> None:
         "",
         "# All 123 Font Previews",
         "",
-        "Every specimen below is rendered from the public pack's actual `.cpfont` file through Duet's X4 simulator. The regular pangram and italic/bold samples use the same 16 pt picker layout shown on the reader. OpenDyslexic alone uses its compact 14 pt specimen because that face is unusually large at the same nominal size.",
+        "Every specimen below is rendered from the public pack's actual `.cpfont` file through Duet's X4 simulator. The e-reader-optimized collection is featured first, followed by the same font-type categories used in the on-device picker. Optimized families intentionally appear again in their matching type section so you can browse either way. The regular pangram and italic/bold samples use the same 16 pt picker layout shown on the reader. OpenDyslexic alone uses its compact 14 pt specimen because that face is unusually large at the same nominal size.",
+        "",
+        "Source projects, revisions, copyright notices, and licenses remain available in [Font Sources and Redistribution](../FONT_SOURCES.md).",
         "",
         "[Download the complete 123-family font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip){: .btn .btn-primary }",
         "",
+        f"## E-reader-Optimized Families ({len(optimized_families)})",
+        "",
+        "|  |  |  |",
+        "| --- | --- | --- |",
+        *table_rows(optimized_families, "media/fonts"),
+        "",
+        "## Browse All Families by Type",
+        "",
     ]
     media_root = "media/fonts"
-    for source_group in config["source_groups"]:
-        families = source_group["families"]
-        title = SOURCE_LABELS[source_group["id"]]
+    for title, families in category_groups.items():
         lines.extend(
             [
                 f"## {title} ({len(families)})",
