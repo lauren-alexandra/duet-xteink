@@ -186,8 +186,8 @@ def iter_epubs(paths: list[Path]) -> list[Path]:
     out: list[Path] = []
     for path in paths:
         if path.is_dir():
-            out.extend(sorted(p for p in path.rglob("*.epub") if p.is_file()))
-        elif path.is_file() and path.suffix.casefold() == ".epub":
+            out.extend(sorted(p for p in path.rglob("*.epub") if p.is_file() and not p.name.startswith("._")))
+        elif path.is_file() and path.suffix.casefold() == ".epub" and not path.name.startswith("._"):
             out.append(path)
     return out
 

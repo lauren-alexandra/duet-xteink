@@ -31,6 +31,7 @@
 #include "activities/apps/AchievementsActivity.h"
 #include "activities/apps/DictionaryActivity.h"
 #include "activities/apps/FavoritesActivity.h"
+#include "activities/apps/IfFoundActivity.h"
 #include "activities/apps/TetrisActivity.h"
 #include "activities/apps/UtilitiesActivity.h"
 #include "activities/home/BookInfoActivity.h"
@@ -926,6 +927,12 @@ class SimulatorSmokeTest {
     utilities.render(RenderLock{});
     save("/smoke-utilities.bmp");
     utilities.onExit();
+
+    IfFoundActivity ifFound(renderer, mappedInputManager);
+    ifFound.onEnter();
+    ifFound.render(RenderLock{});
+    save("/smoke-if-found.bmp");
+    ifFound.onExit();
 
     AchievementSnapshot achievementSnapshot;
     achievementSnapshot.booksStarted = 1;

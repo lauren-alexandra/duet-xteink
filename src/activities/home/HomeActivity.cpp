@@ -207,7 +207,10 @@ bool loadEpubHighlightedContext(const RecentBook& book, const bool loadProgress,
   }
 
   if (wordCount) {
-    *wordCount = epub.getTotalWords();
+    const uint32_t words = epub.getTotalWords();
+    if (words > 0) {
+      *wordCount = words;
+    }
   }
 
   EpubReaderUtils::Progress progress;
@@ -1204,7 +1207,8 @@ void HomeActivity::runDeferredHomeWork() {
             cachedBookProgress[deferredBookStatsIdx] =
                 deferredBookStatsIdx == 0 ? currentBookProgressPercent
                                           : RecentBookProgress::loadPercent(recentBooks[deferredBookStatsIdx]);
-            cachedBookWordCounts[deferredBookStatsIdx] = deferredBookStatsIdx == 0 ? currentBookWordCount : 0;
+            cachedBookWordCounts[deferredBookStatsIdx] =
+                deferredBookStatsIdx == 0 ? currentBookWordCount : cachedBookStats[deferredBookStatsIdx].totalWordCount;
             if (deferredBookStatsIdx == 0) {
               loadEpubHighlightedContext(recentBooks[0], false, true, nullptr, &currentBookChapterTitle,
                                          &currentBookWordCount);
@@ -1214,7 +1218,7 @@ void HomeActivity::runDeferredHomeWork() {
             cachedBookStats[deferredBookStatsIdx] = loadRecentBookStats(recentBooks[deferredBookStatsIdx]);
             cachedBookProgress[deferredBookStatsIdx] =
                 RecentBookProgress::loadPercent(recentBooks[deferredBookStatsIdx]);
-            uint32_t wordCount = 0;
+            uint32_t wordCount = cachedBookStats[deferredBookStatsIdx].totalWordCount;
             loadEpubHighlightedContext(recentBooks[deferredBookStatsIdx], false, false, nullptr, nullptr, &wordCount);
             cachedBookWordCounts[deferredBookStatsIdx] = wordCount;
           }
@@ -1296,6 +1300,7 @@ void HomeActivity::updateHighlightedBookStatsOnly() {
   const int idx = getHighlightedBookIndex();
   if (idx >= 0) {
     currentBookStats = loadRecentBookStats(recentBooks[idx]);
+    currentBookWordCount = currentBookStats.totalWordCount;
     // This reads the tiny persisted percentage sidecar and does not open or
     // parse the EPUB. Keeping it in the first frame prevents Home from showing
     // an unknown progress value for a book whose reader stats are accurate.
@@ -1328,6 +1333,7 @@ void HomeActivity::updateHighlightedBookContext() {
       }
     } else {
       currentBookStats = loadRecentBookStats(book);
+      currentBookWordCount = currentBookStats.totalWordCount;
       if (isEpub) {
         loadEpubHighlightedContext(book, true, loadChapterTitle, &currentBookProgressPercent, &currentBookChapterTitle,
                                    &currentBookWordCount);

@@ -1,5 +1,5 @@
 ---
-title: Alpha.7 Screenshot Gallery
+title: Duet Interface And Statistics Gallery
 parent: Complete Feature Tour
 nav_order: 1
 ---
@@ -44,9 +44,9 @@ Duet uses the same interface and feature code on X3 and X4, so this gallery show
 | --- | --- |
 | [![Duet dictionary list](x4/dictionary-list.png)](x4/dictionary-list.png) | [![Duet dictionary definition](x4/dictionary.png)](x4/dictionary.png) |
 
-| Apps | Favorites |
-| --- | --- |
-| [![Duet Apps](x4/apps.png)](x4/apps.png) | [![Duet Favorites](x4/favorites.png)](x4/favorites.png) |
+| Apps | Favorites | If Found |
+| --- | --- | --- |
+| [![Duet Apps](x4/apps.png)](x4/apps.png) | [![Duet Favorites](x4/favorites.png)](x4/favorites.png) | [![Duet If Found return screen](x4/if-found.png)](x4/if-found.png) |
 
 | Achievements | Completed Achievements | Tetris |
 | --- | --- | --- |
@@ -80,6 +80,6 @@ The gallery is intentionally honest about what the simulator cannot prove. The r
 - KOReader Sync without account details.
 - Clean X3 and X4 boot and sleep frames.
 - The System page showing the exact public Duet version.
-- The file-transfer web portal after an alpha.7 comparison and privacy pass.
+- The file-transfer web portal after a current-release comparison and privacy pass.
 - An X3 and X4 together photo.
 - Short unsped clips of grid navigation, carousel hydration, book open/close, chapter pre-indexing, and two-device sync.

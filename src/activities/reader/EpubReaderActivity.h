@@ -61,6 +61,7 @@ class EpubReaderActivity final : public Activity {
   int cachedChapterPageNumber = 0;
   int cachedChapterTotalPageCount = 0;
   bool pendingRelayoutReposition = false;
+  bool cachedRelayoutAtChapterStart = false;
   uint16_t cachedPageParagraphIndex = UINT16_MAX;
   uint16_t cachedPageParagraphOffset = 0;
   uint16_t cachedPageParagraphSpan = 0;
@@ -86,6 +87,7 @@ class EpubReaderActivity final : public Activity {
   uint32_t sessionReadingSeconds = 0;
   uint16_t sessionScreenPages = 0;
   bool readingStatsCommitted = false;
+  bool fastHomeExitRequested = false;
   std::atomic<bool> firstRenderCompleted{false};
   bool deferredOnEnterPending = false;
   std::atomic<bool> nextChapterPreindexWorkRequested{false};

@@ -2,34 +2,32 @@
 
 ## Current Status
 
-Duet v0.1.0-alpha.7 is published as a GitHub prerelease for the Xteink X3 and X4. It is an intentionally early alpha: source review, automated tests, simulator coverage, reproducible packaging, checksums, recovery instructions, and maintainer-device work provide a responsible starting point, while broader physical testing across readers, SD cards, libraries, sleep/wake patterns, and long sessions remains open.
+Duet v0.1.0-alpha.8 is the current public tester candidate for the Xteink X3 and X4. It is an intentionally early alpha: source review, automated tests, simulator coverage, reproducible packaging, checksums, recovery instructions, and maintainer-device work provide a responsible starting point, while broader physical testing across readers, SD cards, libraries, sleep/wake patterns, and long sessions remains open.
 
-The canonical download is the [Alpha.7 release](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7). Testers should never use firmware files sent as unverified attachments.
+The canonical downloads are published only through the [Alpha.8 release](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.8). Alpha.7 remains the prior public rollback release. Testers should never use firmware files sent as unverified attachments.
 
-## Verified Published Assets
+## Reviewed Alpha.8 Assets
 
-The published standalone BINs, firmware ZIP, and `SHA256SUMS.txt` were downloaded from GitHub and compared on July 29, 2026. The standalone and packaged firmware bytes match:
+The matched X3 and X4 release-prep builds and the reusable font and dictionary packages have these reviewed sizes and hashes:
 
 | Asset | Size | SHA-256 |
 | --- | ---: | --- |
-| `Duet-X3-v0.1.0-alpha.7.bin` | 5,941,904 bytes | `ad0bccbde59b2d64119279623a785c97124dbf6a72c7cfecce58f748128f1961` |
-| `Duet-X4-v0.1.0-alpha.7.bin` | 5,804,864 bytes | `8a38294c547a1f947c7f810acf083b6b7e077e5f8a46e946e867b3e13a8172f2` |
-| `Duet-v0.1.0-alpha.7-firmware.zip` | 15,783,047 bytes | `41263c6421aee3aa20598c7ed0dba13640bb33f0fb39e224e471428ca71aac2d` |
+| `Duet-X3-v0.1.0-alpha.8.bin` | 5,944,336 bytes | `b308e220d6bdbeda37bffdb65eeb640b5377b2966ac31953e53269b2bad64636` |
+| `Duet-X4-v0.1.0-alpha.8.bin` | 5,807,248 bytes | `df304b7fd6e75431baaa86d7908f1a7b4d3c5a1caee3ec07727e6bd53a8a53bc` |
 | `Duet-Open-Font-Pack-v1.zip` | 366,108,920 bytes | `1d0b100683e05a3c2f9ad6e1fbf6f24c2c3674c3ee096ddfa32c383ccbf85c7c` |
 | `Duet-WordNet-3.0-StarDict.zip` | 8,857,151 bytes | `19f6840ee91881cd303bcedc29c81777da1756ad73a09b114d3226fcf01ed80a` |
-| `SHA256SUMS.txt` | 204 bytes | `81809e82d8d4093c50563f46095bcc6ab0df1d372296554b139af820d355a447` |
 
-The firmware checksum file covers the X3 and X4 BINs. The release page records the separate font and dictionary asset digests.
+The candidate package's internal `SHA256SUMS.txt` verifies both firmware files, and the draft ZIP passes a complete archive test. The final GitHub-generated release package and every downloaded asset must be verified again before the prerelease is published.
 
-## Published Extras
+## Separate Release Extras
 
 - The optional Duet Open Font Pack contains 123 reviewed open-source families and 738 validated `.cpfont` files: 10, 12, 14, 16, 18, and 20 pt for both X3 and X4. It includes source links, pinned revisions, license notices, and a per-file checksum manifest.
 - The optional WordNet 3.0 StarDict ZIP is ready to copy under `/dictionaries/` and retains its original notice.
 - The public gallery contains 69 reviewed images: 43 statistics screens, 22 feature/app screens, and four font comparisons. Shared X3/X4 interfaces are shown once rather than duplicated.
 
-## Current Unreleased Source
+## Alpha.8 Scope
 
-The current unreleased source contains changes that must not be represented as part of the published Alpha.7 BINs until a new matched X3/X4 release is built:
+Alpha.8 adds these changes beyond the published Alpha.7 BINs:
 
 - Nearby Reading Stats Sync protocol v6, including milestone-wise achievement-ledger exchange and `.cstats` preservation.
 - `scripts/enrich_epub_locations.py` for true WPM/reference-page metadata, including dry-run, skip-existing, forced refresh, URL-escaped OPF path support, and collision-safe separate `.duetbak` backup folders.
@@ -39,17 +37,19 @@ The current unreleased source contains changes that must not be represented as p
 - Public font-pack generation and license packaging.
 - Expanded CI compilation and catalog tests for the new desktop helpers.
 
-Both readers must run the same Nearby Sync protocol. Do not test protocol v6 against an Alpha.7 protocol-v5 reader.
+Both readers must run Alpha.8 for Nearby Stats Sync. Alpha.8 protocol v6 does not pair with Alpha.7 protocol v5.
 
 ## Automated Gates
 
 The current release-prep source passes:
 
 - 117 host C++ tests.
-- Four Python desktop-helper tests covering no-spice and mixed-spice catalogs, URL-escaped EPUB spine paths, collision-safe separate backups, and skip-existing behavior.
-- X3 and X4 simulator builds.
+- Seven Python desktop-helper tests covering catalog variants, EPUB enrichment, URL-escaped spine paths, separate backups, and skip-existing behavior.
+- The simulator target.
 - Python compilation for public release, catalog, WPM-enrichment, font-pack, and dictionary scripts.
 - The public-release privacy and required-file audit.
+- Static analysis with no medium- or high-severity findings.
+- Clang formatting checks.
 - `git diff --check`.
 
 GitHub CI must rerun these gates after the final commit. Local success does not replace CI, and neither local nor CI success proves physical e-ink behavior.
@@ -70,7 +70,7 @@ The purpose of the public alpha is to broaden the device evidence. High-value ph
 - Large libraries, folders above 1,000 paths, slow or nearly full cards, and multiple filesystem/card brands.
 - Locked sleep-image cycling at Off, 1, 2, and 3 clicks.
 
-Use [Alpha Testing](docs/ALPHA_TESTING.md), [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the [Physical Test Matrix](docs/PHYSICAL_TEST_MATRIX.md). A successful build, simulator capture, SD-card copy, or single maintainer-device session must not be recorded as universal physical acceptance.
+Use [Alpha Testing](docs/ALPHA_TESTING.md), [Alpha.8 Acceptance Quickstart](docs/ALPHA8_ACCEPTANCE_QUICKSTART.md), and the [Physical Test Matrix](docs/PHYSICAL_TEST_MATRIX.md). A successful build, simulator capture, SD-card copy, or single maintainer-device session must not be recorded as universal physical acceptance.
 
 ## Release Package Contract
 

@@ -5,13 +5,13 @@ nav_order: 1
 
 # Start here
 
-Duet is early-alpha firmware for the Xteink X3 and X4. The current tester release is `v0.1.0-alpha.7`. Start by identifying your device, backing up the complete SD card, and keeping a known-good firmware BIN available for recovery. X3 and X4 firmware files are not interchangeable.
+Duet is early-alpha firmware for the Xteink X3 and X4. The current tester release is `v0.1.0-alpha.8`. Start by identifying your device, backing up the complete SD card, and keeping a known-good firmware BIN available for recovery. X3 and X4 firmware files are not interchangeable.
 
 ## First Duet installation
 
 1. Read the [current alpha notes and known issues](ALPHA_TESTING.md).
 2. Back up the complete SD card, including hidden folders.
-3. Download the [X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin) or [X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin). The [complete alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7) also provides the combined firmware ZIP and SHA-256 checksums.
+3. Download the [X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-X3-v0.1.0-alpha.8.bin) or [X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-X4-v0.1.0-alpha.8.bin). The [complete alpha.8 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.8) also provides the combined firmware ZIP and SHA-256 checksums.
 4. Wake and unlock the reader, connect it by USB-C, and open the [CrossPoint web installer](https://crosspointreader.com/#flash-tools).
 5. Choose the correct device, select **Custom .bin**, and flash the Duet BIN.
 6. After the restart, open **Settings > System** and confirm the displayed Duet version.
@@ -39,7 +39,7 @@ For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PRE
 
 Plain EPUBs read normally, but true visible WPM and reference-page statistics require Duet word-location metadata. Run [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) once after adding new EPUBs, ideally on the source library before copying it to both readers. The combined [AI Library Prep Prompt](AI_LIBRARY_PREP_PROMPT.md) tells a local computer assistant to dry-run and back up the enrichment first, then run the correct X3/X4 cover prefill.
 
-More Info descriptions and library categories use an optional Calibre-generated `/.duet/state/library_catalog.tsv`. Copying an EPUB to the SD card does not generate a description automatically; books remain readable without the catalog, but More Info shows only the metadata Duet can resolve locally. Spice/heat level is also optional personal metadata: leave it blank or omit it and Duet hides that field, removes its Reading Taste card, and leaves its achievements inactive. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Download the [complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip), install selected families through **Settings > Reader > Font Options > Manage Fonts**, or follow the upstream sources in the pack manifest. See [Fonts](sd-card-fonts.md) for all options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md) cover the rest of the library and reader structure.
+More Info descriptions and library categories use an optional Calibre-generated `/.duet/state/library_catalog.tsv`. Copying an EPUB to the SD card does not generate a description automatically; books remain readable without the catalog, but More Info shows only the metadata Duet can resolve locally. Spice/heat level is also optional personal metadata: leave it blank or omit it and Duet hides that field, removes its Reading Taste card, and leaves its achievements inactive. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Download the [complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-Open-Font-Pack-v1.zip), install selected families through **Settings > Reader > Font Options > Manage Fonts**, or follow the upstream sources in the pack manifest. See [Fonts](sd-card-fonts.md) for all options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md) cover the rest of the library and reader structure.
 
 ## Using an X3 and X4 together
 
@@ -49,7 +49,7 @@ Position sync requires the same book identity on both readers. Achievement progr
 
 ## Testing the alpha
 
-Use the short [Alpha.7 Acceptance Quickstart](ALPHA7_ACCEPTANCE_QUICKSTART.md) for an ordered physical-device pass. The broader [Alpha Testing guide](ALPHA_TESTING.md) lists known issues, high-value test areas, useful logs, privacy rules, and a copy-ready report format.
+Use the short [Alpha.8 Acceptance Quickstart](ALPHA8_ACCEPTANCE_QUICKSTART.md) for an ordered physical-device pass. The broader [Alpha Testing guide](ALPHA_TESTING.md) lists known issues, high-value test areas, useful logs, privacy rules, and a copy-ready report format.
 
 Use **Alpha Test Report** for a successful or mixed test session and **Alpha Bug Report** for one reproducible defect. Do not upload ebooks, full SD-card archives, credentials, personal catalogs, contact files, or raw reading history. Review logs before posting because book paths and filenames may be personal.
 
@@ -73,6 +73,6 @@ The [Troubleshooting guide](troubleshooting.md) covers firmware recovery, SD-car
 | Preparing EPUB metadata and covers with a computer assistant | [AI Library Prep Prompt](AI_LIBRARY_PREP_PROMPT.md) |
 | Installing and using a dictionary | [Dictionary Setup](DICTIONARY_SETUP.md) |
 | Installing or converting fonts | [SD-card fonts](sd-card-fonts.md) |
-| All current screenshots | [Alpha.7 Media Gallery](media/alpha-0.1.0/README.md) |
+| All current screenshots | [Interface And Statistics Gallery](media/alpha-0.1.0/README.md) |
 | Contributing code or documentation | [Contributing to Duet](../CONTRIBUTING.md) |
 | Complete credit and audited upstream revisions | [Third-Party Notices](../THIRD_PARTY_NOTICES.md) |

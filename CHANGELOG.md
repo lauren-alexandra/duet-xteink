@@ -1,23 +1,42 @@
 ## [Unreleased]
 
+## [0.1.0-alpha.8] - 2026-07-30
+
 ### Added
 
 - Nearby Reading Stats Sync protocol v6 now exchanges `achievements.bin`, retains each peer ledger under `/.duet/state/synced_achievements/`, and merges the highest unlocked milestone for every achievement metric without replacing stronger local progress.
 - Complete `.cstats` archives now include local and synced achievement ledgers. Restoring an older archive that predates achievement storage preserves the current achievement state instead of treating the omitted files as deletions.
 - `scripts/enrich_epub_locations.py` adds Duet word-location metadata for true WPM and reference-page statistics, with dry-run, skip-existing, forced-refresh, URL-escaped OPF path support, and collision-safe `.duetbak` backups that can be routed to a separate folder.
+- Per-book `stats_v8.bin` files now retain an enriched EPUB's total word count, and Nearby Stats Sync carries that count in its detailed per-book snapshot.
 - The Fonts documentation now includes a visual catalog of all 123 public families, rendered from the packaged `.cpfont` files through Duet's simulator with regular, italic, and bold specimens.
 - The visual font gallery now features all 37 e-reader-optimized families together and organizes all 123 packaged families by the same type categories used in Duet's on-device picker. Every family advertised in the public pack is selectable in the picker.
 
 ### Changed
 
 - Spice/heat metadata is now genuinely opt-in: blank or absent values are omitted from More Info, Reading Taste collapses to genre and author, and spice achievements remain inactive instead of counting a synthetic `Not Rated` category.
+- Pace Trend now presents attributable WPM as a smoothed line with explicit labeling instead of a screen-page bar chart, while books without enough word metadata, progress, or reading time continue to show a dash.
+- Returning directly from a book to Home skips a nonessential timing-file write after committing reading state.
+- On X3, holding the physical right side button increases font size and holding the physical left side button decreases it. X4 retains the vertical up-to-increase and down-to-decrease mapping.
 
 ### Fixed
 
 - Pace Trend, Reader DNA Details, Reading Signature, and Signature Details now seed WPM from the already-loaded current-book path, statistics, word count, and progress. Statistics rendering no longer opens catalogs, progress files, or EPUBs; historical entries without a cheap exact WPM are excluded instead of being guessed.
+- Home, the current-book statistics page, and highlighted recent books now reuse the persisted total word count before considering an EPUB metadata read, so WPM remains available after restart and after two-reader statistics sync.
+- Statistics chart scale labels now reserve consistent vertical space instead of colliding with chart content.
+- EPUB enrichment ignores macOS AppleDouble sidecars named `._*.epub` instead of reporting them as failed books.
+- Reading-stat backups include achievement ledgers, and older archive imports no longer erase achievement progress that the archive format did not contain.
+- Font-size relayouts now keep the start of a chapter pinned to its true first page on both X3 and X4, and explicit chapter selection clears stale pending jumps before opening the selected chapter.
 - Home now postpones book-context parsing while input is active, keeps persisted progress visible immediately, and resumes the heavier current-book word-count and chapter-title work after a short idle window.
 - The deterministic public statistics fixture now seeds an enriched current book with exact dummy word count, progress, and reading time so Pace, DNA Details, Signature, and Signature Details exercise visible WPM without render-time EPUB access.
 - The public statistics fixture now varies fabricated session lengths, page counts, start times, daily totals, and calendar gaps so the gallery demonstrates realistic differences across Sessions, Calendar, Heatmap, Trends, and related pages.
+
+### Verification
+
+- All 117 host tests pass.
+- All seven desktop-helper tests pass.
+- The X3 and X4 public targets build from the same Alpha.8 source state.
+- Matched private Alpha.7.1 builds physically passed current-book WPM and detailed-stat convergence on Lauren's X3 and X4 before the accepted changes were promoted into Alpha.8.
+- Font-size direction and reading-position anchoring remain high-priority physical checks for the exact public Alpha.8 X3 and X4 artifacts.
 
 ## [0.1.0-alpha.7] - 2026-07-29
 

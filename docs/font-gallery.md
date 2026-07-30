@@ -10,7 +10,7 @@ Every specimen below is rendered from the public pack's actual `.cpfont` file th
 
 Source projects, revisions, copyright notices, and licenses remain available in [Font Sources and Redistribution](../FONT_SOURCES.md).
 
-[Download the complete 123-family font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip){: .btn .btn-primary }
+[Download the complete 123-family font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-Open-Font-Pack-v1.zip){: .btn .btn-primary }
 
 ## E-reader-Optimized Families (37)
 

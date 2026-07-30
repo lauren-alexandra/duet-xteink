@@ -54,8 +54,8 @@ bool loadTarget(const RecentBook& book, CurrentBookStatsTarget& target) {
   target.cachePath = cachePath;
   target.stats = BookReadingStats::load(cachePath);
   target.progressPercent = RecentBookProgress::loadPercent(book);
-  target.wordCount = 0;
-  if (FsHelpers::hasEpubExtension(book.path)) {
+  target.wordCount = target.stats.totalWordCount;
+  if (target.wordCount == 0 && FsHelpers::hasEpubExtension(book.path)) {
     Epub epub(book.path, DUET_BOOKS_ROOT_PATH "");
     if (epub.load(false, true)) {
       target.wordCount = epub.getTotalWords();

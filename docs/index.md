@@ -18,12 +18,12 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 - [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md)
 - [Alpha Testing](./ALPHA_TESTING.html)
 - [Troubleshooting](./troubleshooting.html)
-- [Alpha.7 Acceptance Quickstart](./ALPHA7_ACCEPTANCE_QUICKSTART.html)
+- [Alpha.8 Acceptance Quickstart](./ALPHA8_ACCEPTANCE_QUICKSTART.html)
 
 ## Features And Daily Use
 
 - [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.html)
-- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.html)
+- [Interface And Statistics Gallery](./media/alpha-0.1.0/README.html)
 - [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.html)
 - [Fonts](./sd-card-fonts.html)
 - [Dictionary Setup](./DICTIONARY_SETUP.html)

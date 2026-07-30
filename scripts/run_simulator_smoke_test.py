@@ -678,6 +678,14 @@ def run_smoke(args: argparse.Namespace) -> int:
             write_book_info_catalog_fixture(temp_root, simulator_book_path)
         if args.feature_screenshot_dir and not dictionaries_root:
             write_dictionary_fixture(temp_root)
+        if args.feature_screenshot_dir:
+            (temp_root / "fs_" / "if_found.txt").write_text(
+                "Hi! You found Lauren's tiny traveling library.\n\n"
+                "It contains an unreasonable number of books, is very loved, and is probably already missed.\n\n"
+                "Please text Lauren at 555-555-5555 OR contact me at lauren [at] example [dot] com so it can find its way home.\n\n"
+                "Thank you, kind human. May your next read be five stars.\n",
+                encoding="utf-8",
+            )
         sync_fixtures = os.environ.get("CROSSINK_SMOKE_SYNC_FIXTURES")
         if sync_fixtures:
             # Stage real synced_* peer files (e.g. harvested from a device card)
@@ -1109,6 +1117,7 @@ def run_smoke(args: argparse.Namespace) -> int:
                 "achievements",
                 "achievements-completed",
                 "favorites",
+                "if-found",
                 "dictionary",
                 "dictionary-definition",
                 "tetris",

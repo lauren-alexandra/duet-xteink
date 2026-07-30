@@ -102,7 +102,6 @@ Nearby Position Sync is **not** unique to Duet; it is inherited from CrossInk. K
 
 ### Display, Power, And Device Integration
 
-- The PNG Page Overlay compositor that reveals the stored monochrome reader page through transparent regions.
 - Dashboard sleep presentation and Duet's large-folder sleep-image inventory cache.
 - Duet's configurable Off/1/2/3-click extension to CrumBLE's locked one-tap sleep-image cycling, including the Lauren-selected three-click default.
 - Duet's expanded Power-action mapping system around the credited CrossPet multi-click detector and inherited CrossInk controls.
@@ -384,7 +383,7 @@ Minimal Stats is hidden on X4 in the current settings UI and remains available o
 | --- | --- | --- |
 | Custom sleep images | Random BMP selection from `/.sleep` or `/sleep`, with root `sleep.bmp` fallback and cached inventory. | CrossPoint/CrossInk; Duet large-folder cache |
 | Cover presentation | Fit or Crop plus None/Contrast/Inverted filter. | CrossPoint base; CrossInk |
-| Page Overlay | Sleep presentation over the stored monochrome reader page. BMP overlays treat white as transparent; PNG overlays preserve the page wherever alpha is below the compositor threshold. PNG files are accepted only in Page Overlay mode. | CrossPoint/CrossInk foundation; Duet PNG compositor |
+| Page Overlay | Sleep presentation over the stored monochrome reader page. BMP overlays treat white as transparent; PNG overlays preserve the page wherever alpha is below the compositor threshold. PNG files are accepted only in Page Overlay mode. | CrossPoint/CrossInk foundation; CrumBLE PNG transparency; Duet integration and fixes |
 | Statistics sleep screens | Reading Stats, Minimal Stats where supported, and Dashboard. | CrossInk; Duet Dashboard |
 | Quick Resume | Preserve visible content for faster return, including timeout option. | CrossPoint base |
 | Locked-image cycling | A fresh Custom/Page Overlay image can be selected without fully waking. CrumBLE's original behavior used one brief tap; Duet adds Off/1/2/3 choices and defaults to 3 to reduce accidental changes. The code intends to count the wake press as the first click, but current physical testing has found that the reliable default gesture can feel like four physical presses: one initial wake press followed by three deliberate taps. | CrumBLE one-tap behavior; Duet multi-click setting, Lauren-selected three-click default, and wake-path gesture repair |

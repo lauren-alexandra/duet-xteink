@@ -47,6 +47,7 @@ Adapted or informed work:
 
 - The selectable 2x2, 3x3, and 4x4 bookshelf geometry in `src/activities/home/FileBrowserActivity.cpp`.
 - Selected low-memory and corrupt-cache hardening ideas for dictionary lookup.
+- Transparency-aware PNG composition over the stored reader page in Page Overlay sleep mode.
 - CrumBLE's original opt-in **Tap Power While Asleep to Cycle** behavior, which used one brief Power tap to choose a fresh sleep image and return to deep sleep, plus large-folder caching concepts. Duet adapts that interaction into configurable Off/1/2/3 click choices and defaults to three at Lauren's direction to reduce accidental cycling; Duet's multi-click wake-path implementation is not attributed to CrumBLE.
 - Deep-sleep reading-time commit behavior and idempotent session preservation.
 
