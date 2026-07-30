@@ -6,7 +6,9 @@ nav_order: 1
 
 # Font Build Variants
 
-Duet's standard six-size SD-card font families provide 10, 12, 14, 16, 18, and 20 pt on both X3 and X4. The smaller lists below describe only the emergency Lexend Deca and Bitter fallbacks embedded inside each firmware BIN. They do not limit the sizes available after an SD-card font family is installed.
+Every font family installed from Duet's SD-card font pack provides 10, 12, 14, 16, 18, and 20 pt on both X3 and X4.
+
+The firmware also contains built-in copies of Lexend Deca and Bitter so the reader always has usable fonts when no SD-card fonts are installed. Because storage inside the firmware BIN is limited, those two built-in families offer a smaller set of sizes. The lists below apply only while using the built-in Lexend Deca or Bitter; they do not limit any family installed from the SD card.
 
 ## Variants
 
@@ -15,7 +17,7 @@ Duet's standard six-size SD-card font families provide 10, 12, 14, 16, 18, and 2
 The X3 public BIN embeds:
 
 - Emoji and miscellaneous-symbol support
-- 4 fallback font sizes:
+- 4 built-in font sizes:
   - 10 pt
   - 12 pt
   - 14 pt
@@ -26,12 +28,12 @@ The X3 public BIN embeds:
 The X4 public BIN embeds:
 
 - Emoji and miscellaneous-symbol support
-- 3 fallback font sizes:
+- 3 built-in font sizes:
   - 16 pt
   - 18 pt
   - 20 pt
 
-Embedding all six sizes for both fallback families would make either public BIN about 7.13 MB, exceeding the 6.55 MB app partition. Keeping the full reading range on the SD card preserves the firmware features, translation catalogs, emoji, and symbols while allowing every installed family to offer all six sizes.
+Embedding all six sizes for both built-in families would make either public BIN about 7.13 MB, exceeding the 6.55 MB app partition. Keeping the complete six-size collection on the SD card preserves Duet's firmware features, translation catalogs, emoji, and symbols while allowing every SD-card family to offer the full reading range.
 
 ## Flashing A Variant
 

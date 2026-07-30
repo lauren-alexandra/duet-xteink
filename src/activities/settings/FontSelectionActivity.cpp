@@ -54,17 +54,6 @@ bool keyMatchesAny(const std::string& key, const std::initializer_list<const cha
   return false;
 }
 
-bool shouldHideFamily(const std::string& key) {
-  // This historic Fraktur face uses unfamiliar letterforms and does not make a
-  // practical English reader font on the small e-ink screen.
-  if (key == "unifrakturmaguntia") return true;
-
-  // Lexend Deca is the built-in family with complete native styles. The
-  // imported Lexend is visually near-identical at X3 sizes and duplicates the
-  // same role with less reliable face coverage.
-  return key == "lexend";
-}
-
 uint8_t pickerPreviewPointSize(const std::string& familyName) {
   return normalizedFamilyKey(familyName).find("dyslex") != std::string::npos ? 14 : 16;
 }
@@ -217,7 +206,6 @@ void FontSelectionActivity::onEnter() {
   if (registry_) {
     const auto& families = registry_->getFamilies();
     for (int i = 0; i < static_cast<int>(families.size()); i++) {
-      if (shouldHideFamily(normalizedFamilyKey(families[i].name))) continue;
       familyEntries.push_back({families[i].name, false, false,
                                static_cast<uint8_t>(CrossPointSettings::BUILTIN_FONT_COUNT + i),
                                categorizeFamily(families[i].name)});
@@ -243,22 +231,7 @@ void FontSelectionActivity::onEnter() {
     }
   }
 
-  const bool currentFamilyHidden =
-      SETTINGS.sdFontFamilyName[0] != '\0' && shouldHideFamily(normalizedFamilyKey(SETTINGS.sdFontFamilyName));
   selectedIndex_ = findCurrentFontRow(SETTINGS.sdFontFamilyName, SETTINGS.fontFamily);
-  if (currentFamilyHidden) {
-    // Do not strand the reader in a font we intentionally removed. Lexend
-    // Deca is always present and has complete native style coverage.
-    selectedIndex_ = findCurrentFontRow("", CrossPointSettings::LEXENDDECA);
-    applyFontEntryForPreview(selectedIndex_);
-    originalFontFamily_ = SETTINGS.fontFamily;
-    originalFontSize_ = SETTINGS.fontSize;
-    originalSdFontPointSize_ = SETTINGS.sdFontPointSize;
-    strncpy(originalSdFontFamilyName_, SETTINGS.sdFontFamilyName, sizeof(originalSdFontFamilyName_) - 1);
-    originalSdFontFamilyName_[sizeof(originalSdFontFamilyName_) - 1] = '\0';
-    originalFontPointSize_ = currentFontPointSize(registry_);
-    previewPointSize_ = 16;
-  }
   previewFontIndex_ = selectedIndex_;
   originalFontName_ = fonts_[selectedIndex_].name;
   previewPointSize_ = pickerPreviewPointSize(originalFontName_);
