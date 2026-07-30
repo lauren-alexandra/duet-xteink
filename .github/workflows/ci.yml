@@ -24,8 +24,11 @@ jobs:
         run: |
           python3 -m py_compile \
             scripts/audit_public_release.py \
+            scripts/enrich_epub_locations.py \
+            scripts/generate_library_catalog.py \
             scripts/generate_release_catalog.py \
             scripts/package_release.py \
+            scripts/package_public_font_pack.py \
             scripts/package_wordnet_dictionary.py
 
       - name: Audit public release inputs
@@ -124,6 +127,9 @@ jobs:
 
       - name: Run host unit tests
         run: ctest --test-dir build/test --output-on-failure -j
+
+      - name: Run desktop helper tests
+        run: python3 -m unittest discover -s test -p "test_*.py"
 
   build:
     needs:

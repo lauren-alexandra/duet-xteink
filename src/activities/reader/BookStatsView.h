@@ -108,7 +108,9 @@ void renderWeekdayPatternPage(GfxRenderer& renderer, const MappedInputManager* m
                               const ReadingSessionSnapshot& session, bool showButtonHints, bool showMoreButton);
 
 void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, const ReadingJournal* journal,
-                         const ReadingSessionSnapshot& session, bool showButtonHints, bool showMoreButton);
+                         const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                         const BookReadingStats& currentBookStats, uint32_t currentBookWordCount,
+                         float currentBookProgressPercent, bool showButtonHints, bool showMoreButton);
 
 void renderReadingWrappedPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                               const ReadingJournal* journal, const GlobalReadingStats& history,
@@ -143,16 +145,22 @@ void renderReaderRadarPage(GfxRenderer& renderer, const MappedInputManager* mapp
 
 void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                 const ReadingJournal* journal, const GlobalReadingStats& history,
-                                const ReadingSessionSnapshot& session, bool showButtonHints, bool showMoreButton);
+                                const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                const BookReadingStats& currentBookStats, uint32_t currentBookWordCount,
+                                float currentBookProgressPercent, bool showButtonHints, bool showMoreButton);
 
 void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                 const ReadingJournal* journal, const GlobalReadingStats& history,
-                                const ReadingSessionSnapshot& session, uint8_t goalMinutes, bool showButtonHints,
+                                const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                const BookReadingStats& currentBookStats, uint32_t currentBookWordCount,
+                                float currentBookProgressPercent, uint8_t goalMinutes, bool showButtonHints,
                                 bool showMoreButton);
 
 void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                        const ReadingJournal* journal, const GlobalReadingStats& history,
-                                       const ReadingSessionSnapshot& session, uint8_t goalMinutes, bool showButtonHints,
+                                       const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                       const BookReadingStats& currentBookStats, uint32_t currentBookWordCount,
+                                       float currentBookProgressPercent, uint8_t goalMinutes, bool showButtonHints,
                                        bool showMoreButton);
 
 void renderTimeOfDayPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,

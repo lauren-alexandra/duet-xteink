@@ -16,8 +16,8 @@
 #include "ReadMeActivity.h"
 #include "ScreenCleanActivity.h"
 #include "TetrisActivity.h"
-#include "activities/home/LibrarySearchActivity.h"
 #include "activities/home/CurrentBookStats.h"
+#include "activities/home/LibrarySearchActivity.h"
 #include "activities/home/SavedItemsHomeActivity.h"
 #include "activities/reader/BookReadingStats.h"
 #include "activities/reader/GlobalReadingStats.h"
@@ -25,9 +25,7 @@
 #include "components/CompactHeader.h"
 #include "components/UITheme.h"
 
-int UtilitiesActivity::itemCount() const {
-  return static_cast<int>(LAUNCHER_LAYOUT.count(LauncherSurface::Apps));
-}
+int UtilitiesActivity::itemCount() const { return static_cast<int>(LAUNCHER_LAYOUT.count(LauncherSurface::Apps)); }
 
 LauncherItem UtilitiesActivity::selectedItem() const {
   return LAUNCHER_LAYOUT.itemAt(LauncherSurface::Apps, static_cast<size_t>(selectedIndex));
@@ -47,18 +45,17 @@ void UtilitiesActivity::openStats(const BookStatsActivity::InitialPage initialPa
   const std::string cachePath = hasLastActiveBook ? lastActiveBook.cachePath : std::string{};
   const BookReadingStats stats = hasLastActiveBook ? lastActiveBook.stats : BookReadingStats{};
   const float progressPercent = hasLastActiveBook ? lastActiveBook.progressPercent : -1.0f;
+  const uint32_t wordCount = hasLastActiveBook ? lastActiveBook.wordCount : 0;
   if (GlobalReadingStats::hasSyncedStats()) {
     startActivityForResult(
         std::make_unique<BookStatsActivity>(renderer, mappedInput, title, cachePath, stats, progressPercent, false, 0,
-                                            localStats,
-                                            GlobalReadingStats::loadAggregated(localStats), false,
-                                            ReadingSessionSnapshot{}, 0, initialPage),
+                                            localStats, GlobalReadingStats::loadAggregated(localStats), false,
+                                            ReadingSessionSnapshot{}, wordCount, initialPage),
         [this](const ActivityResult&) { requestUpdate(); });
   } else {
     startActivityForResult(
         std::make_unique<BookStatsActivity>(renderer, mappedInput, title, cachePath, stats, progressPercent, false, 0,
-                                            localStats, false,
-                                            ReadingSessionSnapshot{}, 0, initialPage),
+                                            localStats, false, ReadingSessionSnapshot{}, wordCount, initialPage),
         [this](const ActivityResult&) { requestUpdate(); });
   }
 }
@@ -173,7 +170,8 @@ void UtilitiesActivity::render(RenderLock&&) {
   renderer.clearScreen();
   const auto& metrics = UITheme::getInstance().getMetrics();
   const int contentTop = CompactHeader::contentTop(metrics) + metrics.verticalSpacing;
-  const int contentHeight = renderer.getScreenHeight() - contentTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
+  const int contentHeight =
+      renderer.getScreenHeight() - contentTop - metrics.buttonHintsHeight - metrics.verticalSpacing;
 
   CompactHeader::drawTitle(renderer, tr(STR_APPS), true);
   GUI.drawList(

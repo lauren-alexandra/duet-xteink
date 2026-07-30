@@ -56,9 +56,9 @@ Duet uses the same interface and feature code on X3 and X4, so this gallery show
 
 Each picker capture compares a different current family with a different preview family, so the four examples showcase eight fonts rather than repeating the preview as the current selection.
 
-| NV Newsreader / Bookerly | NV Garamond / NV Bitter | Atkinson Hyperlegible Next / OpenDyslexic | Cormorant Garamond / Great Vibes |
+| Merriweather / Readex Pro | NV Garamond / NV Bitter | Atkinson Hyperlegible Next / OpenDyslexic | Cormorant Garamond / Great Vibes |
 | --- | --- | --- | --- |
-| [![NV Newsreader current and Bookerly preview](fonts/bookerly.png)](fonts/bookerly.png) | [![NV Garamond current and NV Bitter preview](fonts/nv-bitter.png)](fonts/nv-bitter.png) | [![Atkinson Hyperlegible Next current and OpenDyslexic preview](fonts/opendyslexic.png)](fonts/opendyslexic.png) | [![Cormorant Garamond current and Great Vibes preview](fonts/great-vibes.png)](fonts/great-vibes.png) |
+| [![Merriweather current and Readex Pro preview](fonts/merriweather-readexpro.png)](fonts/merriweather-readexpro.png) | [![NV Garamond current and NV Bitter preview](fonts/nv-bitter.png)](fonts/nv-bitter.png) | [![Atkinson Hyperlegible Next current and OpenDyslexic preview](fonts/opendyslexic.png)](fonts/opendyslexic.png) | [![Cormorant Garamond current and Great Vibes preview](fonts/great-vibes.png)](fonts/great-vibes.png) |
 
 ## Complete Shared Reading Stats Gallery
 

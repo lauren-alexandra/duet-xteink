@@ -10,10 +10,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <string_view>
 
 #include "CrossPointSettings.h"
-#include "EpubReaderUtils.h"
 #include "LibraryInsights.h"
 #include "MappedInputManager.h"
 #include "ReadingLedger.h"
@@ -270,53 +268,6 @@ void formatWordsPerMinute(const BookReadingStats& stats, const uint32_t totalWor
   }
 }
 
-template <size_t N>
-size_t splitTabFields(const std::string& line, std::array<std::string_view, N>& fields) {
-  size_t count = 0;
-  size_t start = 0;
-  while (count < N) {
-    const size_t tab = line.find('\t', start);
-    if (tab == std::string::npos) {
-      fields[count++] = std::string_view(line).substr(start);
-      break;
-    }
-    fields[count++] = std::string_view(line).substr(start, tab - start);
-    start = tab + 1;
-  }
-  return count;
-}
-
-bool resolveCatalogPathForCacheKey(const uint64_t wantedKey, std::string& devicePath) {
-  FsFile file;
-  if (!Storage.openFileForRead("WPMCAT", LibraryInsights::CATALOG_PATH, file)) return false;
-
-  std::string line;
-  line.reserve(768);
-  std::array<std::string_view, 10> fields{};
-  while (file.available() > 0) {
-    line.clear();
-    while (file.available() > 0) {
-      const int value = file.read();
-      if (value < 0) break;
-      if (value == '\n') break;
-      if (value == '\r') continue;
-      if (line.size() < 2048) line.push_back(static_cast<char>(value));
-    }
-    const size_t count = splitTabFields(line, fields);
-    if (count < 8 || fields[0] != "B") continue;
-    const std::string candidatePath(fields[7]);
-    const std::string candidateCachePath = Epub::cachePathForFilePath(candidatePath, DUET_BOOKS_ROOT_PATH "");
-    if (LibraryInsights::keyForCachePath(candidateCachePath) == wantedKey) {
-      devicePath = candidatePath;
-      file.close();
-      return true;
-    }
-  }
-
-  file.close();
-  return false;
-}
-
 struct BookWpmEstimate {
   uint64_t key = 0;
   uint32_t wpmX10 = 0;
@@ -326,6 +277,14 @@ struct BookWpmEstimate {
 
 class BookWpmResolver {
  public:
+  void seedExactWpm(const char* cachePath, const BookReadingStats& stats, const uint32_t totalWords,
+                    const float progressPercent) {
+    if (cachePath == nullptr || cachePath[0] == '\0') return;
+    const uint32_t wpm = wordsPerMinute(stats, totalWords, progressPercent);
+    if (wpm == 0) return;
+    remember(LibraryInsights::keyForCachePath(cachePath), wpm * 10u);
+  }
+
   uint32_t wpmX10ForCachePath(const char* cachePath) {
     if (cachePath == nullptr || cachePath[0] == '\0') return 0;
     const std::string cache(cachePath);
@@ -340,36 +299,10 @@ class BookWpmResolver {
   }
 
  private:
-  static uint32_t computeWpmX10(const std::string& cachePath, const uint64_t key) {
-    BookReadingStats stats = BookReadingStats::load(cachePath);
-    LibraryInsights::mergeSyncedBookStats(cachePath, stats);
-    if (stats.totalReadingSeconds < 10) return 0;
-
-    std::string devicePath;
-    if (!resolveCatalogPathForCacheKey(key, devicePath)) return 0;
-
-    Epub epub(devicePath, DUET_BOOKS_ROOT_PATH "");
-    if (!epub.load(false, true)) return 0;
-    const uint32_t totalWords = epub.getTotalWords();
-    if (totalWords == 0) return 0;
-
-    float progressPercent = -1.0f;
-    if (!EpubReaderUtils::loadProgressPercent(cachePath, progressPercent, "WPM")) {
-      EpubReaderUtils::Progress progress;
-      if (EpubReaderUtils::loadProgress(cachePath, progress, "WPM") && progress.hasPageCount &&
-          progress.pageCount > 0) {
-        const float chapterProgress =
-            static_cast<float>(progress.pageNumber + 1) / static_cast<float>(progress.pageCount);
-        progressPercent =
-            std::clamp(epub.calculateProgress(progress.spineIndex, chapterProgress) * 100.0f, 0.0f, 100.0f);
-      }
-    }
-    if (stats.isCompleted && progressPercent < 100.0f) progressPercent = 100.0f;
-    const uint32_t wordsRead = estimatedWordsRead(totalWords, progressPercent);
-    if (wordsRead == 0) return 0;
-    return static_cast<uint32_t>(std::min<uint64_t>(
-        (static_cast<uint64_t>(wordsRead) * 600ULL + stats.totalReadingSeconds / 2ULL) / stats.totalReadingSeconds,
-        UINT32_MAX));
+  static uint32_t computeWpmX10(const std::string&, const uint64_t) {
+    // Stats pages must never open EPUBs while rendering. Historical WPM is
+    // shown only when an exact value has already been seeded/cached cheaply.
+    return 0;
   }
 
   void remember(const uint64_t key, const uint32_t wpmX10) {
@@ -2003,7 +1936,9 @@ void renderReaderRadarPage(GfxRenderer& renderer, const MappedInputManager* mapp
 
 void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                 const ReadingJournal* journal, const GlobalReadingStats& history,
-                                const ReadingSessionSnapshot& session, const bool showButtonHints,
+                                const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                const BookReadingStats& currentBookStats, const uint32_t currentBookWordCount,
+                                const float currentBookProgressPercent, const bool showButtonHints,
                                 const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_DNA_DETAILS), true);
@@ -2017,12 +1952,12 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
   const bool hasNow = getCurrentLocalReadingStatsDateTime(now);
   const uint32_t today = hasNow ? readingStatsDayIndex(now.date) : 0;
   BookWpmResolver wpmResolver;
+  wpmResolver.seedExactWpm(currentBookCachePath, currentBookStats, currentBookWordCount, currentBookProgressPercent);
   const ReadingMetricWindow current =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, 30, 0, &wpmResolver) : ReadingMetricWindow{};
   const uint16_t trackedDays = hasNow ? trackedReadingDays(journal, history, session, today) : 0;
   const ReadingMetricWindow tracked =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, 0, &wpmResolver)
-             : ReadingMetricWindow{};
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, 0) : ReadingMetricWindow{};
   const ReadingStreakSummary streaks =
       hasNow ? summarizeReadingStreaks(journal, history, session, today, ReadingJournal::HISTORY_DAYS)
              : ReadingStreakSummary{};
@@ -2037,11 +1972,6 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
                                                      (session.screenPages > 0 ? session.readingSeconds : 0u)) /
                                                         totalSessions))
                                   : 0;
-  const uint32_t paceX10 =
-      tracked.wordPaceSeconds > 0
-          ? static_cast<uint32_t>(std::min<uint64_t>(
-                (tracked.words * 600ULL + tracked.wordPaceSeconds / 2ULL) / tracked.wordPaceSeconds, UINT32_MAX))
-          : 0;
   const uint32_t currentAvgSession = current.sessions > 0 ? current.seconds / current.sessions : 0;
   const uint32_t currentPaceX10 =
       current.wordPaceSeconds > 0
@@ -2065,7 +1995,7 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
   char valueAvgSession[32];
   BookReadingStats::formatDuration(avgSession, valueAvgSession, sizeof(valueAvgSession));
   char valuePace[32];
-  formatWpmX10(paceX10, valuePace, sizeof(valuePace));
+  formatWpmX10(currentPaceX10, valuePace, sizeof(valuePace));
   const std::array<const char*, 8> values = {
       valueTime, valuePages, valueSessions, valueFinished, valueReadDays, valueStreak, valueAvgSession, valuePace,
   };
@@ -2117,7 +2047,9 @@ void renderReaderDnaDetailsPage(GfxRenderer& renderer, const MappedInputManager*
 
 void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                 const ReadingJournal* journal, const GlobalReadingStats& history,
-                                const ReadingSessionSnapshot& session, const uint8_t goalMinutes,
+                                const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                const BookReadingStats& currentBookStats, const uint32_t currentBookWordCount,
+                                const float currentBookProgressPercent, const uint8_t goalMinutes,
                                 const bool showButtonHints, const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_READING_SIGNATURE), true);
@@ -2135,6 +2067,7 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   const uint16_t previousDays = trackedDays > currentDays ? std::min<uint16_t>(30, trackedDays - currentDays) : 0;
   const uint32_t goalSeconds = std::max<uint32_t>(1u, static_cast<uint32_t>(goalMinutes) * 60u);
   BookWpmResolver wpmResolver;
+  wpmResolver.seedExactWpm(currentBookCachePath, currentBookStats, currentBookWordCount, currentBookProgressPercent);
   const ReadingMetricWindow current =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
@@ -2149,7 +2082,7 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
                                                                    std::min<uint16_t>(7, trackedDays - 7), goalSeconds)
                                             : ReadingMetricWindow{};
   const ReadingMetricWindow tracked =
-      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, goalSeconds, &wpmResolver)
+      hasNow ? collectReadingWindow(journal, history, session, today, 0, trackedDays, goalSeconds)
              : ReadingMetricWindow{};
   const uint32_t avgReadDay = current.activeDays > 0 ? current.seconds / current.activeDays : 0;
   const uint32_t paceX10 =
@@ -2176,7 +2109,7 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
       ratioPercent(current.activeDays, current.days),
       ratioPercent(current.seconds, currentGoalSeconds),
       ratioPercent(current.goalDays, current.activeDays),
-      ratioPercent(paceX10, tracked.bestDailyPaceX10),
+      ratioPercent(paceX10, std::max<uint32_t>(paceX10, std::max(current.bestDailyPaceX10, previous.bestDailyPaceX10))),
       momentumScore,
       ratioPercent(currentVariety.count, varietyReference),
       ratioPercent(tracked.activeWeeks, trackedWeeks),
@@ -2204,7 +2137,8 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
   char currentWpm[16];
   char bestWpm[16];
   formatWpmX10(paceX10, currentWpm, sizeof(currentWpm));
-  formatWpmX10(tracked.bestDailyPaceX10, bestWpm, sizeof(bestWpm));
+  formatWpmX10(std::max<uint32_t>(paceX10, std::max(current.bestDailyPaceX10, previous.bestDailyPaceX10)), bestWpm,
+               sizeof(bestWpm));
   snprintf(rawPace, sizeof(rawPace), "%s / %s", currentWpm, bestWpm);
   char rawMomentum[48];
   char currentWeekTime[24];
@@ -2252,7 +2186,9 @@ void renderReadingSignaturePage(GfxRenderer& renderer, const MappedInputManager*
 
 void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputManager* mappedInput,
                                        const ReadingJournal* journal, const GlobalReadingStats& history,
-                                       const ReadingSessionSnapshot& session, const uint8_t goalMinutes,
+                                       const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                                       const BookReadingStats& currentBookStats, const uint32_t currentBookWordCount,
+                                       const float currentBookProgressPercent, const uint8_t goalMinutes,
                                        const bool showButtonHints, const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_SIGNATURE_DETAILS), true);
@@ -2270,6 +2206,7 @@ void renderReadingSignatureDetailsPage(GfxRenderer& renderer, const MappedInputM
   const uint16_t previousDays = trackedDays > currentDays ? std::min<uint16_t>(30, trackedDays - currentDays) : 0;
   const uint32_t goalSeconds = std::max<uint32_t>(1u, static_cast<uint32_t>(goalMinutes) * 60u);
   BookWpmResolver wpmResolver;
+  wpmResolver.seedExactWpm(currentBookCachePath, currentBookStats, currentBookWordCount, currentBookProgressPercent);
   const ReadingMetricWindow current =
       hasNow ? collectReadingWindow(journal, history, session, today, 0, currentDays, goalSeconds, &wpmResolver)
              : ReadingMetricWindow{};
@@ -3348,7 +3285,10 @@ void renderWeekdayPatternPage(GfxRenderer& renderer, const MappedInputManager* m
 }
 
 void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mappedInput, const ReadingJournal* journal,
-                         const ReadingSessionSnapshot& session, const bool showButtonHints, const bool showMoreButton) {
+                         const ReadingSessionSnapshot& session, const char* currentBookCachePath,
+                         const BookReadingStats& currentBookStats, const uint32_t currentBookWordCount,
+                         const float currentBookProgressPercent, const bool showButtonHints,
+                         const bool showMoreButton) {
   renderer.clearScreen();
   CompactHeader::drawTitle(renderer, tr(STR_STATS_PACE_TREND), true);
   const auto& metrics = UITheme::getInstance().getMetrics();
@@ -3370,6 +3310,7 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   uint64_t wordsMonth = 0;
   uint64_t secondsMonth = 0;
   BookWpmResolver wpmResolver;
+  wpmResolver.seedExactWpm(currentBookCachePath, currentBookStats, currentBookWordCount, currentBookProgressPercent);
   for (size_t i = 0; i < dayCount && hasNow; ++i) {
     const uint32_t offset = static_cast<uint32_t>(dayCount - 1 - i);
     if (today < offset) continue;
@@ -4501,8 +4442,20 @@ void renderReadingTastePage(GfxRenderer& renderer, const MappedInputManager* map
   constexpr int titleHeight = 32;
   constexpr int baseRowHeight = 34;
   const int baseGenreHeight = titleHeight + genreRows * baseRowHeight;
-  const int baseSpiceHeight = titleHeight + spiceRows * baseRowHeight;
   const int baseAuthorHeight = titleHeight + authorRows * baseRowHeight;
+  if (insights->spiceLevelCount == 0) {
+    const int extra = std::max(0, availableHeight - gap - baseGenreHeight - baseAuthorHeight);
+    const int genreHeight = baseGenreHeight + extra / 2;
+    const int authorHeight = availableHeight - gap - genreHeight;
+    drawInsightListCard(renderer, x, top, width, genreHeight, tr(STR_STATS_FAVORITE_GENRES), insights->topGenres.data(),
+                        insights->topGenreCount, genreRows);
+    drawInsightListCard(renderer, x, top + genreHeight + gap, width, authorHeight, tr(STR_STATS_FAVORITE_AUTHORS),
+                        insights->topAuthors.data(), insights->topAuthorCount, authorRows);
+    drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
+    return;
+  }
+
+  const int baseSpiceHeight = titleHeight + spiceRows * baseRowHeight;
   const int extra = std::max(0, availableHeight - gap * 2 - baseGenreHeight - baseSpiceHeight - baseAuthorHeight);
   const int genreHeight = baseGenreHeight + extra / 3;
   const int spiceHeight = baseSpiceHeight + extra / 3;

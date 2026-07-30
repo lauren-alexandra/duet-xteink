@@ -29,11 +29,12 @@ The current tester release is **Duet v0.1.0-alpha.7**:
 - [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin)
 - [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin)
 - [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-v0.1.0-alpha.7-firmware.zip)
+- [Download the complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip)
 - [Download the ready-to-copy WordNet 3.0 dictionary pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-WordNet-3.0-StarDict.zip)
 - [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
 - [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
 
-Optional SD-card fonts are installed from **Settings > Reader > Font Options > Manage Fonts**. During Alpha.7, that on-device downloader uses CrossInk's credited 24-family compatibility catalog; the expanded Duet development collection is not yet a public download. See [SD-card fonts](docs/sd-card-fonts.md) for the exact status and manual installation options.
+The optional Duet Open Font Pack contains 123 ready-to-copy families and all six reader sizes for both devices. If you only want a few fonts, use **Settings > Reader > Font Options > Manage Fonts** for the credited 24-family compatibility catalog or follow the exact upstream source links in the pack's manifest. See [Fonts](docs/sd-card-fonts.md) for installation, previews, selective-source options, and conversion instructions.
 
 ## Start here
 
@@ -42,7 +43,7 @@ New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the 
 - **First installation or recovery:** choose the correct model under [Downloads](#downloads), then follow [Installation](docs/installation.md).
 - **Updating an existing Duet reader:** the [SD-card update route](docs/START_HERE.md#updating-an-existing-duet-installation).
 - **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library), [Dictionary Setup](docs/DICTIONARY_SETUP.md), and the full [User Guide](USER_GUIDE.md).
-- **Preparing a large cover library:** [Desktop Cover Prefill](docs/COVER_PREFILL.md), with the complete computer-assistant prompt directly on the page and also available as a [standalone prompt](docs/AI_COVER_PREFILL_PROMPT.md).
+- **Preparing EPUB metadata and a large cover library:** run [EPUB WPM Preparation](docs/EPUB_LOCATION_ENRICHMENT.md) before [Desktop Cover Prefill](docs/COVER_PREFILL.md), or give a local computer assistant the combined [AI Library Prep Prompt](docs/AI_LIBRARY_PREP_PROMPT.md).
 - **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
 - **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
 - **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
@@ -101,7 +102,7 @@ The core reader — inherited from [CrossPoint Reader](https://github.com/crossp
 
 Own two devices? They talk **directly to each other** over ESP-NOW radio. No WiFi network. No cloud. No account. Both on the sync screen, one press, seconds.
 
-- **Nearby Stats Sync** exchanges complete reading histories: global totals, per-book time/sessions/pace/dates/status, the daily journal, the per-day book-attribution ledger, and the readers' Stats Date. Its merge records are designed to be idempotent; repeated two-device convergence remains an explicit alpha test target.
+- **Nearby Stats Sync** exchanges complete reading histories: global totals, per-book time/sessions/pace/dates/status, the daily journal, the per-day book-attribution ledger, the readers' Stats Date, and persistent achievement milestones. Its merge records are designed to be idempotent; repeated two-device convergence remains an explicit alpha test target.
 - **Nearby Position Sync** (inherited from CrossInk) shows both devices' positions in the current book side by side and moves you only when you explicitly apply.
 - After a successful merge, stats are intended to become **person-level**: streaks, calendars, heatmaps, day counts, and averages should agree on both devices.
 - Library indexes are cached per device and rebuilt when the library changes; later sync preparation reuses that cache.
@@ -115,10 +116,11 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 - **Reading Signature** — a plain-language reading-style summary with a separate raw-metrics page.
 - **Reading Wrapped** — the 12-month card: time, days read, books finished, longest streak, best weekday, average session.
 - **Charts everywhere**: weekday fingerprint · 30-day pace trend with a _Speeding up / Slowing down / Steady_ verdict · time-of-day bars · 12-month bars · cumulative year line with a pages-turned odometer · session-length mix · streak milestone ladder (3-7-14-30-60-100) · started-vs-finished monthly pairs · fastest-reads ranking · per-device comparison.
+- **True WPM when the current book supports it**: visible words-per-minute and reference-page statistics use `META-INF/x-locations.json` inside the EPUB. Plain EPUBs still read normally; run [EPUB WPM Preparation](docs/EPUB_LOCATION_ENRICHMENT.md) once after adding new books. Pace, DNA, and Signature pages can attribute qualifying ledger entries for that enriched current book without reopening EPUBs while drawing; unknown historical books are omitted instead of estimated from screen pages.
 - **The daily record**: 14-day activity chart, 12-month heatmap, monthly calendar with per-day book drill-down and safe per-book time corrections, 90-day exact daily minutes, trends, goals and goal streaks, recent sessions, and Started Books with estimated finish dates.
 - **Full session logging**: every session's exact start time, duration, pages, and book — the foundation for future hour-by-hour reading-rhythm analytics.
 - **Designed for repairability**: journal, ledger, session log, and per-book records live in separate CRC-checked files so one damaged record does not erase the rest of the history. Books under `/ignore_stats/` keep progress without polluting statistics.
-- **Complete stats archives**: validated `.cstats` exports include global, session, date, sync, library, and per-book statistics from Duet's canonical `/.duet` namespace. Restore validates structure and per-entry CRCs, accepts mapped legacy `/.crossink` and `/.crosspoint` records, and creates an automatic safety copy first. Non-empty content-level round trips pass both device simulators; physical X3/X4 verification remains an alpha acceptance item.
+- **Complete stats archives**: validated `.cstats` exports include global, session, date, sync, library, per-book, and achievement state from Duet's canonical `/.duet` namespace. Restore validates structure and per-entry CRCs, accepts mapped legacy `/.crossink` and `/.crosspoint` records, preserves achievements when importing older archives that predate them, and creates an automatic safety copy first. Non-empty content-level round trips pass both device simulators; physical X3/X4 verification remains an alpha acceptance item.
 - Clockless devices keep an editable, CRC-protected **Stats Date**, so daily history works without an RTC chip.
 
 ## Home, your way
@@ -132,7 +134,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 
 - **Cover grids** (2×2, 3×3, 4×4 with author lines — geometry lineage from CrumBLE) and a **five-cover carousel** built on CrossInk Carousel's engine, both with exact-size pre-cached thumbnails and reading-status badges.
 - **Smart search** with ranked title/author/series autocomplete that never opens an EPUB just to make a suggestion; short press opens the book, long press opens More Info.
-- **More Info**: cover, author, series, genre, reading status, progress, and a catalog-backed summary — powered by an optional Calibre-exported catalog.
+- **More Info**: cover, author, series, genre, reading status, progress, an optional spice/heat tag, and a catalog-backed summary — powered by an optional Calibre-exported catalog. Spice metadata is opt-in: libraries that do not use it simply do not show or count it.
 - **All / In Progress / Unread / Finished** filters with cover badges, Library Overview, Reading Taste, and Series Progress pages.
 - Favorites with reorder and automatic path repair; Recent Books that never parses an EPUB during navigation; folder levels stay in a fast, familiar list.
 - **Input-first shelves**: placeholders paint before cover work, and hydration is structured to yield at safe checkpoints for navigation. Consistent responsiveness under large-library load remains an alpha test target.
@@ -151,11 +153,11 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 - **A/B comparison view** at matched sizes, compact Normal/Italic/Bold specimens, real face detection, and synthetic bold/italic fallbacks when a family lacks those files.
 - A cached font catalog avoids rescanning every installed family on each boot. On the maintainer's development cards this reduced discovery to a small fraction of the prior path; exact timing varies with card and font set.
 
-The initial alpha includes the licensed font families already built into the firmware. A separate optional SD-card font pack may follow after its source, license, and generated-file review is complete. See [FONT_SOURCES.md](FONT_SOURCES.md).
+The Alpha.7 release also offers an optional 123-family Duet Open Font Pack with 738 validated `.cpfont` files covering 10, 12, 14, 16, 18, and 20 pt. People who want only selected families can use the smaller on-device catalog or follow the upstream projects recorded in the pack's source manifest. See [Fonts](docs/sd-card-fonts.md) for installation and [FONT_SOURCES.md](FONT_SOURCES.md) for the source and redistribution ledger.
 
 ## Apps
 
-**Achievements** (108 — 62 CPR-vCodex thresholds plus 46 Duet milestones; retroactively adopted and restart-persistent) · **Favorites** · **Tetris** (adapted from Biscuit) · **If Found** contact card · **Screen Clean** deep-refresh cycles · on-device **Read Me** guide · **File Transfer** web portal · **OPDS** browsing/downloading · **KOReader Sync** setup · the Nearby sync screens. The exact launcher catalog is in [FEATURES.md](FEATURES.md#home-themes-and-launcher). The achievement unlock ledger is not currently included in `.cstats`, although restored reading history can re-derive many milestones.
+**Achievements** (108 — 62 CPR-vCodex thresholds plus 46 Duet milestones; retroactively adopted, restart-persistent, and included in protocol v6 Nearby Stats Sync and `.cstats`) · **Favorites** · **Tetris** (adapted from Biscuit) · **If Found** contact card · **Screen Clean** deep-refresh cycles · on-device **Read Me** guide · **File Transfer** web portal · **OPDS** browsing/downloading · **KOReader Sync** setup · the Nearby sync screens. The exact launcher catalog is in [FEATURES.md](FEATURES.md#home-themes-and-launcher).
 
 ## Sleep
 

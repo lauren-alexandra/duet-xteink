@@ -24,7 +24,7 @@ The gallery uses recognizable books from Lauren's library inside the simulated D
 - All 69 PNG files decode successfully through ImageMagick.
 - Every local image and gallery link in the README and media indexes resolves.
 - The representative feature overview was reviewed for hydrated covers, density, footer fit, and visible metadata.
-- Representative dense statistics pages were reviewed at native aspect ratio, including Current, Heatmap, Reader DNA, Wrapped, Library, Started, Devices, Trends, and the populated WPM Pace chart.
+- Representative dense statistics pages were reviewed at native aspect ratio, including Current, Recent Sessions, Calendar, Heatmap, Reader DNA, Wrapped, Library, Started, Devices, Trends, and the populated WPM Pace chart. The fabricated history visibly varies session lengths, page counts, start times, daily totals, and calendar gaps.
 - The four font-picker captures show eight distinct families by pairing a different current font with each preview font.
 - No personal contact details, credentials, account data, device identifiers, real reading history, or filesystem paths are intentionally present.
 

@@ -299,7 +299,7 @@ The Settings screen allows you to configure the device's behavior. There are a f
 
 - **Clean Library Cache**: Compare live books with cache directories and move confirmed orphans to recoverable `/.duet/books/.attic`. It refuses to clean after an incomplete or empty library scan.
 
-- **Stats Export / Restore**: Create or restore a validated `.cstats` archive under `/.duet/backups/reading-stats`. The archive covers recognized global, daily, session, sync, library, and per-book statistics and maps compatible legacy records during migration. Keep a normal SD-card backup as the primary recovery copy during the alpha.
+- **Stats Export / Restore**: Create or restore a validated `.cstats` archive under `/.duet/backups/reading-stats`. The archive covers recognized global, daily, session, sync, library, per-book, and achievement state and maps compatible legacy records during migration. Importing an older archive that does not contain achievements preserves the current achievement ledger. Keep a normal SD-card backup as the primary recovery copy during the alpha.
 
 - **Check for updates**: Check for Duet firmware updates over Wi-Fi. Firmware can also be updated without a USB connection by placing a `firmware.bin` file on the SD card.
 
@@ -510,7 +510,7 @@ There are three ways to install fonts:
 
 1. **Download from device (recommended):** Go to **Settings -> Reader -> Font Options -> Manage Fonts**, browse the available font families, and select one to download over Wi-Fi.
 2. **Upload via web interface:** While in **File Transfer** mode, open the web UI in a browser and navigate to the **Fonts** tab to upload `.cpfont` files.
-3. **Manual SD card copy:** Download compatible files from the credited [upstream CrossInk fonts repository](https://github.com/uxjulia/crossink-fonts/releases) and copy them to `/.fonts/` (preferred) or `/fonts/` on your SD card. Duet's own reviewed public font pack will be published separately.
+3. **Manual SD card copy:** Download the complete [123-family Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip), choose compatible files from the credited [upstream CrossInk fonts repository](https://github.com/uxjulia/crossink-fonts/releases), or follow the upstream source recorded for each Duet family, then copy the selected `.cpfont` files to `/.fonts/` (preferred) or `/fonts/` on your SD card.
 
 Once installed, custom fonts appear in **Settings -> Reader -> Font Options -> Font Family** alongside the built-in fonts.
 
@@ -526,13 +526,15 @@ At a book-folder level, choose list, 2x2, 3x3, 4x4, or five-cover carousel prese
 
 **Search Library** uses the optional `library_catalog.tsv` to rank matches across any title word, author, series, and catalog tags. Move through the suggestions/results with the navigation buttons. A short Confirm opens a result; a one-second Confirm hold opens **More Info**.
 
-More Info can show cover, title, author, series/index, genre, spice level, reading state, progress, and catalog description, with an **Open** action. Copying a book to the SD card does not generate a description: descriptions, categories, series data, and spice metadata come from the optional `/.duet/state/library_catalog.tsv`. A book remains readable without that catalog; only catalog-backed fields are missing.
+More Info can show cover, title, author, series/index, genre, an optional spice/heat tag, reading state, progress, and catalog description, with an **Open** action. Copying a book to the SD card does not generate a description: descriptions, categories, series data, and spice metadata come from the optional `/.duet/state/library_catalog.tsv`. Spice is a personal-library field rather than a Duet requirement. Leave `spice_level` absent or blank and Duet omits it from that book, collapses Reading Taste to genre and author, and leaves spice achievements inactive. A book remains readable without the catalog; only catalog-backed fields are missing.
 
 ### 3.10 Reading Statistics
 
 Reading time accumulates while a supported book is actively open. A session is added to session count/history only after at least one page turn; time spent before that page turn is still retained. The active record is committed before deep sleep.
 
 Duet has 33 top-level statistics pages covering current-book progress, calendar and heatmap history, sessions, pace, time of day, goals, streaks, Reading Dates, Reader DNA, Reading Signature, Wrapped, library/taste/series views, and separate This Device and All Devices totals. Device Split and All Devices appear after synced-device data exists; the guarded Book Dates editor opens from Reading Dates when a book can be edited. See the exact page-by-page list in [FEATURES.md](./FEATURES.md#the-33-top-level-pages).
+
+True visible WPM and reference-page statistics require compatible `META-INF/x-locations.json` metadata inside an EPUB. Plain EPUBs still read normally. Run [EPUB WPM Preparation](./docs/EPUB_LOCATION_ENRICHMENT.md) once after adding new books; dry-run first, then use `--backup --backup-dir` so backups stay outside the device-ready shelf. Current-book WPM can feed Pace, DNA, and Signature pages through attributable ledger entries without reopening EPUBs during rendering. Duet shows a dash or excludes historical entries when it cannot calculate a defensible WPM and keeps screen-page pace internal for time-left and rhythm estimates.
 
 **Reading Profile** is a raw seven-day, 12-metric grid. **Reader DNA** is a separate normalized 30-day six-axis view. Books under `/ignore_stats/` retain progress without contributing to aggregate statistics.
 
@@ -541,15 +543,15 @@ Duet has 33 top-level statistics pages covering current-book progress, calendar 
 Nearby sync is direct between two Duet readers over ESP-NOW. It does not need a Wi-Fi network, cloud service, or account.
 
 - **Nearby Position Sync** compares the current EPUB position and moves only after you choose Apply.
-- **Nearby Stats Sync** exchanges global totals, per-book summaries/details, daily journal, attribution ledger, Stats Date, device name, and retained peer snapshots.
+- **Nearby Stats Sync** protocol v6 exchanges global totals, per-book summaries/details, daily journal, attribution ledger, Stats Date, persistent achievement milestones, device name, and retained peer snapshots.
 
-Keep both readers on the sync screen until both report success. Repeated merge convergence remains an alpha acceptance target. KOReader Sync is separate and handles remote reading position, not Duet's statistics.
+Both readers must run a protocol v6-capable Duet build; protocol v6 does not pair with the protocol v5 implementation in Alpha.7. Keep both readers on the sync screen until both report success. Repeated merge convergence remains an alpha acceptance target. KOReader Sync is separate and handles remote reading position, not Duet's statistics.
 
 ### 3.12 Apps and Utilities
 
 The customizable Apps launcher includes Browse Files, Search Library, Recent Books, Reading Stats, Heatmap, Reading Profile, Saved Items, Favorites, Achievements, Dictionary, Tetris, If Found, Screen Clean, Nearby Stats Sync, File Transfer, OPDS, KOReader setup, Sleep, Read Me, Customize Home & Apps, and Settings.
 
-Duet includes 108 persistent achievements: 62 thresholds adapted from CPR-vCodex and 46 Duet milestones. Unlocks persist across restarts and can be adopted retroactively from reading history. The achievement unlock ledger is not currently inside `.cstats`; restored statistics can re-derive many milestones.
+Duet includes 108 persistent achievements: 62 thresholds adapted from CPR-vCodex and 46 Duet milestones. Unlocks persist across restarts and can be adopted retroactively from reading history. Protocol v6 Nearby Stats Sync merges the highest milestone reached for each achievement metric, and `.cstats` includes both local and retained peer achievement ledgers.
 
 ---
 

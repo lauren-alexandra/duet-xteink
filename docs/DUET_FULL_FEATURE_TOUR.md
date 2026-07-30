@@ -222,12 +222,12 @@ More Info can show:
 - Title and author
 - Series and series index
 - Genre
-- Spice level
+- Optional spice/heat tag
 - Reading state and progress
 - Catalog description
 - Open action
 
-The same catalog supplies Library Overview, Reading Taste, and Series Progress without forcing the device to repeatedly parse book files. It can be generated from a Calibre library or another reviewed tracker export.
+The same catalog supplies Library Overview, Reading Taste, and Series Progress without forcing the device to repeatedly parse book files. It can be generated from a Calibre library or another reviewed tracker export. Spice is Lauren's personal catalog dimension, not a Duet requirement: absent or blank values are omitted, Reading Taste uses the remaining genre and author cards, and spice achievements stay inactive.
 
 ### Clean Library Cache
 
@@ -330,13 +330,15 @@ The daily journal stores exact daily time, sessions, pages, completions, and rec
 
 Because these readers do not have a dependable real-time clock, Duet also keeps a CRC-protected Stats Date. It can be edited deliberately or updated from NTP while connected.
 
+True visible WPM and reference-page statistics require compatible `META-INF/x-locations.json` metadata inside the EPUB. Plain EPUBs still read normally. Run [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) once after adding new books; the tool skips enriched books, supports a dry run, decodes URL-escaped OPF paths, and can keep `.duetbak` copies in a separate backup folder before rewriting. Current-book WPM can feed Pace, DNA, and Signature windows through attributable ledger entries without reopening books while those pages render. Historical books without a cheap exact WPM are excluded, and Duet does not relabel screen pages per minute as WPM.
+
 ### All 33 top-level pages
 
 **Lineage:** This complete 33-page set and its merge-aware navigation are Duet work built on inherited statistics records and CPR-vCodex analytics direction. Individual pages reuse inherited measurements where appropriate.
 
 | # | Page | What it shows |
 | --: | --- | --- |
-| 1 | Current Book | Active or latest book/session, progress, time left, estimated WPM, totals, and dates |
+| 1 | Current Book | Active or latest book/session, progress, time left, estimated WPM when word-location metadata is available, totals, and dates |
 | 2 | Book Progress | Progress graph and estimated-completion context |
 | 3 | Book Patterns | Per-book sessions, pace, time, and reading pattern |
 | 4 | Trends | Today, last 7 days, last 30 days, and current-year summaries |
@@ -348,7 +350,7 @@ Because these readers do not have a dependable real-time clock, Duet also keeps 
 | 10 | Goals | Daily goal and goal-streak detail |
 | 11 | Recent Sessions | Scrollable exact session history |
 | 12 | Weekday Pattern | Reading distribution by weekday |
-| 13 | Pace Trend | Attributable 30-day words-per-minute history, 7-day and 30-day averages, and trend direction when cataloged books have word counts and progress |
+| 13 | Pace Trend | Attributable 30-day WPM entries for the current enriched book, with 7-day and 30-day summaries when enough qualifying entries exist |
 | 14 | Time of Day | Morning, afternoon, evening, and night distribution |
 | 15 | Monthly Trend | Reading by month |
 | 16 | Year Line | Cumulative current-year line and page-turn total |
@@ -365,7 +367,7 @@ Because these readers do not have a dependable real-time clock, Duet also keeps 
 | 27 | Wrapped | Twelve-month time, days, completions, streak, weekday, and average-session summary |
 | 28 | Started Books | Scrollable in-progress list with estimates |
 | 29 | Library Overview | Catalog-backed counts and completion |
-| 30 | Reading Taste | Catalog-backed genre, spice, and author patterns |
+| 30 | Reading Taste | Catalog-backed genre and author patterns, plus optional spice/heat patterns when supplied |
 | 31 | Series Progress | Scrollable series completion |
 | 32 | This Device | Device-local aggregate statistics |
 | 33 | All Devices | Merged aggregate statistics after synced data exists |
@@ -411,10 +413,11 @@ Two Duet readers directly exchange:
 - Daily journal
 - Per-date attribution ledger
 - Stats Date
+- Achievement milestones
 - Device name
 - Retained peer snapshots
 
-The merge is designed to be idempotent so repeated exchanges converge without double-counting. Repeated real-device convergence, interrupted sync, and asymmetric X3/X4 completion are still explicit alpha test targets.
+Protocol v6 retains each peer achievement ledger and merges every metric to its highest unlocked milestone, so imported progress cannot erase a stronger local unlock. The complete merge is designed to be idempotent so repeated exchanges converge without double-counting. Both readers must use protocol v6; it does not pair with Alpha.7's protocol v5 implementation. Repeated real-device convergence, interrupted sync, and asymmetric X3/X4 completion are still explicit alpha test targets.
 
 ### KOReader Sync
 
@@ -433,11 +436,9 @@ Duet contains 108 persistent achievement milestones:
 
 The CPR-vCodex set covers books started, sessions, books finished, reading time, goal days, goal streaks, bookmarks, and longest sessions.
 
-The Duet set covers reading days, reading streaks, screen pages, series started, series completed, spice levels, morning reading, night reading, weekend reading, and using two devices.
+The Duet set covers reading days, reading streaks, screen pages, series started, series completed, optional spice levels, morning reading, night reading, weekend reading, and using two devices. Libraries without spice metadata do not advance or display that personal category.
 
-Unlocks persist in `/.duet/state/achievements.bin`, recover from a backup file, and can be retroactively adopted from existing history if the unlock ledger is missing. A popup can list every achievement unlocked in one batch and open **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
-
-The unlock ledger is not currently stored inside `.cstats`; restored reading history can re-derive many milestones.
+Unlocks persist in `/.duet/state/achievements.bin`, recover from a backup file, and can be retroactively adopted from existing history if the unlock ledger is missing. Protocol v6 Nearby Stats Sync retains peer ledgers under `/.duet/state/synced_achievements/` and merges milestone progress without replaying old notifications. Complete `.cstats` archives include local and synced achievement ledgers, while older archives that omit them preserve the current state. A popup can list every achievement unlocked in one batch and open **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
 
 ## Fonts
 
@@ -468,7 +469,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The initial public alpha includes the licensed fonts built into the firmware. Additional `.cpfont` families can be installed separately, and [Font Sources][5] records the source and licensing audit for future public font assets.
+The initial public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. Alpha.7 also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
 
 ## Dictionary and reference tools
 
@@ -645,7 +646,7 @@ Duet is a fork and says so plainly. "Unique to Duet" means the named implementat
 
 ### Device-to-device statistics
 
-- The current Nearby Reading Stats Sync protocol and merge layer
+- The current Nearby Reading Stats Sync protocol v6 and merge layer, including milestone-wise achievement convergence
 - Idempotent repeated convergence, retained peer snapshots, and device identity
 - Separate This Device and All Devices views feeding calendars, streaks, profiles, and library analytics
 
@@ -658,10 +659,10 @@ Nearby Position Sync is inherited from CrossInk. KOReader Sync is inherited from
 - Duet's expanded Power-action system around credited CrossPet/CrossInk foundations
 - Shared X3/X4 integration with device-specific geometry, memory, refresh, and ghosting work
 - Canonical `/.duet` state, books, cache, backup, and migration areas with non-destructive legacy import
-- Complete `.cstats` archives with validation, CRCs, safety export, staged restore, and rollback
+- Complete `.cstats` archives spanning statistics and achievement state, with validation, CRCs, safety export, legacy achievement preservation, staged restore, and rollback
 - Cache-safe book moves, breadcrumb performance telemetry, expanded simulators, physical-acceptance records, and deterministic public-release tooling
 
-The canonical item-by-item inventory is the [Features Unique To Duet](../FEATURES.md#features-unique-to-duet) section of the feature catalog. The next section records upstream lineage instead of flattening everything into "ours" or "theirs."
+The canonical item-by-item inventory is the [Features Unique To Duet](https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md#features-unique-to-duet) section of the feature catalog. The next section records upstream lineage instead of flattening everything into "ours" or "theirs."
 
 ## Credits and lineage
 
@@ -718,7 +719,7 @@ Known constraints:
 - A difficult EPUB chapter can still need visible layout work when background indexing could not finish.
 - X3 and X4 can behave differently under the same library and SD-card load.
 - Damaged SD-card filesystems can imitate firmware defects because the books and persistent state live on the card.
-- The achievement unlock ledger is not yet part of `.cstats`.
+- Protocol v6 Nearby Stats Sync requires a v6-capable build on both readers and does not pair with Alpha.7's protocol v5 implementation.
 - Physical acceptance of the exact public candidate is still pending.
 
 ## Testing and privacy
@@ -765,11 +766,11 @@ Both devices must run the same Duet release before using Nearby Sync.
 
 Duet is open source under MIT. The public alpha is an invitation to test it carefully, report honestly, and help make the X3 and X4 nicer places to read.
 
-[1]: ../FEATURES.md
-[2]: ../THIRD_PARTY_NOTICES.md
-[3]: COVER_PREFILL.md
-[4]: AI_COVER_PREFILL_PROMPT.md
-[5]: ../FONT_SOURCES.md
+[1]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md
+[2]: https://github.com/lauren-alexandra/duet-xteink/blob/main/THIRD_PARTY_NOTICES.md
+[3]: https://lauren-alexandra.github.io/duet-xteink/COVER_PREFILL.html
+[4]: https://lauren-alexandra.github.io/duet-xteink/AI_COVER_PREFILL_PROMPT.html
+[5]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FONT_SOURCES.md
 [6]: https://github.com/crosspoint-reader/crosspoint-reader
 [7]: https://github.com/uxjulia/CrossInk
 [8]: https://github.com/chintanvajariya/CrossInk-Carousel
@@ -780,14 +781,14 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [13]: https://github.com/yattsu/biscuit
 [14]: https://github.com/seek-reader/seek
 [15]: https://github.com/aaludon/crosspoint-reader-aalu
-[16]: ALPHA_TESTING.md
-[17]: ALPHA7_ACCEPTANCE_QUICKSTART.md
-[18]: PHYSICAL_TEST_MATRIX.md
+[16]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
+[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA7_ACCEPTANCE_QUICKSTART.html
+[18]: https://lauren-alexandra.github.io/duet-xteink/PHYSICAL_TEST_MATRIX.html
 [19]: https://github.com/lauren-alexandra/duet-xteink/releases
-[20]: ../README.md
-[21]: ../FEATURES.md
-[22]: ../THIRD_PARTY_NOTICES.md
-[23]: ALPHA_TESTING.md
-[24]: COVER_PREFILL.md
-[25]: ../USER_GUIDE.md
-[26]: ../PUBLIC_RELEASE_READINESS.md
+[20]: https://lauren-alexandra.github.io/duet-xteink/
+[21]: https://github.com/lauren-alexandra/duet-xteink/blob/main/FEATURES.md
+[22]: https://github.com/lauren-alexandra/duet-xteink/blob/main/THIRD_PARTY_NOTICES.md
+[23]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
+[24]: https://lauren-alexandra.github.io/duet-xteink/COVER_PREFILL.html
+[25]: https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md
+[26]: https://github.com/lauren-alexandra/duet-xteink/blob/main/PUBLIC_RELEASE_READINESS.md

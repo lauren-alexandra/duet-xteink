@@ -13,6 +13,8 @@ class AchievementStore {
 
   // Loads existing state, or silently adopts all milestones already earned.
   bool begin();
+  bool reloadFromDisk();
+  bool mergeFromPath(const char* path);
   bool refresh(bool queuePopup);
   bool refreshLightweight(bool queuePopup);
   bool reconcile(std::vector<AchievementView>& views, bool queuePopup);
@@ -25,6 +27,7 @@ class AchievementStore {
   std::array<uint64_t, METRIC_COUNT> highestUnlockedTarget{};
   bool loaded = false;
 
+  static bool readTargetsFromPath(const char* path, std::array<uint64_t, METRIC_COUNT>& targets);
   bool loadFromPath(const char* path);
   bool save(bool rotateBackup = true) const;
   bool adoptCurrentMilestones();

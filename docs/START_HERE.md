@@ -33,15 +33,19 @@ Duet writes new state under `/.duet` and imports inherited CrossPoint/CrossInk s
 
 Copy supported books to the SD card in the folder structure you want to browse. Duet reads EPUB, XTC, XTCH, TXT, and Markdown files. The [User Guide](../USER_GUIDE.md) covers the reader, library views, search, More Info, bookmarks, clippings, statistics, sleep modes, and settings.
 
+After copying from macOS, check the card's book folders for AppleDouble metadata sidecars named `._*`. A file such as `._Book.epub` is not a second book, but its `.epub` suffix can make it look like one to a scanner. Remove only confirmed `._` sidecars, then verify the real EPUB count.
+
 For large or multiply organized libraries, run [Desktop Cover Prefill](COVER_PREFILL.md) after loading books. It creates the exact X3/X4 grid and carousel thumbnails Duet requests, which avoids making the reader generate every cover during first browsing. The complete ready-to-paste prompt for Codex, Claude CoWork, Perplexity Computer, or another local assistant is included directly on that page and also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
 
-More Info descriptions and library categories use an optional Calibre-generated `/.duet/state/library_catalog.tsv`. Copying an EPUB to the SD card does not generate a description automatically; books remain readable without the catalog, but More Info shows only the metadata Duet can resolve locally. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Fonts can be installed on the reader through **Settings > Reader > Font Options > Manage Fonts**. The Alpha.7 on-device downloader currently uses CrossInk's credited compatibility catalog; see [SD-card fonts](sd-card-fonts.md) for the exact public-pack status and manual installation options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](../USER_GUIDE.md) cover the rest of the library and reader structure.
+Plain EPUBs read normally, but true visible WPM and reference-page statistics require Duet word-location metadata. Run [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) once after adding new EPUBs, ideally on the source library before copying it to both readers. The combined [AI Library Prep Prompt](AI_LIBRARY_PREP_PROMPT.md) tells a local computer assistant to dry-run and back up the enrichment first, then run the correct X3/X4 cover prefill.
+
+More Info descriptions and library categories use an optional Calibre-generated `/.duet/state/library_catalog.tsv`. Copying an EPUB to the SD card does not generate a description automatically; books remain readable without the catalog, but More Info shows only the metadata Duet can resolve locally. Spice/heat level is also optional personal metadata: leave it blank or omit it and Duet hides that field, removes its Reading Taste card, and leaves its achievements inactive. Fonts go under `/fonts` or `/.fonts`; StarDict dictionaries go under `/dictionaries/<Name>/`. Download the [complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip), install selected families through **Settings > Reader > Font Options > Manage Fonts**, or follow the upstream sources in the pack manifest. See [Fonts](sd-card-fonts.md) for all options. For offline lookup, download the ready-to-copy WordNet 3.0 release asset and follow [Dictionary Setup](DICTIONARY_SETUP.md). [Reader Features](reader-features.md) and the [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md) cover the rest of the library and reader structure.
 
 ## Using an X3 and X4 together
 
-Run the same Duet release on both devices. [Nearby Position Sync](nearby-position-sync.md) compares the current book position and moves only after confirmation. [Nearby Reading Stats Sync](reading-stats-sync.md) exchanges reading totals, per-book statistics, sessions, journals, dates, and retained device snapshots. KOReader Sync remains available for remote book-position synchronization.
+Run the same Duet release on both devices. [Nearby Position Sync](nearby-position-sync.md) compares the current book position and moves only after confirmation. [Nearby Reading Stats Sync](reading-stats-sync.md) exchanges reading totals, per-book statistics, sessions, journals, dates, achievement milestones, and retained device snapshots. Protocol v6 requires a v6-capable build on both readers and does not pair with Alpha.7's protocol v5 implementation. KOReader Sync remains available for remote book-position synchronization.
 
-Position sync requires the same book identity on both readers. Statistics and achievements have separate persistence rules, so read the sync guides before assuming every screen or unlock notification will be identical.
+Position sync requires the same book identity on both readers. Achievement progress merges by highest milestone rather than replaying old popup notifications, so the ledgers can converge without both devices showing the same unlock alert at the same moment.
 
 ## Testing the alpha
 
@@ -64,7 +68,9 @@ The [Troubleshooting guide](troubleshooting.md) covers firmware recovery, SD-car
 | Everyday controls and settings | [User Guide](../USER_GUIDE.md) |
 | Installation and recovery | [Installation](installation.md) and [Troubleshooting](troubleshooting.md) |
 | Current alpha risks and test targets | [Alpha Testing](ALPHA_TESTING.md) |
+| Preparing EPUBs for true WPM | [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) |
 | Large-library cover preparation | [Desktop Cover Prefill](COVER_PREFILL.md) |
+| Preparing EPUB metadata and covers with a computer assistant | [AI Library Prep Prompt](AI_LIBRARY_PREP_PROMPT.md) |
 | Installing and using a dictionary | [Dictionary Setup](DICTIONARY_SETUP.md) |
 | Installing or converting fonts | [SD-card fonts](sd-card-fonts.md) |
 | All current screenshots | [Alpha.7 Media Gallery](media/alpha-0.1.0/README.md) |

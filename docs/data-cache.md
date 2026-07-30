@@ -41,6 +41,10 @@ This layout avoids repeatedly scanning a large per-book directory for hot settin
 │   ├── synced_journals/        # Received dated histories
 │   ├── synced_ledgers/         # Received attribution ledgers
 │   ├── synced_book_stats/      # Received per-book summaries
+│   ├── synced_book_details/    # Received per-book detail records
+│   ├── synced_stats_dates/     # Received clockless Stats Date records
+│   ├── synced_achievements/    # Received achievement ledgers
+│   ├── synced_names/           # Received peer device names
 │   ├── library_catalog.tsv     # Optional desktop-generated catalog
 │   ├── library_insights_v1.bin # Derived catalog/statistics index
 │   ├── home_carousel_cache.bin # Lyra Carousel Home snapshot cache
@@ -86,7 +90,7 @@ EPUB clippings and highlights live outside the EPUB render-cache folder in `/.du
 
 Cache data is cleared by supported Duet delete/move flows. If you remove or rename books outside Duet by editing the SD card directly, old cache folders may remain until you clear reading cache.
 
-Complete reading-statistics archives live in:
+Complete reading-statistics archives include recognized global, journal, ledger, session, library, synced-device, per-book, and achievement state. Older archives that predate achievement inclusion preserve the current local and synced achievement ledgers during restore. Archives live in:
 
 ```text
 /.duet/backups/reading-stats/

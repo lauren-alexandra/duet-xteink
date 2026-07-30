@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = (
     "AUTHORS.md",
     "CONTRIBUTING.md",
+    "FONT_SOURCES.md",
     "LICENSE",
     "NOTICE",
     "PROJECT_IDENTITY.md",
@@ -21,9 +22,16 @@ REQUIRED_FILES = (
     "THIRD_PARTY_NOTICES.md",
     "docs/ALPHA_TESTING.md",
     "docs/ALPHA7_ACCEPTANCE_QUICKSTART.md",
+    "docs/AI_LIBRARY_PREP_PROMPT.md",
     "docs/COVER_PREFILL.md",
+    "docs/EPUB_LOCATION_ENRICHMENT.md",
     "docs/PHYSICAL_TEST_MATRIX.md",
+    "release/font-pack/README-FIRST.md",
+    "release/font-pack/licenses/README.md",
+    "release/public-font-pack.json",
     "release/README-FIRST.txt",
+    "scripts/enrich_epub_locations.py",
+    "scripts/package_public_font_pack.py",
 )
 BLOCKED_STATE_NAMES = {
     "achievements.bin",

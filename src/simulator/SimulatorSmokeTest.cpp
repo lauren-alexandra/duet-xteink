@@ -337,23 +337,33 @@ class SimulatorSmokeTest {
       mediaOffsets.push_back(mediaOffsetPool[index]);
     }
     std::sort(mediaOffsets.begin(), mediaOffsets.end(), std::greater<uint16_t>());
+    constexpr std::array<uint16_t, 16> mediaMinutes = {18, 31, 47, 63, 26, 82, 39, 55, 21, 96, 44, 70, 34, 58, 76, 49};
+    constexpr std::array<uint16_t, 16> mediaPages = {12, 24, 39, 55, 18, 73, 31, 46, 14, 86, 36, 61, 27, 50, 68, 41};
+    uint32_t generatedSeconds = 0;
+    uint32_t generatedPages = 0;
     for (size_t i = 0; i < mediaOffsets.size(); ++i) {
       ReadingStatsDate date;
       if (!readingStatsDateFromDayIndex(mediaTodayIndex - mediaOffsets[i], date)) {
         fail("Could not derive stats media fixture date");
       }
-      const uint32_t seconds = i + 1 == mediaOffsets.size() ? 72u * 60u : 53u * 60u;
-      const uint16_t pages = i + 1 == mediaOffsets.size() ? 63 : 64;
+      const size_t patternIndex = (i * 7u + mediaOffsets[i]) % mediaMinutes.size();
+      const uint32_t seconds = static_cast<uint32_t>(mediaMinutes[patternIndex]) * 60u;
+      const uint16_t pages = mediaPages[(patternIndex * 5u + i) % mediaPages.size()];
       if (!ReadingJournal::recordSession(
               {date, static_cast<uint8_t>((i * 7u) % 24u), static_cast<uint8_t>((i * 13u) % 60u), 0}, seconds, pages)) {
         fail("Could not seed rich stats media fixture");
       }
+      generatedSeconds += seconds;
+      generatedPages += pages;
     }
     journal = ReadingJournal::load();
     const ReadingJournalPeriod mediaPeriod =
         journal ? journal->periodEndingOn(mediaTodayIndex, 366) : ReadingJournalPeriod{};
-    if (!journal || mediaPeriod.sessions != 237 || mediaPeriod.readingSeconds != 209u * 3600u + 57u * 60u ||
-        mediaPeriod.screenPages != 14963) {
+    constexpr uint32_t regressionFixtureSeconds = 494u * 60u;
+    constexpr uint32_t regressionFixturePages = 372;
+    if (!journal || mediaPeriod.sessions != 237 ||
+        mediaPeriod.readingSeconds != regressionFixtureSeconds + generatedSeconds ||
+        mediaPeriod.screenPages != regressionFixturePages + generatedPages) {
       fail("Rich stats media fixture totals are inconsistent");
     }
 
@@ -417,6 +427,10 @@ class SimulatorSmokeTest {
     if (!validateReadingStatsArchive(archivePath, &validatedFiles, nullptr) || validatedFiles != archivedFiles) {
       fail("Full reading-stats archive did not pass its CRC validation");
     }
+    constexpr char achievementPath[] = DUET_STATE_ROOT_PATH "/achievements.bin";
+    if (!Storage.existsForRead(achievementPath) || !Storage.remove(achievementPath)) {
+      fail("Achievement ledger was unavailable before archive restore");
+    }
     GlobalReadingStats changedHistory = GlobalReadingStats::load();
     changedHistory.totalReadingSeconds = 9999;
     changedHistory.save();
@@ -436,7 +450,7 @@ class SimulatorSmokeTest {
     // and must recover the archived fallback exactly.
     const bool restoredDateIsCorrect = restoredDateAvailable && (halClock.isAvailable() || restoredDateComparison == 0);
     if (!imported || restoredFiles != archivedFiles || restoredReadingSeconds != 4321 || safetyName[0] == '\0' ||
-        !restoredDateIsCorrect) {
+        !restoredDateIsCorrect || !Storage.existsForRead(achievementPath)) {
       LOG_ERR("SMOKE",
               "Stats archive restore mismatch: imported=%u files=%u/%u seconds=%lu safety=%u date=%04u-%02u-%02u "
               "expected=%04u-%02u-%02u comparison=%d",
@@ -520,6 +534,9 @@ class SimulatorSmokeTest {
     };
     constexpr std::array<uint16_t, 6> paceFixtureWpm = {214, 247, 231, 276, 294, 318};
     constexpr std::array<uint8_t, 6> paceFixtureDayOffsets = {13, 10, 7, 4, 2, 0};
+    std::string paceCurrentCachePath;
+    BookReadingStats paceCurrentStats;
+    uint32_t paceCurrentWordCount = 0;
 
     Storage.ensureDirectoryExists(DUET_BOOKS_ROOT_PATH "");
     for (uint8_t i = 0; i < 24; ++i) {
@@ -555,6 +572,11 @@ class SimulatorSmokeTest {
         detail.isCompleted = true;
         readingStatsDateFromDayIndex(readingStatsDayIndex(startDate) + static_cast<uint32_t>(3u + i * 2u),
                                      detail.finishedDate);
+        if (i + 1 == paceFixturePaths.size()) {
+          paceCurrentCachePath = cachePath;
+          paceCurrentStats = detail;
+          paceCurrentWordCount = paceBook.getTotalWords();
+        }
       }
       detail.save(cachePath);
       char title[64];
@@ -659,7 +681,8 @@ class SimulatorSmokeTest {
     renderWeekdayPatternPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
     drawTabs(14);
     save("/smoke-stats-weekdays.bmp");
-    renderPaceTrendPage(renderer, &mappedInputManager, journal.get(), session, true, true);
+    renderPaceTrendPage(renderer, &mappedInputManager, journal.get(), session, paceCurrentCachePath.c_str(),
+                        paceCurrentStats, paceCurrentWordCount, 100.0f, true, true);
     drawTabs(15);
     save("/smoke-stats-pace.bmp");
     renderTimeOfDayPage(renderer, &mappedInputManager, history, true, true);
@@ -696,13 +719,19 @@ class SimulatorSmokeTest {
     renderReaderRadarPage(renderer, &mappedInputManager, journal.get(), history, session, &insights, 20, true, true);
     drawTabs(23);
     save("/smoke-stats-reader-dna.bmp");
-    renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
+    renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session,
+                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, true,
+                               true);
     drawTabs(24);
     save("/smoke-stats-dna-details.bmp");
-    renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
+    renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session,
+                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, 20, true,
+                               true);
     drawTabs(25);
     save("/smoke-stats-signature.bmp");
-    renderReadingSignatureDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
+    renderReadingSignatureDetailsPage(renderer, &mappedInputManager, journal.get(), history, session,
+                                      paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, 20,
+                                      true, true);
     drawTabs(26);
     save("/smoke-stats-signature-details.bmp");
     const std::vector<FastestReadStatsEntry> fastestReads = loadFastestReadStatsEntries();

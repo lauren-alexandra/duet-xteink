@@ -44,7 +44,8 @@ class NearbyStatsSyncActivity final : public Activity {
     Journal = 2,
     BookDetails = 3,
     Ledger = 4,
-    StatsDate = 5
+    StatsDate = 5,
+    Achievements = 6
   };
   enum class FileAckPhase : uint8_t { Meta = 1, Chunk = 2, Done = 3 };
 
@@ -100,6 +101,7 @@ class NearbyStatsSyncActivity final : public Activity {
   bool peerJournalSaved_ = false;
   bool peerLedgerSaved_ = false;
   bool peerStatsDateSaved_ = false;
+  bool peerAchievementsSaved_ = false;
   bool localFilesSent_ = false;
   bool achievementsRefreshed_ = false;
   bool syncTimingWritten_ = false;

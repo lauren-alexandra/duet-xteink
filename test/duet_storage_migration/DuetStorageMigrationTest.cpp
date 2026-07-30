@@ -14,9 +14,7 @@ namespace {
 
 class FakeMigrationBackend final : public DuetStorage::MigrationBackend {
  public:
-  bool exists(const char* path) override {
-    return files.count(path) != 0 || directories.count(path) != 0;
-  }
+  bool exists(const char* path) override { return files.count(path) != 0 || directories.count(path) != 0; }
 
   bool ensureDirectory(const char* path) override {
     directories.insert(path);
@@ -43,8 +41,7 @@ class FakeMigrationBackend final : public DuetStorage::MigrationBackend {
     const std::string prefix = std::string(sourcePath) + "/";
     for (const auto& [path, contents] : files) {
       if (path.rfind(prefix, 0) != 0) continue;
-      pendingFiles.emplace_back(std::string(destinationPath) + path.substr(std::string(sourcePath).size()),
-                                contents);
+      pendingFiles.emplace_back(std::string(destinationPath) + path.substr(std::string(sourcePath).size()), contents);
     }
     for (const auto& [path, contents] : pendingFiles) {
       files.emplace(path, contents);
@@ -120,6 +117,7 @@ TEST(DuetStorageMigration, CrossinkOnlyImportsGlobalStateAndKeepsSource) {
   backend.addFile("/.crossink/koreader.bin", "sync");
   backend.addFile("/.crossink/library_catalog.tsv", "catalog");
   backend.addFile("/.crossink/synced_stats/device_a.bin", "peer");
+  backend.addFile("/.crossink/synced_achievements/device_a.bin", "peer-achievements");
 
   const auto report = DuetStorage::migrateLegacyNamespace(backend);
 
@@ -131,6 +129,7 @@ TEST(DuetStorageMigration, CrossinkOnlyImportsGlobalStateAndKeepsSource) {
   EXPECT_EQ(backend.read("/.duet/state/koreader.bin"), "sync");
   EXPECT_EQ(backend.read("/.duet/state/library_catalog.tsv"), "catalog");
   EXPECT_EQ(backend.read("/.duet/state/synced_stats/device_a.bin"), "peer");
+  EXPECT_EQ(backend.read("/.duet/state/synced_achievements/device_a.bin"), "peer-achievements");
   EXPECT_EQ(backend.read("/.crossink/settings.bin"), "settings");
 }
 
@@ -227,12 +226,9 @@ TEST(DuetStorageMigration, InterruptedMigrationRetriesWithoutOverwritingCopiedDa
 }
 
 TEST(DuetStorageMigration, BookIdentityDoesNotChangeWithNamespace) {
-  EXPECT_EQ(DuetStorage::stableBookCacheIdentity("/.duet/books/epub_123"),
-            "/.crosspoint/epub_123");
-  EXPECT_TRUE(DuetStorage::sameBookCacheIdentity("/.duet/books/epub_123",
-                                                 "/.crosspoint/epub_123"));
-  EXPECT_FALSE(DuetStorage::sameBookCacheIdentity("/.duet/books/epub_123",
-                                                  "/.crosspoint/epub_456"));
+  EXPECT_EQ(DuetStorage::stableBookCacheIdentity("/.duet/books/epub_123"), "/.crosspoint/epub_123");
+  EXPECT_TRUE(DuetStorage::sameBookCacheIdentity("/.duet/books/epub_123", "/.crosspoint/epub_123"));
+  EXPECT_FALSE(DuetStorage::sameBookCacheIdentity("/.duet/books/epub_123", "/.crosspoint/epub_456"));
 }
 
 }  // namespace

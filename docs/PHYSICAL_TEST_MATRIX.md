@@ -7,11 +7,11 @@ This page separates source review, build success, simulator coverage, and behavi
 - Version: `v0.1.0-alpha.7`
 - X3 artifact: `Duet-X3-v0.1.0-alpha.7.bin`
 - X3 size: 5,941,904 bytes
-- X3 SHA-256: `e27ede316b5fce4729395b7d68c18fed9be6b18507919a13b6e38c474b0629ba`
+- X3 SHA-256: `ad0bccbde59b2d64119279623a785c97124dbf6a72c7cfecce58f748128f1961`
 - X4 artifact: `Duet-X4-v0.1.0-alpha.7.bin`
 - X4 size: 5,804,864 bytes
-- X4 SHA-256: `c38ed35ccd48df2d2dda3507fece1f843eb43005b934a4d629219e10540fa583`
-- Source state: release branch pending final tag and prerelease publication
+- X4 SHA-256: `8a38294c547a1f947c7f810acf083b6b7e077e5f8a46e946e867b3e13a8172f2`
+- Source state: published GitHub prerelease `v0.1.0-alpha.7`
 
 Both alpha.7 hardware targets build successfully. The X3 image leaves 611,696 bytes of OTA app-partition headroom. The X4 image leaves 748,736 bytes. All 117 host unit tests pass, and the X3 and X4 simulator smoke tests pass. This is useful development evidence, but it is not a substitute for testing these exact cleanly named alpha.7 artifacts. Simulator results do not prove physical panel refresh behavior.
 
@@ -41,7 +41,7 @@ Code review still found an installation-path weakness worth fixing before the ne
 | Carousel ordinary movement | Pending | Pending | Five visible covers persist and move once |
 | Book open and return Home | Pending | Pending | No freeze; current book remains correct |
 | Chapter preview boundary | Pending | Pending | After the temporary preview pages, Indexing completes and Next advances instead of repainting the same page |
-| Current-book WPM | Pending | Pending | WPM appears after at least ten seconds and measurable book progress |
+| Current-book WPM | Pending | Pending | Enriched EPUB has `META-INF/x-locations.json`; WPM appears after measurable attributable time and progress; untouched EPUB shows a dash rather than fake WPM |
 | Chapter transition | Pending | Pending | Timing and `/.duet/state/reader_timing.txt` if slow |
 | Achievement notification | Pending | Pending | Dismisses promptly; controls remain responsive |
 | Nearby Stats Sync | Pending | Pending | Both devices report success and figures converge |

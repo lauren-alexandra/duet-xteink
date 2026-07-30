@@ -137,6 +137,9 @@ class HomeActivity final : public Activity {
   void markFirstRenderDone();
   void runDeferredHomeWork();
   bool hasActiveHomeInput() const;
+  void deferHomeWorkAfterInput(unsigned long idleMs = 0);
+  void resetHighlightedBookContextToProgressOnly();
+  void scheduleHighlightedBookContextRefresh(unsigned long idleMs = 0);
   void applyInitialMenuSelection();
   void loadRecentBooks(int maxBooks, const std::string& activeBookPath);
   void loadRecentCovers(int coverHeight);

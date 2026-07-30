@@ -1,3 +1,9 @@
+---
+title: Alpha Testing
+nav_order: 4
+has_children: true
+---
+
 # Duet Alpha Testing
 
 Duet alpha builds are for volunteers who are comfortable backing up an SD card, flashing firmware, collecting logs, and restoring a known-good build. They are not yet recommended as a first e-reader firmware experience.
@@ -30,9 +36,9 @@ These are intentionally public. An alpha tester should know what may fail and wh
 - New Duet writes use the canonical `/.duet` namespace. Verify the one-time non-destructive import, second boot, and preservation of active book, progress, settings, statistics, achievements, covers, and catalogs. The inherited hidden roots must remain intact as recovery sources.
 - Disposable chapter layout caches are sharded to avoid large FAT-directory scans. Verify first-use migration and later chapter transitions.
 - Guarded chapter pre-indexing starts earlier and records completion, cancellation, heap deferral, failure, and duration in the reader timing log. At the temporary two-page preview boundary, the next press must trigger completion rather than repainting the same page forever.
-- Current-book, Home, Pace Trend, Reader DNA, and Reading Signature speed fields show estimated WPM when attributable reading time can be connected to a cataloged EPUB's word count and saved progress. A dash appears when Duet cannot calculate a defensible value.
-- Nearby Stats Sync now exchanges the readers' CRC-protected Stats Date so date-derived figures such as Days Reading and Daily Average can converge. Repeated X3-to-X4 and X4-to-X3 physical verification is still required.
-- Complete `.cstats` archives collect canonical state and per-book statistics from `/.duet`, while mapping inherited `/.crossink` and `/.crosspoint` records into the canonical archive layout. Both simulators pass a non-empty content-level export/restore round trip; verify the same flow on physical X3 and X4 cards before relying on it as the only backup.
+- Current-book and Home speed fields show estimated WPM when reading time and saved progress can be connected to compatible `META-INF/x-locations.json` word-location metadata. Pace Trend, Reader DNA, and Reading Signature can include qualifying ledger entries for that enriched current book without reopening EPUBs during rendering. Plain EPUBs still read normally, but untouched books require the one-time [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) step before true WPM and reference-page statistics can appear. A dash appears, or an unknown historical entry is excluded, when Duet cannot calculate a defensible value; screen-page pace remains internal for estimates and rhythm.
+- Current-source Nearby Stats Sync protocol v6 exchanges the readers' CRC-protected Stats Date and persistent achievement milestones. It retains the peer achievement ledger and merges the highest milestone per metric. Protocol v6 does not pair with Alpha.7's protocol v5 implementation, so both readers must run the same v6-capable build. Repeated X3-to-X4 and X4-to-X3 physical verification is still required.
+- Complete `.cstats` archives collect canonical statistics and achievement state from `/.duet`, while mapping inherited `/.crossink` and `/.crosspoint` records into the canonical archive layout. Older archives that omit achievements preserve the current ledgers. Both simulators pass a non-empty content-level export/restore round trip; verify the same flow on physical X3 and X4 cards before relying on it as the only backup.
 - Locked sleep-image cycling is adapted from CrumBLE's original one-tap feature. Duet offers Off/1/2/3 clicks and defaults to three to reduce accidental changes. The code intends to count the wake press as the first click, but the reliable physical sequence may be one initial wake press plus three deliberate taps, making it feel like four. Verify the exact sequence separately on X3 and X4 and report whether the first wake press was counted.
 
 ### Large-Library Cover Prefill
@@ -40,6 +46,12 @@ These are intentionally public. An alpha tester should know what may fail and wh
 For a large or multiply organized library, run the [desktop cover prefill](COVER_PREFILL.md) once after loading books. It creates the exact X3/X4 grid and carousel thumbnails on the computer so browsing is ready immediately, while the firmware remains responsible for genuinely new books later.
 
 The process is incremental and produces `/.duet/state/desktop_cover_prefill.json` for verification. The complete AI-assistant prompt appears directly on the cover-prefill page and is also available as a [standalone prompt](AI_COVER_PREFILL_PROMPT.md).
+
+### EPUB WPM Preparation
+
+Run [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) once after adding new EPUBs. Dry-run the folder first, then use `--backup --backup-dir "/path/to/backup-folder"` so `.duetbak` files stay outside Ready to Load and outside SD-card book folders. The tool skips already enriched books unless `--force` is deliberately supplied. The combined [AI Library Prep Prompt](AI_LIBRARY_PREP_PROMPT.md) lets a local computer assistant perform location enrichment before the model-specific cover prefill without exposing EPUB contents.
+
+On macOS, verify that the final card copy contains no AppleDouble `._*.epub` sidecars. Those metadata files can double the apparent book count even though the real EPUB library is correct.
 
 ### Known Performance Risks
 

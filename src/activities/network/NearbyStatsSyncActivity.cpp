@@ -69,6 +69,7 @@ void NearbyStatsSyncActivity::setState(const State state) {
 #include <cstring>
 #include <string>
 
+#include "AchievementStore.h"
 #include "CrossPointSettings.h"
 #include "MappedInputManager.h"
 #include "SdCardFontSystem.h"
@@ -77,7 +78,6 @@ void NearbyStatsSyncActivity::setState(const State state) {
 #include "activities/reader/LibraryInsights.h"
 #include "activities/reader/ReadingJournal.h"
 #include "activities/reader/ReadingStatsClock.h"
-#include "AchievementStore.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
@@ -92,14 +92,16 @@ constexpr const char* BOOK_STATS_DETAIL_PATH = DUET_STATE_ROOT_PATH "/library_bo
 constexpr const char* JOURNAL_PATH = DUET_STATE_ROOT_PATH "/reading_journal.bin";
 constexpr const char* LEDGER_PATH = DUET_STATE_ROOT_PATH "/reading_ledger_v1.bin";
 constexpr const char* STATS_DATE_PATH = DUET_STATE_ROOT_PATH "/reading_stats_clock_v1.bin";
+constexpr const char* ACHIEVEMENTS_PATH = DUET_STATE_ROOT_PATH "/achievements.bin";
 constexpr const char* SYNCED_LEDGER_DIR = DUET_STATE_ROOT_PATH "/synced_ledgers";
 constexpr const char* SYNCED_STATS_DATE_DIR = DUET_STATE_ROOT_PATH "/synced_stats_dates";
+constexpr const char* SYNCED_ACHIEVEMENTS_DIR = DUET_STATE_ROOT_PATH "/synced_achievements";
 constexpr const char* SYNCED_NAMES_DIR = DUET_STATE_ROOT_PATH "/synced_names";
 constexpr const char* SYNCED_BOOK_STATS_DIR = DUET_STATE_ROOT_PATH "/synced_book_stats";
 constexpr const char* SYNCED_BOOK_DETAILS_DIR = DUET_STATE_ROOT_PATH "/synced_book_details";
 constexpr const char* SYNCED_JOURNAL_DIR = DUET_STATE_ROOT_PATH "/synced_journals";
 constexpr uint8_t ESPNOW_CHANNEL = 1;
-constexpr uint8_t PROTOCOL_VERSION = 5;
+constexpr uint8_t PROTOCOL_VERSION = 6;
 constexpr uint8_t MIN_STATS_BYTES = static_cast<uint8_t>(GlobalReadingStats::MIN_SUPPORTED_FILE_SIZE);
 constexpr uint8_t MAX_STATS_BYTES = static_cast<uint8_t>(GlobalReadingStats::CURRENT_FILE_SIZE);
 constexpr uint8_t PACKET_HEADER_BYTES = 14;
@@ -155,6 +157,8 @@ const char* localFilePathForKind(const NearbyStatsSyncActivity::SyncFileKind kin
       return LEDGER_PATH;
     case NearbyStatsSyncActivity::SyncFileKind::StatsDate:
       return STATS_DATE_PATH;
+    case NearbyStatsSyncActivity::SyncFileKind::Achievements:
+      return ACHIEVEMENTS_PATH;
     default:
       return nullptr;
   }
@@ -172,6 +176,8 @@ std::string syncedDirectoryForKind(const NearbyStatsSyncActivity::SyncFileKind k
       return SYNCED_LEDGER_DIR;
     case NearbyStatsSyncActivity::SyncFileKind::StatsDate:
       return SYNCED_STATS_DATE_DIR;
+    case NearbyStatsSyncActivity::SyncFileKind::Achievements:
+      return SYNCED_ACHIEVEMENTS_DIR;
     default:
       return {};
   }
@@ -205,8 +211,7 @@ void persistPeerDeviceName(const std::array<uint8_t, 6>& mac, const std::string&
 bool isZeroMac(const std::array<uint8_t, 6>& mac) { return mac == std::array<uint8_t, 6>{}; }
 
 bool isValidStatsPayload(const uint8_t* data, const uint8_t size) {
-  return (size == MIN_STATS_BYTES && data[0] == 1) || (size == 17 && data[0] == 2) ||
-         (size == 159 && data[0] == 3) ||
+  return (size == MIN_STATS_BYTES && data[0] == 1) || (size == 17 && data[0] == 2) || (size == 159 && data[0] == 3) ||
          (size == MAX_STATS_BYTES && data[0] == GlobalReadingStats::CURRENT_FILE_VERSION);
 }
 
@@ -215,7 +220,16 @@ bool ensureSyncedStatsDirectory() {
          Storage.ensureDirectoryExists(SYNCED_BOOK_STATS_DIR) &&
          Storage.ensureDirectoryExists(SYNCED_BOOK_DETAILS_DIR) && Storage.ensureDirectoryExists(SYNCED_JOURNAL_DIR) &&
          Storage.ensureDirectoryExists(SYNCED_LEDGER_DIR) && Storage.ensureDirectoryExists(SYNCED_STATS_DATE_DIR) &&
-         Storage.ensureDirectoryExists(SYNCED_NAMES_DIR);
+         Storage.ensureDirectoryExists(SYNCED_ACHIEVEMENTS_DIR) && Storage.ensureDirectoryExists(SYNCED_NAMES_DIR);
+}
+
+bool isTransferFileKind(const NearbyStatsSyncActivity::SyncFileKind kind) {
+  return kind == NearbyStatsSyncActivity::SyncFileKind::BookStats ||
+         kind == NearbyStatsSyncActivity::SyncFileKind::BookDetails ||
+         kind == NearbyStatsSyncActivity::SyncFileKind::Journal ||
+         kind == NearbyStatsSyncActivity::SyncFileKind::Ledger ||
+         kind == NearbyStatsSyncActivity::SyncFileKind::StatsDate ||
+         kind == NearbyStatsSyncActivity::SyncFileKind::Achievements;
 }
 
 uint32_t crc32(const uint8_t* data, const size_t size, const uint32_t crc = 0) {
@@ -242,7 +256,9 @@ bool computeFileInfo(const char* path, uint32_t& size, uint32_t& crc) {
   return true;
 }
 
-uint16_t readLe16(const uint8_t* data) { return static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8); }
+uint16_t readLe16(const uint8_t* data) {
+  return static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8);
+}
 
 uint32_t readLe32(const uint8_t* data) {
   return static_cast<uint32_t>(data[0]) | (static_cast<uint32_t>(data[1]) << 8) |
@@ -460,6 +476,7 @@ bool NearbyStatsSyncActivity::prepareLocalStats() {
 
   // Ensure a valid local stats payload exists before exchanging stats.
   GlobalReadingStats::load().save();
+  ACHIEVEMENT_STORE.begin();
   LibraryInsights::publishLocalBookStatsIndexForSync();
   prepScannedDirs_ = 0;
   prepWrittenRecords_ = 0;
@@ -510,6 +527,7 @@ void NearbyStatsSyncActivity::startSync() {
   peerJournalSaved_ = false;
   peerLedgerSaved_ = false;
   peerStatsDateSaved_ = false;
+  peerAchievementsSaved_ = false;
   localFilesSent_ = false;
   achievementsRefreshed_ = false;
   syncTimingWritten_ = false;
@@ -701,6 +719,7 @@ void NearbyStatsSyncActivity::handleEvent(const SyncEvent& event) {
     peerJournalSaved_ = false;
     peerLedgerSaved_ = false;
     peerStatsDateSaved_ = false;
+    peerAchievementsSaved_ = false;
     localFilesSent_ = false;
     outgoingFile_ = {};
     incomingFile_ = {};
@@ -722,8 +741,7 @@ void NearbyStatsSyncActivity::handleEvent(const SyncEvent& event) {
   if (!localStatsReady_ && !prepareLocalStats()) return;
   // ERROR included: a device parked on "no reader found" must still join when
   // the other reader finally starts broadcasting.
-  if (state_ == State::READY || state_ == State::DISCOVERING || state_ == State::SYNCED ||
-      state_ == State::ERROR) {
+  if (state_ == State::READY || state_ == State::DISCOVERING || state_ == State::SYNCED || state_ == State::ERROR) {
     setState(State::SYNCING);
   }
 
@@ -785,8 +803,7 @@ void NearbyStatsSyncActivity::handleEvent(const SyncEvent& event) {
 bool NearbyStatsSyncActivity::acknowledgeLateSyncedFilePacket(const SyncEvent& event) {
   if (event.payloadSize == 0) return false;
   const auto kind = static_cast<SyncFileKind>(event.payload[0]);
-  if (kind != SyncFileKind::BookStats && kind != SyncFileKind::BookDetails && kind != SyncFileKind::Journal &&
-      kind != SyncFileKind::Ledger && kind != SyncFileKind::StatsDate) {
+  if (!isTransferFileKind(kind)) {
     return false;
   }
 
@@ -976,7 +993,8 @@ bool NearbyStatsSyncActivity::sendFileDone() {
   return esp_now_send(BROADCAST_MAC, packet.data(), PACKET_HEADER_BYTES + 1) == ESP_OK;
 }
 
-bool NearbyStatsSyncActivity::sendFileAck(const SyncFileKind kind, const FileAckPhase phase, const uint16_t chunkIndex) {
+bool NearbyStatsSyncActivity::sendFileAck(const SyncFileKind kind, const FileAckPhase phase,
+                                          const uint16_t chunkIndex) {
   std::array<uint8_t, MAX_PACKET_BYTES> packet = {};
   packet[0] = 'C';
   packet[1] = 'I';
@@ -1013,6 +1031,9 @@ bool NearbyStatsSyncActivity::beginNextOutgoingFile() {
     outgoingFile_.kind = SyncFileKind::StatsDate;
   } else if (outgoingFile_.kind == SyncFileKind::StatsDate && outgoingFile_.doneAcked) {
     outgoingFile_ = {};
+    outgoingFile_.kind = SyncFileKind::Achievements;
+  } else if (outgoingFile_.kind == SyncFileKind::Achievements && outgoingFile_.doneAcked) {
+    outgoingFile_ = {};
     localFilesSent_ = true;
     return true;
   }
@@ -1041,6 +1062,8 @@ bool NearbyStatsSyncActivity::hasSavedPeerFile(const SyncFileKind kind) const {
       return peerLedgerSaved_;
     case SyncFileKind::StatsDate:
       return peerStatsDateSaved_;
+    case SyncFileKind::Achievements:
+      return peerAchievementsSaved_;
     default:
       return false;
   }
@@ -1049,8 +1072,7 @@ bool NearbyStatsSyncActivity::hasSavedPeerFile(const SyncFileKind kind) const {
 void NearbyStatsSyncActivity::handleFileMeta(const SyncEvent& event) {
   if (event.payloadSize != 9) return;
   const auto kind = static_cast<SyncFileKind>(event.payload[0]);
-  if (kind != SyncFileKind::BookStats && kind != SyncFileKind::BookDetails && kind != SyncFileKind::Journal &&
-      kind != SyncFileKind::Ledger && kind != SyncFileKind::StatsDate) {
+  if (!isTransferFileKind(kind)) {
     return;
   }
   const uint32_t expectedSize = readLe32(event.payload.data() + 1);
@@ -1181,6 +1203,12 @@ void NearbyStatsSyncActivity::handleFileDone(const SyncEvent& event) {
       return;
     }
     peerStatsDateSaved_ = true;
+  } else if (kind == SyncFileKind::Achievements) {
+    if (incomingFile_.expectedSize == 0 || finalPath.empty() || !ACHIEVEMENT_STORE.mergeFromPath(finalPath.c_str())) {
+      setError("invalid peer achievements");
+      return;
+    }
+    peerAchievementsSaved_ = true;
   }
   incomingFile_ = {};
   markSyncProgress();
@@ -1250,6 +1278,8 @@ std::string NearbyStatsSyncActivity::syncProgressDetail() const {
         return "Ledger";
       case SyncFileKind::StatsDate:
         return "Dates";
+      case SyncFileKind::Achievements:
+        return "Achievements";
       default:
         return "Files";
     }
@@ -1295,6 +1325,7 @@ std::string NearbyStatsSyncActivity::syncProgressDetail() const {
   if (!peerJournalSaved_) return "Waiting for journal";
   if (!peerLedgerSaved_) return "Waiting for ledger";
   if (!peerStatsDateSaved_) return "Waiting for dates";
+  if (!peerAchievementsSaved_) return "Waiting for achievements";
   return "Finalizing";
 }
 
@@ -1317,7 +1348,7 @@ void NearbyStatsSyncActivity::updateSyncProgress() {
   updateFileTransferProgress();
 
   if (peerStatsSaved_ && localStatsAcked_ && localFilesSent_ && peerBookStatsSaved_ && peerBookDetailsSaved_ &&
-      peerJournalSaved_ && peerLedgerSaved_ && peerStatsDateSaved_) {
+      peerJournalSaved_ && peerLedgerSaved_ && peerStatsDateSaved_ && peerAchievementsSaved_) {
     syncCompletedAtMs_ = now;
     setState(State::SYNCED);
     writeSyncTiming("synced");
@@ -1358,11 +1389,11 @@ void NearbyStatsSyncActivity::writeSyncTiming(const char* outcome) {
   const int n = snprintf(
       buf, sizeof(buf),
       "outcome=%s elapsed=%lums peer=%u stats=%u/%u files=%u book=%u details=%u journal=%u ledger=%u date=%u "
-      "lateStatsAck=%u lateFileAck=%u out=%u/%u/%u in=%u/%lu/%lu idle=%lums error=%s\n",
+      "achievements=%u lateStatsAck=%u lateFileAck=%u out=%u/%u/%u in=%u/%lu/%lu idle=%lums error=%s\n",
       outcome ? outcome : "unknown", millis() - syncStartedMs_, peerSeen_ ? 1u : 0u, peerStatsSaved_ ? 1u : 0u,
       localStatsAcked_ ? 1u : 0u, localFilesSent_ ? 1u : 0u, peerBookStatsSaved_ ? 1u : 0u,
       peerBookDetailsSaved_ ? 1u : 0u, peerJournalSaved_ ? 1u : 0u, peerLedgerSaved_ ? 1u : 0u,
-      peerStatsDateSaved_ ? 1u : 0u, static_cast<unsigned>(lateStatsAckCount_),
+      peerStatsDateSaved_ ? 1u : 0u, peerAchievementsSaved_ ? 1u : 0u, static_cast<unsigned>(lateStatsAckCount_),
       static_cast<unsigned>(lateFileAckCount_), static_cast<unsigned>(outgoingFile_.kind),
       static_cast<unsigned>(outgoingFile_.chunkIndex), static_cast<unsigned>(outgoingFile_.doneAcked ? 1 : 0),
       static_cast<unsigned>(incomingFile_.kind), static_cast<unsigned long>(incomingFile_.receivedSize),

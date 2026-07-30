@@ -28,9 +28,11 @@ DOC_FILES = (
     "ALPHA7_ACCEPTANCE_QUICKSTART.md",
     "ALPHA_TESTING.md",
     "AI_COVER_PREFILL_PROMPT.md",
+    "AI_LIBRARY_PREP_PROMPT.md",
     "COVER_PREFILL.md",
     "DICTIONARY_SETUP.md",
     "DUET_FULL_FEATURE_TOUR.md",
+    "EPUB_LOCATION_ENRICHMENT.md",
     "ISSUE_TRIAGE.md",
     "MAINTAINER_RELEASE_RUNBOOK.md",
     "PHYSICAL_TEST_MATRIX.md",
@@ -41,6 +43,7 @@ DOC_FILES = (
     "epub-render-modes.md",
     "file-formats.md",
     "font-build-variants.md",
+    "font-sources.md",
     "hyphenation-trie-format.md",
     "i18n.md",
     "installation.md",
@@ -57,10 +60,10 @@ DOC_FILES = (
 DOC_DIRS = (
     "images",
     "media",
-    "templates",
 )
 SCRIPT_FILES = (
     "duet_storage_paths.py",
+    "enrich_epub_locations.py",
     "generate_library_catalog.py",
     "package_wordnet_dictionary.py",
     "prebuild_library_stats_index.py",

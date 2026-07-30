@@ -1,9 +1,8 @@
-#include "DuetStorageMigration.h"
-
-#include "DuetStoragePaths.h"
-
 #include <array>
 #include <string>
+
+#include "DuetStorageMigration.h"
+#include "DuetStoragePaths.h"
 
 namespace DuetStorage {
 namespace {
@@ -76,9 +75,8 @@ constexpr const char* STATE_FILES[] = {
 };
 
 constexpr const char* STATE_DIRECTORIES[] = {
-    "bookmarks",          "clippings",       "synced_book_details",
-    "synced_book_stats",  "synced_journals", "synced_ledgers",
-    "synced_names",       "synced_stats",     "synced_stats_dates",
+    "bookmarks",       "clippings",      "synced_achievements", "synced_book_details", "synced_book_stats",
+    "synced_journals", "synced_ledgers", "synced_names",        "synced_stats",        "synced_stats_dates",
 };
 
 std::string joinPath(const char* root, const char* relative) {
@@ -136,8 +134,8 @@ MigrationReport migrateLegacyNamespace(MigrationBackend& backend) {
   }
 
   constexpr const char* REQUIRED_DIRECTORIES[] = {
-      ROOT, STATE_ROOT, BOOKS_ROOT, CACHE_ROOT, THUMBS_ROOT, LAYOUTS_ROOT, FILE_INDEX_ROOT,
-      BACKUPS_ROOT, STATS_BACKUP_ROOT, MIGRATION_ROOT,
+      ROOT,         STATE_ROOT,      BOOKS_ROOT,   CACHE_ROOT,        THUMBS_ROOT,
+      LAYOUTS_ROOT, FILE_INDEX_ROOT, BACKUPS_ROOT, STATS_BACKUP_ROOT, MIGRATION_ROOT,
   };
   for (const char* directory : REQUIRED_DIRECTORIES) {
     if (!backend.ensureDirectory(directory)) report.failures++;
@@ -149,16 +147,14 @@ MigrationReport migrateLegacyNamespace(MigrationBackend& backend) {
   // The file index is small and hot enough to import eagerly. Per-book caches,
   // layout shards, thumbnails, and dated backups remain lazy read fallbacks.
   bool importedFileIndex = true;
-  for (const char* legacyRoot : {DUET_LEGACY_STATE_ROOT_PATH "/fileindex",
-                                 DUET_LEGACY_BOOKS_ROOT_PATH "/fileindex"}) {
+  for (const char* legacyRoot : {DUET_LEGACY_STATE_ROOT_PATH "/fileindex", DUET_LEGACY_BOOKS_ROOT_PATH "/fileindex"}) {
     if (backend.exists(legacyRoot) && !backend.mergeDirectory(legacyRoot, FILE_INDEX_ROOT)) {
       report.failures++;
       importedFileIndex = false;
     }
   }
-  if (importedFileIndex &&
-      (backend.exists(DUET_LEGACY_STATE_ROOT_PATH "/fileindex") ||
-       backend.exists(DUET_LEGACY_BOOKS_ROOT_PATH "/fileindex"))) {
+  if (importedFileIndex && (backend.exists(DUET_LEGACY_STATE_ROOT_PATH "/fileindex") ||
+                            backend.exists(DUET_LEGACY_BOOKS_ROOT_PATH "/fileindex"))) {
     report.directoriesMerged++;
   }
 

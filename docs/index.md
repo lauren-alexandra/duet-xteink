@@ -13,38 +13,37 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 
 ## Start Here
 
-- [Start Here](./START_HERE.md)
-- [Installation](./installation.md)
-- [User Guide](../USER_GUIDE.md)
-- [Alpha Testing](./ALPHA_TESTING.md)
-- [Troubleshooting](./troubleshooting.md)
-- [Alpha.7 Acceptance Quickstart](./ALPHA7_ACCEPTANCE_QUICKSTART.md)
+- [Start Here](./START_HERE.html)
+- [Installation](./installation.html)
+- [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md)
+- [Alpha Testing](./ALPHA_TESTING.html)
+- [Troubleshooting](./troubleshooting.html)
+- [Alpha.7 Acceptance Quickstart](./ALPHA7_ACCEPTANCE_QUICKSTART.html)
 
 ## Features And Daily Use
 
-- [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.md)
-- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.md)
-- [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.md)
-- [Dictionary Setup](./DICTIONARY_SETUP.md)
-- [Font Build Variants](./font-build-variants.md)
-- [SD-Card Fonts](./sd-card-fonts.md)
-- [Reader Features](./reader-features.md)
-- [File Formats](./file-formats.md)
-- [Nearby Position Sync](./nearby-position-sync.md)
-- [Nearby Reading Stats Sync](./reading-stats-sync.md)
-- [EPUB Render Modes](./epub-render-modes.md)
-- [Controls](./controls.md)
-- [Data Cache](./data-cache.md)
-- [Web Server Guide](./webserver.md)
+- [Complete Feature Tour](./DUET_FULL_FEATURE_TOUR.html)
+- [Alpha.7 Screenshot Gallery](./media/alpha-0.1.0/README.html)
+- [Complete Reading Stats Gallery](./media/alpha-0.1.0/stats/README.html)
+- [Fonts](./sd-card-fonts.html)
+- [Dictionary Setup](./DICTIONARY_SETUP.html)
+- [Reader Features](./reader-features.html)
+- [File Formats](./file-formats.html)
+- [Nearby Position Sync](./nearby-position-sync.html)
+- [Nearby Reading Stats Sync](./reading-stats-sync.html)
+- [EPUB Render Modes](./epub-render-modes.html)
+- [Controls](./controls.html)
+- [Data Cache](./data-cache.html)
+- [Web Server Guide](./webserver.html)
 
 ## Library And Media
 
-- [Desktop Cover Prefill](./COVER_PREFILL.md)
-- [Alpha.7 Release Notes](./releases/v0.1.0-alpha.7.md)
+- [Desktop Cover Prefill](./COVER_PREFILL.html)
+- [Release Notes](./releases/)
 
 ## Testing, Development, And Community
 
-- [Physical Test Matrix](./PHYSICAL_TEST_MATRIX.md)
-- [Issue Triage](./ISSUE_TRIAGE.md)
-- [Simulator](./simulator.md)
-- [Maintainer Release Runbook](./MAINTAINER_RELEASE_RUNBOOK.md)
+- [Physical Test Matrix](./PHYSICAL_TEST_MATRIX.html)
+- [Issue Triage](./ISSUE_TRIAGE.html)
+- [Simulator](./simulator.html)
+- [Maintainer Release Runbook](./MAINTAINER_RELEASE_RUNBOOK.html)
