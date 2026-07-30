@@ -47,18 +47,19 @@ void UtilitiesActivity::openStats(const BookStatsActivity::InitialPage initialPa
   const std::string cachePath = hasLastActiveBook ? lastActiveBook.cachePath : std::string{};
   const BookReadingStats stats = hasLastActiveBook ? lastActiveBook.stats : BookReadingStats{};
   const float progressPercent = hasLastActiveBook ? lastActiveBook.progressPercent : -1.0f;
+  const uint32_t wordCount = hasLastActiveBook ? lastActiveBook.wordCount : 0;
   if (GlobalReadingStats::hasSyncedStats()) {
     startActivityForResult(
         std::make_unique<BookStatsActivity>(renderer, mappedInput, title, cachePath, stats, progressPercent, false, 0,
                                             localStats,
                                             GlobalReadingStats::loadAggregated(localStats), false,
-                                            ReadingSessionSnapshot{}, 0, initialPage),
+                                            ReadingSessionSnapshot{}, wordCount, initialPage),
         [this](const ActivityResult&) { requestUpdate(); });
   } else {
     startActivityForResult(
         std::make_unique<BookStatsActivity>(renderer, mappedInput, title, cachePath, stats, progressPercent, false, 0,
                                             localStats, false,
-                                            ReadingSessionSnapshot{}, 0, initialPage),
+                                            ReadingSessionSnapshot{}, wordCount, initialPage),
         [this](const ActivityResult&) { requestUpdate(); });
   }
 }

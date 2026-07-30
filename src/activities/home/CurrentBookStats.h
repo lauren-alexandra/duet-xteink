@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "activities/reader/BookReadingStats.h"
@@ -7,10 +8,12 @@
 // The Home and Apps launchers use this to show the last readable book's
 // stats even when the reader is not currently open.
 struct CurrentBookStatsTarget {
+  std::string path;
   std::string title;
   std::string cachePath;
   BookReadingStats stats;
   float progressPercent = -1.0f;
+  uint32_t wordCount = 0;
 };
 
 namespace CurrentBookStats {

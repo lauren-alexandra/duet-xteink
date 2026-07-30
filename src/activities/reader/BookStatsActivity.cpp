@@ -1103,7 +1103,8 @@ void BookStatsActivity::render(RenderLock&&) {
       renderWeekdayPatternPage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot, true, true);
       break;
     case Page::PaceTrend:
-      renderPaceTrendPage(renderer, &mappedInput, readingJournal.get(), sessionSnapshot, true, true);
+      renderPaceTrendPage(renderer, &mappedInput, readingJournal.get(), sessionSnapshot, bookCachePath.c_str(), stats,
+                          bookWordCount, progressPercent, true, true);
       break;
     case Page::TimeOfDay:
       renderTimeOfDayPage(renderer, &mappedInput, historyStats, true, true);
@@ -1136,15 +1137,17 @@ void BookStatsActivity::render(RenderLock&&) {
                             libraryInsights.get(), SETTINGS.readingGoalMinutes, true, true);
       break;
     case Page::ReaderDnaDetails:
-      renderReaderDnaDetailsPage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot, true,
-                                 true);
+      renderReaderDnaDetailsPage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot,
+                                 bookCachePath.c_str(), stats, bookWordCount, progressPercent, true, true);
       break;
     case Page::ReaderSignature:
       renderReadingSignaturePage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot,
+                                 bookCachePath.c_str(), stats, bookWordCount, progressPercent,
                                  SETTINGS.readingGoalMinutes, true, true);
       break;
     case Page::ReaderSignatureDetails:
       renderReadingSignatureDetailsPage(renderer, &mappedInput, readingJournal.get(), historyStats, sessionSnapshot,
+                                        bookCachePath.c_str(), stats, bookWordCount, progressPercent,
                                         SETTINGS.readingGoalMinutes, true, true);
       break;
     case Page::FastestReads:

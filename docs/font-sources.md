@@ -19,4 +19,4 @@ Duet's font work draws from openly licensed type projects, the inherited CrossIn
 
 A public Duet font archive must include only redistributable generated families, map every `.cpfont` file to its source face, preserve the applicable copyright and license notices, and publish checksums for the generated files. Firmware and font archives remain separate because the full SD-card collection is far larger than the X3/X4 application partition.
 
-The Alpha.7 firmware release does not currently include an expanded Duet font archive. Use the [Fonts](sd-card-fonts.md) page for the exact downloads presently available.
+The Alpha.7 release provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip) as a separate download. It contains 123 reviewed families, 738 validated `.cpfont` files, all six reader sizes from 10 through 20 pt, per-file checksums, pinned upstream sources, and bundled license notices. Use the [Fonts](sd-card-fonts.md) page for installation, selective-download alternatives, and conversion guidance.

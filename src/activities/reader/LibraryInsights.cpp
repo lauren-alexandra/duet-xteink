@@ -968,7 +968,8 @@ std::unique_ptr<LibraryInsights> LibraryInsights::load() {
     }
     (void)calibreId;
     if (authorId < 0 || static_cast<size_t>(authorId) >= authors.size() || genreId < 0 ||
-        static_cast<size_t>(genreId) >= genres.size() || spiceId < 0 || static_cast<size_t>(spiceId) >= spices.size() ||
+        static_cast<size_t>(genreId) >= genres.size() || spiceId < -1 ||
+        (spiceId >= 0 && static_cast<size_t>(spiceId) >= spices.size()) ||
         (seriesId >= 0 && static_cast<size_t>(seriesId) >= series.size())) {
       continue;
     }
@@ -1011,7 +1012,7 @@ std::unique_ptr<LibraryInsights> LibraryInsights::load() {
 
     addBook(authorStats[static_cast<size_t>(authorId)], stats, reading);
     addBook(genreStats[static_cast<size_t>(genreId)], stats, reading);
-    addBook(spiceStats[static_cast<size_t>(spiceId)], stats, reading);
+    if (spiceId >= 0) addBook(spiceStats[static_cast<size_t>(spiceId)], stats, reading);
     if (seriesId >= 0) addBook(seriesStats[static_cast<size_t>(seriesId)], stats, reading);
     processedBooks++;
   }

@@ -222,12 +222,12 @@ More Info can show:
 - Title and author
 - Series and series index
 - Genre
-- Spice level
+- Optional spice/heat tag
 - Reading state and progress
 - Catalog description
 - Open action
 
-The same catalog supplies Library Overview, Reading Taste, and Series Progress without forcing the device to repeatedly parse book files. It can be generated from a Calibre library or another reviewed tracker export.
+The same catalog supplies Library Overview, Reading Taste, and Series Progress without forcing the device to repeatedly parse book files. It can be generated from a Calibre library or another reviewed tracker export. Spice is Lauren's personal catalog dimension, not a Duet requirement: absent or blank values are omitted, Reading Taste uses the remaining genre and author cards, and spice achievements stay inactive.
 
 ### Clean Library Cache
 
@@ -330,13 +330,15 @@ The daily journal stores exact daily time, sessions, pages, completions, and rec
 
 Because these readers do not have a dependable real-time clock, Duet also keeps a CRC-protected Stats Date. It can be edited deliberately or updated from NTP while connected.
 
+True visible WPM and reference-page statistics require compatible `META-INF/x-locations.json` metadata inside the EPUB. Plain EPUBs still read normally. Run [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) once after adding new books; the tool skips enriched books, supports a dry run, decodes URL-escaped OPF paths, and can keep `.duetbak` copies in a separate backup folder before rewriting. Current-book WPM can feed Pace, DNA, and Signature windows through attributable ledger entries without reopening books while those pages render. Historical books without a cheap exact WPM are excluded, and Duet does not relabel screen pages per minute as WPM.
+
 ### All 33 top-level pages
 
 **Lineage:** This complete 33-page set and its merge-aware navigation are Duet work built on inherited statistics records and CPR-vCodex analytics direction. Individual pages reuse inherited measurements where appropriate.
 
 | # | Page | What it shows |
 | --: | --- | --- |
-| 1 | Current Book | Active or latest book/session, progress, time left, estimated WPM, totals, and dates |
+| 1 | Current Book | Active or latest book/session, progress, time left, estimated WPM when word-location metadata is available, totals, and dates |
 | 2 | Book Progress | Progress graph and estimated-completion context |
 | 3 | Book Patterns | Per-book sessions, pace, time, and reading pattern |
 | 4 | Trends | Today, last 7 days, last 30 days, and current-year summaries |
@@ -348,7 +350,7 @@ Because these readers do not have a dependable real-time clock, Duet also keeps 
 | 10 | Goals | Daily goal and goal-streak detail |
 | 11 | Recent Sessions | Scrollable exact session history |
 | 12 | Weekday Pattern | Reading distribution by weekday |
-| 13 | Pace Trend | Attributable 30-day words-per-minute history, 7-day and 30-day averages, and trend direction when cataloged books have word counts and progress |
+| 13 | Pace Trend | Attributable 30-day WPM entries for the current enriched book, with 7-day and 30-day summaries when enough qualifying entries exist |
 | 14 | Time of Day | Morning, afternoon, evening, and night distribution |
 | 15 | Monthly Trend | Reading by month |
 | 16 | Year Line | Cumulative current-year line and page-turn total |
@@ -365,7 +367,7 @@ Because these readers do not have a dependable real-time clock, Duet also keeps 
 | 27 | Wrapped | Twelve-month time, days, completions, streak, weekday, and average-session summary |
 | 28 | Started Books | Scrollable in-progress list with estimates |
 | 29 | Library Overview | Catalog-backed counts and completion |
-| 30 | Reading Taste | Catalog-backed genre, spice, and author patterns |
+| 30 | Reading Taste | Catalog-backed genre and author patterns, plus optional spice/heat patterns when supplied |
 | 31 | Series Progress | Scrollable series completion |
 | 32 | This Device | Device-local aggregate statistics |
 | 33 | All Devices | Merged aggregate statistics after synced data exists |
@@ -434,7 +436,7 @@ Duet contains 108 persistent achievement milestones:
 
 The CPR-vCodex set covers books started, sessions, books finished, reading time, goal days, goal streaks, bookmarks, and longest sessions.
 
-The Duet set covers reading days, reading streaks, screen pages, series started, series completed, spice levels, morning reading, night reading, weekend reading, and using two devices.
+The Duet set covers reading days, reading streaks, screen pages, series started, series completed, optional spice levels, morning reading, night reading, weekend reading, and using two devices. Libraries without spice metadata do not advance or display that personal category.
 
 Unlocks persist in `/.duet/state/achievements.bin`, recover from a backup file, and can be retroactively adopted from existing history if the unlock ledger is missing. Protocol v6 Nearby Stats Sync retains peer ledgers under `/.duet/state/synced_achievements/` and merges milestone progress without replaying old notifications. Complete `.cstats` archives include local and synced achievement ledgers, while older archives that omit them preserve the current state. A popup can list every achievement unlocked in one batch and open **See All**. Achievement refresh work is deferred from timing-sensitive navigation paths.
 
@@ -467,7 +469,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The initial public alpha includes the licensed fonts built into the firmware and can download CrossInk's credited 24-family compatibility catalog. Additional `.cpfont` families can be installed separately. Alpha.7 does not include an expanded Duet font ZIP; [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) lists the exact current options, and [Font Sources][5] records the source and licensing audit.
+The initial public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. Alpha.7 also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
 
 ## Dictionary and reference tools
 

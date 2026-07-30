@@ -33,6 +33,13 @@ Open one known-good book and test sleep/wake before a long reading session.
 
 LARGE LIBRARIES
 
+Plain EPUBs read normally, but true visible WPM and reference-page statistics require Duet word-location metadata. Prepare new EPUBs before cover prefill:
+
+  python3 scripts/enrich_epub_locations.py --dry-run "/path/to/epub-or-folder"
+  python3 scripts/enrich_epub_locations.py --backup --backup-dir "/path/to/backup-folder" "/path/to/epub-or-folder"
+
+The tool skips already enriched EPUBs. Use --force only when deliberately regenerating existing metadata. Keep the backup folder outside Ready to Load and outside the SD-card book folder so .duetbak files do not clutter the device library.
+
 Duet can create missing covers on-device. For a large or multiply organized library, run the desktop cover prefill once after loading books:
 
   python3 scripts/prefill_cover_thumbnails.py "/Volumes/XTeink X3" --device x3
@@ -41,6 +48,8 @@ Duet can create missing covers on-device. For a large or multiply organized libr
 Run only the command matching the card. Never copy .duet, .crossink, or .crosspoint from one reader to the other. Confirm failed_books is empty in:
 
   /.duet/state/desktop_cover_prefill.json
+
+After a macOS copy, remove only confirmed AppleDouble sidecars named ._* from the card's book folders. A file such as ._Book.epub is metadata, not a second book, but its suffix can double the apparent library count.
 
 ALPHA NOTES
 
@@ -71,14 +80,20 @@ FEATURES.md
 User guide:
 USER_GUIDE.md
 
-Fast alpha.6 device acceptance route:
-docs/ALPHA6_ACCEPTANCE_QUICKSTART.md
+Fast alpha.7 device acceptance route:
+docs/ALPHA7_ACCEPTANCE_QUICKSTART.md
 
 Installation and recovery:
 docs/installation.md
 
 Cover prefill:
 docs/COVER_PREFILL.md
+
+EPUB WPM preparation:
+docs/EPUB_LOCATION_ENRICHMENT.md
+
+Combined computer-assistant library-prep prompt:
+docs/AI_LIBRARY_PREP_PROMPT.md
 
 Troubleshooting:
 docs/troubleshooting.md

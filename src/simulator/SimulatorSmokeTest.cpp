@@ -534,6 +534,9 @@ class SimulatorSmokeTest {
     };
     constexpr std::array<uint16_t, 6> paceFixtureWpm = {214, 247, 231, 276, 294, 318};
     constexpr std::array<uint8_t, 6> paceFixtureDayOffsets = {13, 10, 7, 4, 2, 0};
+    std::string paceCurrentCachePath;
+    BookReadingStats paceCurrentStats;
+    uint32_t paceCurrentWordCount = 0;
 
     Storage.ensureDirectoryExists(DUET_BOOKS_ROOT_PATH "");
     for (uint8_t i = 0; i < 24; ++i) {
@@ -569,6 +572,11 @@ class SimulatorSmokeTest {
         detail.isCompleted = true;
         readingStatsDateFromDayIndex(readingStatsDayIndex(startDate) + static_cast<uint32_t>(3u + i * 2u),
                                      detail.finishedDate);
+        if (i + 1 == paceFixturePaths.size()) {
+          paceCurrentCachePath = cachePath;
+          paceCurrentStats = detail;
+          paceCurrentWordCount = paceBook.getTotalWords();
+        }
       }
       detail.save(cachePath);
       char title[64];
@@ -673,7 +681,8 @@ class SimulatorSmokeTest {
     renderWeekdayPatternPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
     drawTabs(14);
     save("/smoke-stats-weekdays.bmp");
-    renderPaceTrendPage(renderer, &mappedInputManager, journal.get(), session, true, true);
+    renderPaceTrendPage(renderer, &mappedInputManager, journal.get(), session, paceCurrentCachePath.c_str(),
+                        paceCurrentStats, paceCurrentWordCount, 100.0f, true, true);
     drawTabs(15);
     save("/smoke-stats-pace.bmp");
     renderTimeOfDayPage(renderer, &mappedInputManager, history, true, true);
@@ -710,13 +719,18 @@ class SimulatorSmokeTest {
     renderReaderRadarPage(renderer, &mappedInputManager, journal.get(), history, session, &insights, 20, true, true);
     drawTabs(23);
     save("/smoke-stats-reader-dna.bmp");
-    renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, true, true);
+    renderReaderDnaDetailsPage(renderer, &mappedInputManager, journal.get(), history, session,
+                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, true, true);
     drawTabs(24);
     save("/smoke-stats-dna-details.bmp");
-    renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
+    renderReadingSignaturePage(renderer, &mappedInputManager, journal.get(), history, session,
+                               paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, 20, true,
+                               true);
     drawTabs(25);
     save("/smoke-stats-signature.bmp");
-    renderReadingSignatureDetailsPage(renderer, &mappedInputManager, journal.get(), history, session, 20, true, true);
+    renderReadingSignatureDetailsPage(renderer, &mappedInputManager, journal.get(), history, session,
+                                      paceCurrentCachePath.c_str(), paceCurrentStats, paceCurrentWordCount, 100.0f, 20,
+                                      true, true);
     drawTabs(26);
     save("/smoke-stats-signature-details.bmp");
     const std::vector<FastestReadStatsEntry> fastestReads = loadFastestReadStatsEntries();

@@ -49,10 +49,18 @@ bool loadTarget(const RecentBook& book, CurrentBookStatsTarget& target) {
     return false;
   }
 
+  target.path = book.path;
   target.title = book.title.empty() ? titleFromPath(book.path) : book.title;
   target.cachePath = cachePath;
   target.stats = BookReadingStats::load(cachePath);
   target.progressPercent = RecentBookProgress::loadPercent(book);
+  target.wordCount = 0;
+  if (FsHelpers::hasEpubExtension(book.path)) {
+    Epub epub(book.path, DUET_BOOKS_ROOT_PATH "");
+    if (epub.load(false, true)) {
+      target.wordCount = epub.getTotalWords();
+    }
+  }
   return true;
 }
 

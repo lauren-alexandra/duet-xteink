@@ -112,7 +112,7 @@ def main() -> int:
                     "author": clean(row.get("authors", "")) or "Unknown Author",
                     "series": clean(row.get("series", "")),
                     "genre": clean(row.get("primary_genre", "")) or "Uncategorized",
-                    "spice": clean(row.get("spice_level", "")) or "Not Rated",
+                    "spice": clean(row.get("spice_level", "")),
                     "series_index": clean(row.get("series_index", "")) or "0",
                     "device_path": "/Books/" + relative_path.as_posix(),
                     "description": descriptions.get(int(row["calibre_id"]), ""),
@@ -135,6 +135,7 @@ def main() -> int:
                 output.write(f"{code}\t{index}\t{name}\n")
         for row in rows:
             series_id = series_ids[row["series"]] if row["series"] else -1
+            spice_id = spice_ids[row["spice"]] if row["spice"] else -1
             output.write(
                 "B\t{calibre_id}\t{author_id}\t{series_id}\t{genre_id}\t{spice_id}\t{series_index}\t{device_path}"
                 "\t{title}\t{description}\n".format(
@@ -142,7 +143,7 @@ def main() -> int:
                     author_id=author_ids[row["author"]],
                     series_id=series_id,
                     genre_id=genre_ids[row["genre"]],
-                    spice_id=spice_ids[row["spice"]],
+                    spice_id=spice_id,
                     series_index=row["series_index"],
                     device_path=row["device_path"],
                     title=row["title"],

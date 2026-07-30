@@ -79,6 +79,7 @@ constexpr unsigned long HOME_DEFERRED_BOOK_STATS_STEP_MS = 60;
 constexpr unsigned long HOME_DEFERRED_COVER_IDLE_MS = 3500;
 constexpr unsigned long HOME_DEFERRED_CAROUSEL_IDLE_MS = 2500;
 constexpr unsigned long HOME_DEFERRED_ACHIEVEMENT_IDLE_MS = 2500;
+constexpr unsigned long HOME_DEFERRED_AFTER_INPUT_IDLE_MS = 900;
 constexpr uint32_t HOME_JOURNAL_LOAD_MIN_FREE = 72U * 1024U;
 constexpr uint32_t HOME_JOURNAL_LOAD_MIN_MAX_ALLOC = 24U * 1024U;
 
@@ -1099,6 +1100,34 @@ bool HomeActivity::hasActiveHomeInput() const {
          mappedInput.isPressed(MappedInputManager::Button::Power) || isAnyFrontButtonPressed(mappedInput);
 }
 
+void HomeActivity::deferHomeWorkAfterInput(const unsigned long idleMs) {
+  const unsigned long delay = idleMs == 0 ? HOME_DEFERRED_AFTER_INPUT_IDLE_MS : idleMs;
+  deferredHomeWorkNotBefore.store(millis() + delay, std::memory_order_release);
+}
+
+void HomeActivity::resetHighlightedBookContextToProgressOnly() {
+  currentBookStats = BookReadingStats{};
+  currentBookProgressPercent = -1.0f;
+  currentBookWordCount = 0;
+  currentBookChapterTitle.clear();
+
+  const int idx = getHighlightedBookIndex();
+  if (idx >= 0) {
+    currentBookProgressPercent = RecentBookProgress::loadPercent(recentBooks[idx]);
+  }
+
+  hasReadingStats = hasAnyBookStats(currentBookStats) || hasAnyGlobalStats(globalStats) ||
+                    (showAllDevicesStats && hasAnyGlobalStats(allDevicesGlobalStats));
+}
+
+void HomeActivity::scheduleHighlightedBookContextRefresh(const unsigned long idleMs) {
+  deferredHomeWork = DeferredHomeWork::BookContext;
+  deferredBookStatsIdx = 0;
+  bookStatsCached = false;
+  deferredHomeWorkNotBefore.store(millis() + (idleMs == 0 ? HOME_DEFERRED_BOOK_CONTEXT_IDLE_MS : idleMs),
+                                  std::memory_order_release);
+}
+
 void HomeActivity::applyInitialMenuSelection() {
   if (!initialMenuSelectionPending) return;
   initialMenuSelectionPending = false;
@@ -1180,6 +1209,11 @@ void HomeActivity::runDeferredHomeWork() {
                                           : RecentBookProgress::loadPercent(recentBooks[deferredBookStatsIdx]);
             cachedBookWordCounts[deferredBookStatsIdx] =
                 deferredBookStatsIdx == 0 ? currentBookWordCount : 0;
+            if (deferredBookStatsIdx == 0) {
+              loadEpubHighlightedContext(recentBooks[0], false, true, nullptr, &currentBookChapterTitle,
+                                         &currentBookWordCount);
+              cachedBookWordCounts[0] = currentBookWordCount;
+            }
           } else {
             cachedBookStats[deferredBookStatsIdx] = loadRecentBookStats(recentBooks[deferredBookStatsIdx]);
             cachedBookProgress[deferredBookStatsIdx] =
@@ -1270,7 +1304,6 @@ void HomeActivity::updateHighlightedBookStatsOnly() {
     // parse the EPUB. Keeping it in the first frame prevents Home from showing
     // an unknown progress value for a book whose reader stats are accurate.
     currentBookProgressPercent = RecentBookProgress::loadPercent(recentBooks[idx]);
-    loadEpubHighlightedContext(recentBooks[idx], false, false, nullptr, nullptr, &currentBookWordCount);
   }
 
   hasReadingStats = hasAnyBookStats(currentBookStats) || hasAnyGlobalStats(globalStats) ||
@@ -1826,12 +1859,15 @@ bool HomeActivity::preRenderCarouselFrames(bool showProgressPopup) {
 }
 
 void HomeActivity::loop() {
-  if (isReadingHomeTheme()) {
-    if (!loopReadingHome()) runDeferredHomeWork();
-    return;
+  const bool inputActive = hasActiveHomeInput();
+  if (inputActive) {
+    deferHomeWorkAfterInput();
   }
 
-  runDeferredHomeWork();
+  if (isReadingHomeTheme()) {
+    if (!loopReadingHome() && !inputActive) runDeferredHomeWork();
+    return;
+  }
 
   if (usesMinimalHomeInteraction()) {
     const int pressedFrontButton = mappedInput.getPressedFrontButton();
@@ -1952,6 +1988,7 @@ void HomeActivity::loop() {
       }
       return;
     }
+    if (!inputActive) runDeferredHomeWork();
     return;
   }
 
@@ -1959,6 +1996,7 @@ void HomeActivity::loop() {
       static_cast<CrossPointSettings::UI_THEME>(SETTINGS.uiTheme) == CrossPointSettings::UI_THEME::LYRA_CAROUSEL;
   const int previousHighlightedBookIdx = getHighlightedBookIndex();
   const int visibleBookCount = getVisibleRecentBookCount();
+  bool selectionChanged = false;
 
   if (isCarousel) {
     const int bookCount = visibleBookCount;
@@ -1968,17 +2006,23 @@ void HomeActivity::loop() {
     const int menuIdx = inCarouselRow ? 0 : (selectorIndex - bookCount);
 
     if (mappedInput.wasPressed(MappedInputManager::Button::Right)) {
-      if (inCarouselRow && bookCount > 0)
+      if (inCarouselRow && bookCount > 0) {
         selectorIndex = (selectorIndex + 1) % bookCount;
-      else if (!inCarouselRow)
+        selectionChanged = true;
+      } else if (!inCarouselRow) {
         selectorIndex = bookCount + (menuIdx + 1) % menuItemCount;
+        selectionChanged = true;
+      }
       requestUpdate();
     }
     if (mappedInput.wasPressed(MappedInputManager::Button::Left)) {
-      if (inCarouselRow && bookCount > 0)
+      if (inCarouselRow && bookCount > 0) {
         selectorIndex = (selectorIndex + bookCount - 1) % bookCount;
-      else if (!inCarouselRow)
+        selectionChanged = true;
+      } else if (!inCarouselRow) {
         selectorIndex = bookCount + (menuIdx + menuItemCount - 1) % menuItemCount;
+        selectionChanged = true;
+      }
       requestUpdate();
     }
     if (mappedInput.wasPressed(MappedInputManager::Button::Down)) {
@@ -1990,6 +2034,7 @@ void HomeActivity::loop() {
         selectorIndex = lastCarouselBookIndex;
         invalidateCoverCache();
       }
+      selectionChanged = true;
       requestUpdate();
     }
     if (mappedInput.wasPressed(MappedInputManager::Button::Up)) {
@@ -2001,22 +2046,34 @@ void HomeActivity::loop() {
         selectorIndex = lastCarouselBookIndex;
         invalidateCoverCache();
       }
+      selectionChanged = true;
       requestUpdate();
     }
   } else {
     const int menuCount = getMenuItemCount();
-    buttonNavigator.onNext([this, menuCount] {
+    buttonNavigator.onNext([this, menuCount, &selectionChanged] {
       selectorIndex = ButtonNavigator::nextIndex(selectorIndex, menuCount);
+      selectionChanged = true;
       requestUpdate();
     });
-    buttonNavigator.onPrevious([this, menuCount] {
+    buttonNavigator.onPrevious([this, menuCount, &selectionChanged] {
       selectorIndex = ButtonNavigator::previousIndex(selectorIndex, menuCount);
+      selectionChanged = true;
       requestUpdate();
     });
   }
 
+  if (selectionChanged && getHighlightedBookIndex() != previousHighlightedBookIdx) {
+    deferHomeWorkAfterInput();
+  }
+
   if (getHighlightedBookIndex() != previousHighlightedBookIdx) {
-    updateHighlightedBookContext();
+    if (!bookStatsCached) {
+      resetHighlightedBookContextToProgressOnly();
+      scheduleHighlightedBookContextRefresh(HOME_DEFERRED_AFTER_INPUT_IDLE_MS);
+    } else {
+      updateHighlightedBookContext();
+    }
   }
 
   if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
@@ -2039,7 +2096,10 @@ void HomeActivity::loop() {
     } else {
       onLauncherItemOpen(entry.item);
     }
+    return;
   }
+
+  if (!inputActive) runDeferredHomeWork();
 }
 
 void HomeActivity::render(RenderLock&&) {
@@ -2221,9 +2281,6 @@ void HomeActivity::updateSlidingWindowCache(int centerIdx, int bookCount) {
 void HomeActivity::onSelectBook(const std::string& path) {
   gCarouselCache.invalidate();
   freeCarouselFrames();
-  if (Storage.exists(CAROUSEL_CACHE_TMP_PATH)) {
-    Storage.remove(CAROUSEL_CACHE_TMP_PATH);
-  }
   activityManager.goToReader(path);
 }
 
@@ -2261,7 +2318,7 @@ void HomeActivity::onReadingStatsOpen(const BookStatsActivity::InitialPage initi
   const std::string& cachePath = hasLastActiveBook ? lastActiveBook.cachePath : fallbackCachePath;
   const BookReadingStats& bookStats = hasLastActiveBook ? lastActiveBook.stats : currentBookStats;
   const float bookProgressPercent = hasLastActiveBook ? lastActiveBook.progressPercent : currentBookProgressPercent;
-  const uint32_t bookWordCount = hasLastActiveBook && lastActiveBook.cachePath != fallbackCachePath ? 0 : currentBookWordCount;
+  const uint32_t bookWordCount = hasLastActiveBook ? lastActiveBook.wordCount : currentBookWordCount;
   if (showAllDevicesStats) {
     startActivityForResult(std::make_unique<BookStatsActivity>(
                                renderer, mappedInput, bookTitle, cachePath, bookStats, bookProgressPercent, false, 0,

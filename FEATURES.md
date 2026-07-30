@@ -202,8 +202,8 @@ See [FONT_SOURCES.md](FONT_SOURCES.md) for the family-by-family source, license,
 | Favorites | Add/remove, reorder, open, More Info, and path repair when a book moves to `/Read`. | Informed by CPR-vCodex; Duet implementation |
 | Smart search | Ranked autocomplete and results across any title word, author, or series from the optional library catalog. | Duet |
 | Search result actions | Short press opens the selected book; long press opens More Info. | Duet |
-| More Info | Cover, title, author, series/index, genre, spice, reading state/progress, catalog description, and Open. | Duet |
-| Library catalog | Optional Calibre/tracker-derived `library_catalog.tsv` supplies search, summaries, genre, spice, series, and library analytics without opening EPUBs. | Duet |
+| More Info | Cover, title, author, series/index, genre, optional spice/heat tag, reading state/progress, catalog description, and Open. | Duet |
+| Library catalog | Optional Calibre/tracker-derived `library_catalog.tsv` supplies search, summaries, genre, optional spice/heat tags, series, and library analytics without opening EPUBs. Blank or absent spice data is omitted rather than converted to a rating. | Duet |
 | Library analytics | Library Overview, Reading Taste, and Series Progress use the catalog plus local/synced book stats. | CPR-vCodex analytics philosophy; Duet implementation |
 | Clean Library Cache | Bounded scan compares live books with cache directories, refuses incomplete/empty scans, and moves confirmed orphans to recoverable `/.duet/books/.attic` instead of deleting them. | Duet |
 
@@ -276,7 +276,7 @@ The complete launcher catalog contains:
 
 ### The 33 Top-Level Pages
 
-1. **Current Book** - active or latest book/session data, progress, time left, estimated words per minute, totals, and dates.
+1. **Current Book** - active or latest book/session data, progress, time left, estimated words per minute when the EPUB has compatible word-location metadata, totals, and dates.
 2. **Book Progress** - progress graph and estimated completion context.
 3. **Book Patterns** - per-book sessions, pace, time, and reading pattern.
 4. **Trends** - Today, last 7 days, last 30 days, and current-year summaries.
@@ -288,7 +288,7 @@ The complete launcher catalog contains:
 10. **Goals** - daily goal and goal-streak detail.
 11. **Recent Sessions** - scrollable exact session history.
 12. **Weekday Pattern** - reading distribution by weekday.
-13. **Pace Trend** - a relative 30-day screen-page pace trend and direction. Historical daily records do not contain the per-book word totals needed to reconstruct WPM.
+13. **Pace Trend** - attributable 30-day words-per-minute history for the current enriched book, with 7-day and 30-day summaries when that book has qualifying ledger entries. Other historical books without a cheap exact WPM are excluded rather than reopened during rendering; screen-page pace remains an internal estimate.
 14. **Time of Day** - morning/afternoon/evening/night distribution.
 15. **Monthly Trend** - reading by month.
 16. **Year Line** - cumulative current-year line and page-turn total.
@@ -305,7 +305,7 @@ The complete launcher catalog contains:
 27. **Wrapped** - 12-month time, days, completions, streak, weekday, and average-session summary.
 28. **Started Books** - scrollable in-progress list with estimates.
 29. **Library Overview** - catalog-backed counts and completion.
-30. **Reading Taste** - catalog-backed genre/spice/author patterns.
+30. **Reading Taste** - catalog-backed genre and author patterns, plus spice/heat patterns only when that optional metadata exists.
 31. **Series Progress** - scrollable series completion.
 32. **This Device** - device-local aggregate statistics.
 33. **All Devices** - merged aggregate statistics; hidden until synced data exists.
@@ -319,7 +319,7 @@ The exact page render paths are simulator-covered. The source also includes day-
 Duet exposes **108 persistent milestones**:
 
 - **62 thresholds adapted from CPR-vCodex**: 5 books-started, 6 sessions, 24 books-finished, 7 reading-time, 5 goal-days, 5 goal-streak, 4 bookmarks, and 6 longest-session milestones.
-- **46 Duet milestones**: 8 reading-days, 6 reading-streak, 7 screen-pages, 4 series-started, 4 series-completed, 4 spice-level, 4 morning-reading, 4 night-reading, 4 weekend-reading, and 1 cross-device milestone.
+- **46 Duet milestones**: 8 reading-days, 6 reading-streak, 7 screen-pages, 4 series-started, 4 series-completed, 4 optional spice-level, 4 morning-reading, 4 night-reading, 4 weekend-reading, and 1 cross-device milestone. Spice milestones remain inactive when the library does not provide spice metadata.
 
 Unlocks persist in `/.duet/state/achievements.bin`, recover from its `.bak`, and are retroactively adopted from existing reading history if no unlock file exists. Protocol v6 Nearby Stats Sync retains each peer ledger under `/.duet/state/synced_achievements/` and merges each achievement metric to its highest unlocked milestone, so imported progress cannot erase a stronger local unlock. Complete `.cstats` archives include local and synced achievement ledgers; older archives that omit them preserve the current ledger during restore.
 

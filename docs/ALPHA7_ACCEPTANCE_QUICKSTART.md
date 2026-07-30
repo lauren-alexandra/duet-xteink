@@ -29,7 +29,7 @@ Use this route to test the exact `v0.1.0-alpha.7` build on an X3 or X4. It does 
 3. Confirm every button press changes the selected page before expensive derived content loads.
 4. Confirm Fastest, Start/Finish, and Devices may briefly show **Loading** but do not trap navigation or freeze the reader.
 5. Confirm the Book, Device, Synced, and Devices pages sit together.
-6. For a cataloged EPUB with saved progress and reading time, confirm Current Book and applicable pace pages show WPM. A book without enough data may show a dash.
+6. Prepare the test EPUB with [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md), read for measurable time and progress, then confirm Current Book and qualifying current-book entries on Pace, DNA Details, and Signature show WPM. An untouched EPUB without compatible `META-INF/x-locations.json` metadata, or a book without enough attributable time or progress, should show a dash rather than a screen-pages/minute value mislabeled as WPM.
 7. Confirm the Streaks page names the days still needed for the next milestone above the personal longest streak.
 8. Change a reading-date value or other statistic, return to a derived page, and confirm the cached summary updates.
 

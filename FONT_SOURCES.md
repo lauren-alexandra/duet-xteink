@@ -2,13 +2,13 @@
 
 ## Packaging rule
 
-The initial public alpha is a firmware-only package. It includes the notices for the fonts already baked into the X3 and X4 BINs.
+The public Alpha.7 release includes an optional `Duet-Open-Font-Pack-v1.zip` containing 123 ready-to-copy SD-card families. Each family provides 10, 12, 14, 16, 18, and 20 pt `.cpfont` files for both X3 and X4.
 
-A later optional font pack may include a ready-to-copy SD-card font folder. Those `.cpfont` files are separate release assets, not bytes embedded in the firmware BIN.
+The font pack is a separate release asset, not bytes embedded in the firmware BIN. Testers who do not want the complete pack can use Duet's smaller on-device catalog or follow the upstream source links in `FONT_PACK_SOURCES.tsv` and convert only the families they want.
 
 Only fonts with confirmed redistribution rights, complete copyright notices, and the applicable license text may enter the public bundle. This is a source and packaging audit, not legal advice.
 
-The public font folder must be generated from reviewed manifests.
+The public font folder is generated from the positive allowlist in `release/public-font-pack.json` by `scripts/package_public_font_pack.py`. The packager rejects missing or extra family files, validates `.cpfont` format version 4, writes one checksum row per generated file, and copies the reviewed license directory into the ZIP.
 
 ## Built-in firmware fonts
 
@@ -23,7 +23,7 @@ The pinned source revisions, generated-header roles, and bundled notice paths ar
 
 These generated headers were inherited from Duet's recorded CrossInk baseline, revision `9c7315f495186185ff34ec5ddb485ebf18d3fc17`. ChareInk7 is already distributed under its distinct derivative name; any future regeneration still requires a Reserved Font Name check.
 
-## Current CrossInk SD Manifest
+## CrossInk SD Manifest
 
 `lib/EpdFont/scripts/sd-fonts.yaml` is the source of truth for the standard CrossInk SD-font generator. It currently defines these 24 families:
 
@@ -38,7 +38,7 @@ The CrossInk fonts repository includes OFL notices for ChareInk7, Lexend Deca, N
 
 ## E-Reader Optimized Collection
 
-The public bundle may include the 37-family collection from [nicoverbruggen/ebook-fonts](https://github.com/nicoverbruggen/ebook-fonts), pinned for this audit at revision `88d65d5e40ca29aca5d9ec790fd0c3b43508a88d`:
+The public bundle includes the 37-family collection from [nicoverbruggen/ebook-fonts](https://github.com/nicoverbruggen/ebook-fonts), pinned for this audit at revision `88d65d5e40ca29aca5d9ec790fd0c3b43508a88d`:
 
 - Cartisse, Libron, Readerly, and Sourcerer.
 - NV Adelph, NV Ancizar Sans, NV Ancizar Serif, NV Basker, NV Bitter, NV Cardo, NV Castoro, NV Charis, NV Charter, NV Clara, NV Cooper, NV Disleksio, NV Elstob, NV Erewhon, NV Garamond, NV Gentium, NV Georsio, NV Jost, NV Junius, NV Kierkegaard, NV Legible Next, NV Libertinus, NV Literata, NV Lore, NV Membo, NV Newsreader, NV NinePoint, NV Palatium, NV Plex Serif, NV Scarlet, NV Source Serif, NV Technical, and NV ZillaSlab.
@@ -51,7 +51,7 @@ The generated XTEINK set uses the optimized NV variant in place of a redundant o
 
 ## Supplemental Open Families
 
-These additional families were built from official open sources and can be considered for the public bundle after their exact notices are copied beside the generated output:
+The public bundle also includes these families built from official open sources. Their exact notices are copied beside the generated output:
 
 | Families | Source | License family |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ Optimized equivalents already supplied by the NV collection should replace dupli
 
 ## Generated `.cpfont` Files
 
-The XTEINK build process rasterizes selected source faces into device-specific `.cpfont` files, subsets glyph coverage, extracts static instances from variable fonts, and may synthesize missing bold or italic faces. Public output therefore needs its own generated-asset manifest containing:
+The XTEINK build process rasterizes selected source faces into device-specific `.cpfont` files, subsets glyph coverage, extracts static instances from variable fonts, and may synthesize missing bold or italic faces. The published pack includes a generated-asset manifest containing:
 
 - Display family and generated filename.
 - Upstream project URL and pinned revision or package version.
@@ -82,6 +82,10 @@ The XTEINK build process rasterizes selected source faces into device-specific `
 
 The generator configuration and conversion scripts should be public so the font bundle is reproducible.
 
-## Publication Gate
+## Published Pack
 
-The font package is ready only when all included families are generated from the public manifests, every output maps to a source and license, any Reserved Font Name requirements are satisfied, the family/size/style inventory validates, and the release ZIP includes the license directory plus a checksum manifest.
+`Duet-Open-Font-Pack-v1.zip` contains 123 families and 738 generated `.cpfont` files. The archive includes `FONT_PACK_MANIFEST.tsv`, `FONT_PACK_SOURCES.tsv`, `SHA256SUMS.txt`, this human-readable source ledger, and the `licenses/` directory.
+
+Every family is mapped to an upstream project and pinned revision or package source. The pack includes family-specific Google Fonts notices, the pinned `nicoverbruggen/ebook-fonts` source ledger, CrossInk font notices, and the applicable OFL, Apache, Ubuntu, GUST, Bitstream Charter, Open Inclusive Font License, and ETbb project notices.
+
+Future pack revisions must continue to pass the same gate: every included family must appear on the reviewed positive allowlist, every generated output must map to a source and license, any Reserved Font Name requirements must be satisfied, the family/size/style inventory must validate, and the release ZIP must include its license directory and checksum manifest.

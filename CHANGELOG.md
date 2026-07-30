@@ -4,13 +4,24 @@
 
 - Nearby Reading Stats Sync protocol v6 now exchanges `achievements.bin`, retains each peer ledger under `/.duet/state/synced_achievements/`, and merges the highest unlocked milestone for every achievement metric without replacing stronger local progress.
 - Complete `.cstats` archives now include local and synced achievement ledgers. Restoring an older archive that predates achievement storage preserves the current achievement state instead of treating the omitted files as deletions.
+- `scripts/enrich_epub_locations.py` adds Duet word-location metadata for true WPM and reference-page statistics, with dry-run, skip-existing, forced-refresh, URL-escaped OPF path support, and collision-safe `.duetbak` backups that can be routed to a separate folder.
+
+### Changed
+
+- Spice/heat metadata is now genuinely opt-in: blank or absent values are omitted from More Info, Reading Taste collapses to genre and author, and spice achievements remain inactive instead of counting a synthetic `Not Rated` category.
 
 ### Fixed
 
-- The deterministic public statistics fixture now connects its dummy Pace history to staged EPUB word counts, so the Pace Trend gallery screenshot contains representative WPM bars, 7-day and 30-day averages, and a trend instead of an empty chart.
+- Pace Trend, Reader DNA Details, Reading Signature, and Signature Details now seed WPM from the already-loaded current-book path, statistics, word count, and progress. Statistics rendering no longer opens catalogs, progress files, or EPUBs; historical entries without a cheap exact WPM are excluded instead of being guessed.
+- Home now postpones book-context parsing while input is active, keeps persisted progress visible immediately, and resumes the heavier current-book word-count and chapter-title work after a short idle window.
+- The deterministic public statistics fixture now seeds an enriched current book with exact dummy word count, progress, and reading time so Pace, DNA Details, Signature, and Signature Details exercise visible WPM without render-time EPUB access.
 - The public statistics fixture now varies fabricated session lengths, page counts, start times, daily totals, and calendar gaps so the gallery demonstrates realistic differences across Sessions, Calendar, Heatmap, Trends, and related pages.
 
 ## [0.1.0-alpha.7] - 2026-07-29
+
+### Added
+
+- The Alpha.7 release offers an optional 123-family Duet Open Font Pack with all six X3/X4 reader sizes, 738 validated `.cpfont` files, a per-file checksum manifest, pinned upstream sources, and bundled license notices.
 
 ### Changed
 
