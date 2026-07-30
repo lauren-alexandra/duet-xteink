@@ -6,7 +6,7 @@
 - Complete `.cstats` archives now include local and synced achievement ledgers. Restoring an older archive that predates achievement storage preserves the current achievement state instead of treating the omitted files as deletions.
 - `scripts/enrich_epub_locations.py` adds Duet word-location metadata for true WPM and reference-page statistics, with dry-run, skip-existing, forced-refresh, URL-escaped OPF path support, and collision-safe `.duetbak` backups that can be routed to a separate folder.
 - The Fonts documentation now includes a visual catalog of all 123 public families, rendered from the packaged `.cpfont` files through Duet's simulator with regular, italic, and bold specimens.
-- The visual font gallery now features all 37 e-reader-optimized families together and organizes all 123 packaged families by the same type categories used in Duet's on-device picker.
+- The visual font gallery now features all 37 e-reader-optimized families together and organizes all 123 packaged families by the same type categories used in Duet's on-device picker. Every family advertised in the public pack is selectable in the picker.
 
 ### Changed
 
