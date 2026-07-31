@@ -1798,6 +1798,8 @@ void EpubReaderActivity::onEnter() {
   firstRenderCompleted.store(false, std::memory_order_relaxed);
   deferredOnEnterPending = false;
   pendingRelayoutPreview = false;
+  pendingRelayoutPreviewFromBack = false;
+  relayoutPreviewUserMoved = false;
   activeRelayoutPreview = false;
   activeChapterPreview = false;
   relayoutBuildWorkRequested.store(false, std::memory_order_relaxed);
@@ -2028,6 +2030,8 @@ void EpubReaderActivity::onExit() {
   activeFootnotePreview = false;
   activeRelayoutPreview = false;
   activeChapterPreview = false;
+  pendingRelayoutPreviewFromBack = false;
+  relayoutPreviewUserMoved = false;
 
   // Leaving mid-footnote loses the in-RAM return stack on deep sleep; persist the
   // pre-footnote position so the book reopens at the link origin, not the footnote.
@@ -3373,6 +3377,8 @@ void EpubReaderActivity::beginInteractiveRelayout(const bool allowPreview) {
     section.reset();
     activeRelayoutPreview = false;
     activeChapterPreview = false;
+    pendingRelayoutPreviewFromBack = false;
+    relayoutPreviewUserMoved = false;
     pendingRelayoutPreview = allowPreview && pendingRelayoutReposition && cachedPageParagraphIndex != UINT16_MAX;
   }
   sdFontSystem.ensureLoaded(renderer);
@@ -4274,11 +4280,52 @@ bool EpubReaderActivity::pageTurn(bool isForwardTurn, const char* source) {
     if (isForwardTurn && section && section->currentPage < section->pageCount - 1) {
       section->currentPage++;
       moved = true;
+      relayoutPreviewUserMoved = true;
       if (sessionScreenPages < UINT16_MAX) sessionScreenPages++;
     } else if (!isForwardTurn && section && section->currentPage > 0) {
       section->currentPage--;
       moved = true;
+      relayoutPreviewUserMoved = true;
       armReadingPaceWarmup("relayout_preview_back");
+    } else if (!isForwardTurn && section && section->currentPage <= 0 && cachedPageParagraphIndex > 0) {
+      const uint16_t stepBack = std::min<uint16_t>(cachedPageParagraphIndex, RELAYOUT_PREVIEW_MAX_PAGES);
+      cachedPageParagraphIndex -= stepBack;
+      cachedPageParagraphOffset = RELAYOUT_PREVIEW_MAX_PAGES - 1;
+      cachedPageParagraphSpan = RELAYOUT_PREVIEW_MAX_PAGES;
+      cachedRelayoutAtChapterStart = cachedPageParagraphIndex == 0;
+      pendingRelayoutReposition = true;
+      pendingRelayoutPreview = true;
+      pendingRelayoutPreviewFromBack = true;
+      relayoutPreviewUserMoved = true;
+      activeRelayoutPreview = false;
+      activeChapterPreview = false;
+      relayoutBuildCancelRequested.store(true, std::memory_order_release);
+      relayoutBuildRetired.store(false, std::memory_order_release);
+      relayoutBuildEligibleAfterMs.store(millis() + RELAYOUT_BUILD_IDLE_MS, std::memory_order_release);
+      section->clearCache();
+      section.reset();
+      moved = true;
+      armReadingPaceWarmup("relayout_preview_back_window");
+    } else if (!isForwardTurn && section && section->currentPage <= 0 && currentSpineIndex > 0) {
+      relayoutBuildCancelRequested.store(true, std::memory_order_release);
+      relayoutBuildRetired.store(true, std::memory_order_release);
+      activeRelayoutPreview = false;
+      activeChapterPreview = false;
+      pendingRelayoutPreview = false;
+      pendingRelayoutPreviewFromBack = false;
+      relayoutPreviewUserMoved = false;
+      pendingRelayoutReposition = false;
+      cachedRelayoutAtChapterStart = false;
+      cachedChapterTotalPageCount = 0;
+      cachedPageParagraphIndex = UINT16_MAX;
+      currentSpineIndex--;
+      nextPageNumber = 0;
+      pendingPageJump = std::numeric_limits<uint16_t>::max();
+      section.reset();
+      armReadingPaceWarmup("relayout_preview_prev_chapter");
+      lastPageTurnTime = millis();
+      requestUpdate();
+      return true;
     }
     if (moved) {
       cacheRelayoutPreviewPosition();
@@ -4473,14 +4520,18 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
         showSafeModeToast();
       }
     }
-    if (section && activeRelayoutPreview) {
+    if (section && activeRelayoutPreview && (completingChapterPreview || relayoutPreviewUserMoved)) {
       cacheRelayoutPreviewPosition();
+      section->clearCache();
+    } else if (section && activeRelayoutPreview) {
       section->clearCache();
     }
     section.reset();
     activeRelayoutPreview = false;
     activeChapterPreview = false;
     pendingRelayoutPreview = false;
+    pendingRelayoutPreviewFromBack = false;
+    relayoutPreviewUserMoved = false;
     relayoutBuildAttempts.store(0, std::memory_order_release);
     relayoutBuildRetired.store(false, std::memory_order_release);
     relayoutBuildSafeModePending.store(false, std::memory_order_release);
@@ -5113,6 +5164,8 @@ void EpubReaderActivity::render(RenderLock&& lock) {
         }
         if (buildingRelayoutPreview) {
           pendingRelayoutPreview = false;
+          pendingRelayoutPreviewFromBack = false;
+          relayoutPreviewUserMoved = false;
           activeRelayoutPreview = false;
           requestUpdate();
           return;
@@ -5167,6 +5220,10 @@ void EpubReaderActivity::render(RenderLock&& lock) {
     activeChapterPreview = buildingChapterPreview;
     activeRelayoutPreview = buildingRelayoutPreview || buildingChapterPreview;
     pendingRelayoutPreview = false;
+    if (!activeRelayoutPreview) {
+      pendingRelayoutPreviewFromBack = false;
+      relayoutPreviewUserMoved = false;
+    }
     if (activeRelayoutPreview) {
       if (activeChapterPreview) {
         cachedSpineIndex = currentSpineIndex;
@@ -5454,6 +5511,8 @@ bool EpubReaderActivity::applyDeferredReposition() {
   cachedChapterTotalPageCount = 0;
   pendingRelayoutReposition = false;
   cachedRelayoutAtChapterStart = false;
+  pendingRelayoutPreviewFromBack = false;
+  relayoutPreviewUserMoved = false;
   cachedPageParagraphIndex = UINT16_MAX;
   cachedPageParagraphOffset = 0;
   cachedPageParagraphSpan = 0;
@@ -5995,6 +6054,8 @@ std::string EpubReaderActivity::chapterPreviewCacheSuffix(const EpubRenderMode r
 void EpubReaderActivity::clearFootnotePreviewState() {
   pendingFootnotePreviewAnchor.clear();
   activeFootnotePreview = false;
+  pendingRelayoutPreviewFromBack = false;
+  relayoutPreviewUserMoved = false;
 }
 
 void EpubReaderActivity::navigateToHref(const std::string& hrefStr, const bool savePosition) {

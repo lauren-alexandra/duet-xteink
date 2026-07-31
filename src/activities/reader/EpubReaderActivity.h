@@ -66,6 +66,8 @@ class EpubReaderActivity final : public Activity {
   uint16_t cachedPageParagraphOffset = 0;
   uint16_t cachedPageParagraphSpan = 0;
   bool pendingRelayoutPreview = false;
+  bool pendingRelayoutPreviewFromBack = false;
+  bool relayoutPreviewUserMoved = false;
   bool activeRelayoutPreview = false;
   bool activeChapterPreview = false;
   std::atomic<bool> relayoutBuildWorkRequested{false};
