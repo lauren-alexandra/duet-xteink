@@ -510,7 +510,7 @@ There are three ways to install fonts:
 
 1. **Download from device (recommended):** Go to **Settings -> Reader -> Font Options -> Manage Fonts**, browse the available font families, and select one to download over Wi-Fi.
 2. **Upload via web interface:** While in **File Transfer** mode, open the web UI in a browser and navigate to the **Fonts** tab to upload `.cpfont` files.
-3. **Manual SD card copy:** Download the complete [123-family Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip), choose compatible files from the credited [upstream CrossInk fonts repository](https://github.com/uxjulia/crossink-fonts/releases), or follow the upstream source recorded for each Duet family, then copy the selected `.cpfont` files to `/.fonts/` (preferred) or `/fonts/` on your SD card.
+3. **Manual SD card copy:** Download the complete [123-family Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-Open-Font-Pack-v1.zip), choose compatible files from the credited [upstream CrossInk fonts repository](https://github.com/uxjulia/crossink-fonts/releases), or follow the upstream source recorded for each Duet family, then copy the selected `.cpfont` files to `/.fonts/` (preferred) or `/fonts/` on your SD card.
 
 Once installed, custom fonts appear in **Settings -> Reader -> Font Options -> Font Family** alongside the built-in fonts.
 
@@ -550,6 +550,8 @@ Both readers must run a protocol v6-capable Duet build; protocol v6 does not pai
 ### 3.12 Apps and Utilities
 
 The customizable Apps launcher includes Browse Files, Search Library, Recent Books, Reading Stats, Heatmap, Reading Profile, Saved Items, Favorites, Achievements, Dictionary, Tetris, If Found, Screen Clean, Nearby Stats Sync, File Transfer, OPDS, KOReader setup, Sleep, Read Me, Customize Home & Apps, and Settings.
+
+**If Found** gives whoever finds a lost reader a simple way to see return instructions. Create a plain-text file named `/if_found.txt` at the SD-card root and put the contact or recovery message you are comfortable showing on the device inside it. Opening **If Found** from Home or Apps displays that message on a scrollable screen. If the file is absent or empty, Duet shows a setup reminder instead. The file stays on the SD card and is never part of Duet's public release package.
 
 Duet includes 108 persistent achievements: 62 thresholds adapted from CPR-vCodex and 46 Duet milestones. Unlocks persist across restarts and can be adopted retroactively from reading history. Protocol v6 Nearby Stats Sync merges the highest milestone reached for each achievement metric, and `.cstats` includes both local and retained peer achievement ledgers.
 

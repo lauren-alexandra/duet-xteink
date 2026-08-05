@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#ifndef SIMULATOR
+#include <BoardConfig.h>
+#endif
 #include <DuetStorageMigration.h>
 #include <DuetStoragePaths.h>
 #include <Epub.h>
@@ -64,8 +67,8 @@ inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_
 #include <algorithm>
 #include <cstring>
 
-#include "AppVersion.h"
 #include "AchievementStore.h"
+#include "AppVersion.h"
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
 #include "FavoritesStore.h"
@@ -684,7 +687,8 @@ void putTiltSensorToSleepForDeepSleep() {
   if (cycleSleepImage) {
     display.deepSleep();
   }
-  LOG_INF("MAIN", "%s; re-entering deep sleep", cycleSleepImage ? "Sleep image cycle complete" : "Lock screen unchanged");
+  LOG_INF("MAIN", "%s; re-entering deep sleep",
+          cycleSleepImage ? "Sleep image cycle complete" : "Lock screen unchanged");
   powerManager.startDeepSleep(gpio);
 
   while (true) {
@@ -854,6 +858,9 @@ void setupDisplayAndFonts(bool seamless = false) {
 }
 
 void setup() {
+#ifndef SIMULATOR
+  BoardConfig::holdPowerRails();
+#endif
   t1 = millis();
 
   const esp_reset_reason_t rawResetReason = esp_reset_reason();
@@ -895,15 +902,22 @@ void setup() {
   silentRebootTarget = 0;
 
   gpio.begin();
+  // X3 hardware detection releases its temporary I2C probe bus. Reopen the
+  // production bus before getWakeupReason() asks the fuel gauge whether USB is
+  // connected; probing a closed TwoWire bus can leave its mutex locked.
+  LOG_INF("BOOT", "Starting power manager");
+  powerManager.begin();
+  LOG_INF("BOOT", "Power manager ready");
   // Preserve the original locked-screen gesture route: arm only after GPIO
   // initialization has identified a real Power-button wake.
   const auto wakeupReason = gpio.getWakeupReason();
   if (wakeupReason == HalGPIO::WakeupReason::PowerButton) {
     armLockedPowerClickCounter();
   }
-  powerManager.begin();
+  LOG_INF("BOOT", "Starting X3 peripherals");
   halTiltSensor.begin();
   halClock.begin();
+  LOG_INF("BOOT", "X3 peripherals ready");
   bootTiming.gpioReadyMs = millis();
 
   LOG_INF("MAIN", "Hardware detect: %s", gpio.deviceIsX3() ? "X3" : "X4");
@@ -952,8 +966,7 @@ void setup() {
       } else {
         disarmLockedPowerClickCounter();
         LOG_INF("BOOT", "Power-button wake: verifying duration required=%u shortAllowed=%d",
-                SETTINGS.getPowerButtonWakeDuration(),
-                SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
+                SETTINGS.getPowerButtonWakeDuration(), SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
         gpio.verifyPowerButtonWakeup(SETTINGS.getPowerButtonWakeDuration(),
                                      SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
       }
@@ -1149,15 +1162,16 @@ void loop() {
     FsFile bootTimingFile;
     if (Storage.openFileForWrite("BOOT", DUET_STATE_ROOT_PATH "/boot_timing.txt", bootTimingFile)) {
       char buf[320];
-      const int n = snprintf(buf, sizeof(buf),
-                             "reset=%d wake=%d serial=%lums gpio=%lums storage=%lums panicChk=%lums settings=%lums gesture=%lums "
-                             "stores=%lums panel=%lums displayInit=%lums builtinFonts=%lums sdDiscover=%lums "
-                             "sdLoad=%lums dispatch=%lums releaseWait=%lums setupDone=%lums\n",
-                             bootTiming.resetReason, bootTiming.wakeupCause, bootTiming.serialReadyMs,
-                             bootTiming.gpioReadyMs, bootTiming.storageReadyMs, bootTiming.panicCheckMs, bootTiming.settingsMs,
-                             bootTiming.gestureMs, bootTiming.storesMs, bootTiming.panelMs, bootTiming.displayInitMs,
-                             bootTiming.builtinFontsMs, bootTiming.sdDiscoverMs, bootTiming.sdLoadMs,
-                             bootTiming.dispatchDoneMs, bootTiming.powerReleaseWaitMs, bootTiming.setupDoneMs);
+      const int n =
+          snprintf(buf, sizeof(buf),
+                   "reset=%d wake=%d serial=%lums gpio=%lums storage=%lums panicChk=%lums settings=%lums gesture=%lums "
+                   "stores=%lums panel=%lums displayInit=%lums builtinFonts=%lums sdDiscover=%lums "
+                   "sdLoad=%lums dispatch=%lums releaseWait=%lums setupDone=%lums\n",
+                   bootTiming.resetReason, bootTiming.wakeupCause, bootTiming.serialReadyMs, bootTiming.gpioReadyMs,
+                   bootTiming.storageReadyMs, bootTiming.panicCheckMs, bootTiming.settingsMs, bootTiming.gestureMs,
+                   bootTiming.storesMs, bootTiming.panelMs, bootTiming.displayInitMs, bootTiming.builtinFontsMs,
+                   bootTiming.sdDiscoverMs, bootTiming.sdLoadMs, bootTiming.dispatchDoneMs,
+                   bootTiming.powerReleaseWaitMs, bootTiming.setupDoneMs);
       if (n > 0) bootTimingFile.write(reinterpret_cast<const uint8_t*>(buf), static_cast<size_t>(n));
       bootTimingFile.close();
     }

@@ -1,37 +1,18 @@
+#include <BoardConfig.h>
 #include <HalGPIO.h>
 #include <Logging.h>
-#include <Preferences.h>
+#include <PowerManager.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <XteinkDetect.h>
 #include <esp_sleep.h>
+
+#include "HalPowerRails.h"
 
 // Global HalGPIO instance
 HalGPIO gpio;
 
 namespace X3GPIO {
-
-struct X3ProbeResult {
-  bool bq27220 = false;
-  bool ds3231 = false;
-  bool qmi8658 = false;
-
-  uint8_t score() const {
-    return static_cast<uint8_t>(bq27220) + static_cast<uint8_t>(ds3231) + static_cast<uint8_t>(qmi8658);
-  }
-};
-
-bool readI2CReg8(uint8_t addr, uint8_t reg, uint8_t* outValue) {
-  Wire.beginTransmission(addr);
-  Wire.write(reg);
-  if (Wire.endTransmission(false) != 0) {
-    return false;
-  }
-  if (Wire.requestFrom(addr, static_cast<uint8_t>(1), static_cast<uint8_t>(true)) < 1) {
-    return false;
-  }
-  *outValue = Wire.read();
-  return true;
-}
 
 bool readI2CReg16LE(uint8_t addr, uint8_t reg, uint16_t* outValue) {
   Wire.beginTransmission(addr);
@@ -60,146 +41,27 @@ bool readBQ27220CurrentMA(int16_t* outCurrent) {
   return true;
 }
 
-bool probeBQ27220Signature() {
-  uint16_t soc = 0;
-  uint16_t voltageMv = 0;
-  if (!readI2CReg16LE(I2C_ADDR_BQ27220, BQ27220_SOC_REG, &soc)) {
-    return false;
-  }
-  if (soc > 100) {
-    return false;
-  }
-  if (!readI2CReg16LE(I2C_ADDR_BQ27220, BQ27220_VOLT_REG, &voltageMv)) {
-    return false;
-  }
-  return voltageMv >= 2500 && voltageMv <= 5000;
-}
-
-bool probeDS3231Signature() {
-  uint8_t sec = 0;
-  if (!readI2CReg8(I2C_ADDR_DS3231, DS3231_SEC_REG, &sec)) {
-    return false;
-  }
-  const uint8_t tensDigit = (sec >> 4) & 0x07;
-  const uint8_t onesDigit = sec & 0x0F;
-
-  return tensDigit <= 5 && onesDigit <= 9;
-}
-
-bool probeQMI8658Signature() {
-  uint8_t whoami = 0;
-  if (readI2CReg8(I2C_ADDR_QMI8658, QMI8658_WHO_AM_I_REG, &whoami) && whoami == QMI8658_WHO_AM_I_VALUE) {
-    return true;
-  }
-  if (readI2CReg8(I2C_ADDR_QMI8658_ALT, QMI8658_WHO_AM_I_REG, &whoami) && whoami == QMI8658_WHO_AM_I_VALUE) {
-    return true;
-  }
-  return false;
-}
-
-X3ProbeResult runX3ProbePass() {
-  X3ProbeResult result;
-  Wire.begin(X3_I2C_SDA, X3_I2C_SCL, X3_I2C_FREQ);
-  Wire.setTimeOut(6);
-
-  result.bq27220 = probeBQ27220Signature();
-  result.ds3231 = probeDS3231Signature();
-  result.qmi8658 = probeQMI8658Signature();
-
-  Wire.end();
-  pinMode(20, INPUT);
-  pinMode(0, INPUT);
-  return result;
-}
-
 }  // namespace X3GPIO
 
-namespace {
-constexpr char HW_NAMESPACE[] = "cphw";
-constexpr char NVS_KEY_DEV_OVERRIDE[] = "dev_ovr";  // 0=auto, 1=x4, 2=x3
-constexpr char NVS_KEY_DEV_CACHED[] = "dev_det";    // 0=unknown, 1=x4, 2=x3
-
-enum class NvsDeviceValue : uint8_t { Unknown = 0, X4 = 1, X3 = 2 };
-
-NvsDeviceValue readNvsDeviceValue(const char* key, NvsDeviceValue defaultValue) {
-  Preferences prefs;
-  if (!prefs.begin(HW_NAMESPACE, true)) {
-    return defaultValue;
-  }
-  const uint8_t raw = prefs.getUChar(key, static_cast<uint8_t>(defaultValue));
-  prefs.end();
-  if (raw > static_cast<uint8_t>(NvsDeviceValue::X3)) {
-    return defaultValue;
-  }
-  return static_cast<NvsDeviceValue>(raw);
-}
-
-void writeNvsDeviceValue(const char* key, NvsDeviceValue value) {
-  Preferences prefs;
-  if (!prefs.begin(HW_NAMESPACE, false)) {
-    return;
-  }
-  prefs.putUChar(key, static_cast<uint8_t>(value));
-  prefs.end();
-}
-
-HalGPIO::DeviceType nvsToDeviceType(NvsDeviceValue value) {
-  return value == NvsDeviceValue::X3 ? HalGPIO::DeviceType::X3 : HalGPIO::DeviceType::X4;
-}
-
-HalGPIO::DeviceType detectDeviceTypeWithFingerprint() {
-  // Explicit override for recovery/support:
-  // 0 = auto, 1 = force X4, 2 = force X3
-  const NvsDeviceValue overrideValue = readNvsDeviceValue(NVS_KEY_DEV_OVERRIDE, NvsDeviceValue::Unknown);
-  if (overrideValue == NvsDeviceValue::X3 || overrideValue == NvsDeviceValue::X4) {
-    LOG_INF("HW", "Device override active: %s", overrideValue == NvsDeviceValue::X3 ? "X3" : "X4");
-    return nvsToDeviceType(overrideValue);
-  }
-
-  const NvsDeviceValue cachedValue = readNvsDeviceValue(NVS_KEY_DEV_CACHED, NvsDeviceValue::Unknown);
-  if (cachedValue == NvsDeviceValue::X3 || cachedValue == NvsDeviceValue::X4) {
-    LOG_INF("HW", "Using cached device type: %s", cachedValue == NvsDeviceValue::X3 ? "X3" : "X4");
-    return nvsToDeviceType(cachedValue);
-  }
-
-  // No cache yet: run active X3 fingerprint probe and persist result.
-  const X3GPIO::X3ProbeResult pass1 = X3GPIO::runX3ProbePass();
-  delay(2);
-  const X3GPIO::X3ProbeResult pass2 = X3GPIO::runX3ProbePass();
-
-  const uint8_t score1 = pass1.score();
-  const uint8_t score2 = pass2.score();
-  LOG_INF("HW", "X3 probe scores: pass1=%u(bq=%d rtc=%d imu=%d) pass2=%u(bq=%d rtc=%d imu=%d)", score1, pass1.bq27220,
-          pass1.ds3231, pass1.qmi8658, score2, pass2.bq27220, pass2.ds3231, pass2.qmi8658);
-  const bool x3Confirmed = (score1 >= 2) && (score2 >= 2);
-  const bool x4Confirmed = (score1 == 0) && (score2 == 0);
-
-  if (x3Confirmed) {
-    writeNvsDeviceValue(NVS_KEY_DEV_CACHED, NvsDeviceValue::X3);
-    return HalGPIO::DeviceType::X3;
-  }
-
-  if (x4Confirmed) {
-    writeNvsDeviceValue(NVS_KEY_DEV_CACHED, NvsDeviceValue::X4);
-    return HalGPIO::DeviceType::X4;
-  }
-
-  // Conservative fallback for first boot with inconclusive probes.
-  return HalGPIO::DeviceType::X4;
-}
-
-}  // namespace
-
 void HalGPIO::begin() {
-  inputMgr.begin();
-  SPI.begin(EPD_SCLK, SPI_MISO, EPD_MOSI, EPD_CS);
-
 #ifdef FORCE_DEVICE_X3
+  BoardConfig::selectDevice(BoardConfig::Board::XteinkX3);
   _deviceType = DeviceType::X3;
   LOG_INF("HW", "Device override active via build flag: X3");
 #else
-  _deviceType = detectDeviceTypeWithFingerprint();
+  const bool isX3 = freeink::selectXteinkDevice();
+  if (!isX3) {
+    freeink::applyXteinkDisplayController();
+  }
+  _deviceType = isX3 ? DeviceType::X3 : DeviceType::X4;
 #endif
+
+  BoardConfig::releaseSdRail();
+  inputMgr.begin();
+  SPI.begin(EPD_SCLK, SPI_MISO, EPD_MOSI, EPD_CS);
+
+  LOG_INF("HW", "Detected %s profile=%s controller=%d", deviceIsX3() ? "X3" : "X4", BoardConfig::ACTIVE.name,
+          static_cast<int>(BoardConfig::ACTIVE.displayController));
 
   if (deviceIsX4()) {
     pinMode(BAT_GPIO0, INPUT);
@@ -242,10 +104,9 @@ void HalGPIO::startDeepSleep() {
     delay(50);
     inputMgr.update();
   }
-  // Arm the wakeup trigger *after* the button is released
-  esp_deep_sleep_enable_gpio_wakeup(1ULL << InputManager::POWER_BUTTON_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
-  // Enter Deep Sleep
-  esp_deep_sleep_start();
+  HalPowerRails::prepareForDeepSleep();
+  freeink::PowerManager::armPowerButtonWakeup();
+  freeink::PowerManager::deepSleep();
 }
 
 void HalGPIO::verifyPowerButtonWakeup(uint16_t requiredDurationMs, bool shortPressAllowed) {

@@ -37,7 +37,7 @@ class PanelDriver {
   virtual BusyPolarity busyPolarity() const = 0;
   virtual PanelGeometry geometry() const = 0;
   virtual int8_t spiMiso() const { return -1; }  // SSD1677 uses none; M5 shares MISO
-  virtual int8_t coCs() const { return -1; }      // co-resident SPI CS to hold high (M5 SD)
+  virtual int8_t coCs() const { return -1; }     // co-resident SPI CS to hold high (M5 SD)
 
   // True for drivers backed by an external library that manages its own SPI /
   // display hardware (e.g. M5GFX, EPD_Painter). When true the facade does NOT
@@ -55,6 +55,60 @@ class PanelDriver {
     display(bus, fb, prev, RefreshMode::Fast, turnOff);
   }
 
+  // True when displayStart() defers (returns true) rather than completing
+  // inline. Lets the facade skip async scaffolding (shadow setup) on blocking
+  // drivers without a trial call, and lets hosts size overlap buffers up
+  // front. Must agree with what displayStart() actually returns.
+  virtual bool supportsAsyncDisplay() const { return false; }
+
+  // Two-call refresh split (CrossPoint EInkDisplay::triggerDisplay/completeDisplay).
+  // For the shadowed async path the facade passes its own baseline copy as
+  // `prev`, so the live fb may be redrawn immediately; otherwise `fb` must
+  // stay intact until displayFinish() returns:
+  // controllers whose post-waveform pipeline re-reads the host frame (UC8253 X3
+  // syncs DTM1 and runs conditioning passes after BUSY) need it. The contract is
+  // the caller does non-SPI CPU work in the gap and issues no other bus op until
+  // displayFinish().
+  //
+  // displayStart() loads RAM, fires the waveform, and either:
+  //   - returns true  -> a waveform is in flight; displayFinish() must run to
+  //                      wait it out and do post-waveform work, or
+  //   - returns false -> the refresh completed synchronously (nothing deferred);
+  //                      displayFinish() is then a no-op.
+  // The default is the fully-blocking display() (returns false), so a driver
+  // gains the split only by overriding both. SSD1677 (X4) keeps the default:
+  // its refresh is short and its post-waveform RED re-seed already lives inside
+  // display(), matching CrossPoint's "X4 completes inline" behavior.
+  virtual bool displayStart(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff) {
+    display(bus, fb, prev, mode, turnOff);
+    return false;
+  }
+  // `fb` is the just-displayed frame, re-supplied fresh by the facade at finish
+  // time (not stashed at start): callers may release/realloc the buffer holding
+  // it between the two calls, so the driver must not cache the pointer.
+  virtual void displayFinish(EpdBus& bus, const uint8_t* fb) {
+    (void)bus;
+    (void)fb;
+  }
+
+  // Re-seed the controller's host-managed previous-frame plane (SSD1677 RED RAM)
+  // with `buf`, WITHOUT triggering a refresh. A dual-buffer fast refresh only
+  // writes RED from `prev` at its start, so between refreshes RED holds the frame
+  // BEFORE the one on the panel. That is fine while paging (the next refresh
+  // rewrites RED) but wrong at the moment the host releases its secondary buffer
+  // for single-buffer fast-diff: the first prev==nullptr refresh reuses whatever
+  // RED holds. Callers seed the on-screen frame here just before releasing so that
+  // first differential diff has a correct baseline. Default no-op: controllers with
+  // no host-managed previous-frame plane (X3 DTM1, M5) keep their own baseline.
+  virtual void seedPreviousFrame(EpdBus& bus, const uint8_t* buf) {
+    (void)bus;
+    (void)buf;
+  }
+
+  // Optional white-inversion scrub. Panels without a dedicated implementation
+  // keep the default no-op and retain their normal resync policy.
+  virtual void deghostClear(EpdBus& bus) { (void)bus; }
+
   // --- grayscale (dual-plane LSB/MSB) ---
   virtual bool supportsStripGrayscale() const { return false; }
   // Display `fb` as the base frame for a grayscale overlay that follows.
@@ -71,35 +125,54 @@ class PanelDriver {
   // the BW base frame is displayed, before grayscale planes are written.
   // Default no-op for panels whose grayscale needs no conditioning.
   virtual void preconditionGrayscale(EpdBus& bus, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    (void)bus; (void)x; (void)y; (void)w; (void)h;
+    (void)bus;
+    (void)x;
+    (void)y;
+    (void)w;
+    (void)h;
   }
-  virtual void copyGrayscaleLsb(EpdBus& bus, const uint8_t* lsb) { (void)bus; (void)lsb; }
-  virtual void copyGrayscaleMsb(EpdBus& bus, const uint8_t* msb) { (void)bus; (void)msb; }
+  virtual void copyGrayscaleLsb(EpdBus& bus, const uint8_t* lsb) {
+    (void)bus;
+    (void)lsb;
+  }
+  virtual void copyGrayscaleMsb(EpdBus& bus, const uint8_t* msb) {
+    (void)bus;
+    (void)msb;
+  }
   virtual void writeGrayscalePlaneStrip(EpdBus& bus, GrayPlane plane, const uint8_t* rows, uint16_t yStart,
                                         uint16_t numRows) {
-    (void)bus; (void)plane; (void)rows; (void)yStart; (void)numRows;
+    (void)bus;
+    (void)plane;
+    (void)rows;
+    (void)yStart;
+    (void)numRows;
   }
   virtual void displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, const unsigned char* lut, bool factoryMode) {
     (void)lut;
     (void)factoryMode;
     display(bus, fb, nullptr, RefreshMode::Fast, turnOff);
   }
-  virtual void cleanupGrayscaleBuffers(EpdBus& bus, const uint8_t* bw) { (void)bus; (void)bw; }
+  virtual void cleanupGrayscaleBuffers(EpdBus& bus, const uint8_t* bw) {
+    (void)bus;
+    (void)bw;
+  }
 
   // --- optional, controller-specific hooks (no-op by default) ---
   virtual void requestResync(uint8_t settlePasses) { (void)settlePasses; }
-  // Optional white-inversion scrub: fill controller RAM white and drive one
-  // FULL cycle without touching the caller's framebuffer. Panels without a
-  // resync mechanism (SSD1677) use this to neutralize DU residue; the next
-  // normal display() rewrites the framebuffer content.
-  virtual void deghostClear(EpdBus& bus) { (void)bus; }
   virtual void skipInitialResync() {}
   virtual void requestCompleteWaveformNextRefresh() {}
   // Interrupted-refresh cutoff tuning (ED2208: where the gate scan freezes).
   virtual void setFastRefreshCutoffMs(uint16_t ms) { (void)ms; }
   virtual uint16_t fastRefreshCutoffMs() const { return 0; }
-  virtual void grayscaleRevert(EpdBus& bus, const uint8_t* fb) { (void)bus; (void)fb; }
-  virtual void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) { (void)bus; (void)enabled; (void)data; }
+  virtual void grayscaleRevert(EpdBus& bus, const uint8_t* fb) {
+    (void)bus;
+    (void)fb;
+  }
+  virtual void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) {
+    (void)bus;
+    (void)enabled;
+    (void)data;
+  }
 };
 
 }  // namespace freeink

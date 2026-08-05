@@ -80,8 +80,8 @@ FEATURES.md
 User guide:
 USER_GUIDE.md
 
-Fast alpha.7 device acceptance route:
-docs/ALPHA7_ACCEPTANCE_QUICKSTART.md
+Fast Alpha.8 device acceptance route:
+docs/ALPHA8_ACCEPTANCE_QUICKSTART.md
 
 Installation and recovery:
 docs/installation.md

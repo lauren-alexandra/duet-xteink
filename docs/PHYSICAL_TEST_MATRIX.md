@@ -4,16 +4,16 @@ This page separates source review, build success, simulator coverage, and behavi
 
 ## Current candidate
 
-- Version: `v0.1.0-alpha.7`
-- X3 artifact: `Duet-X3-v0.1.0-alpha.7.bin`
-- X3 size: 5,941,904 bytes
-- X3 SHA-256: `ad0bccbde59b2d64119279623a785c97124dbf6a72c7cfecce58f748128f1961`
-- X4 artifact: `Duet-X4-v0.1.0-alpha.7.bin`
-- X4 size: 5,804,864 bytes
-- X4 SHA-256: `8a38294c547a1f947c7f810acf083b6b7e077e5f8a46e946e867b3e13a8172f2`
-- Source state: published GitHub prerelease `v0.1.0-alpha.7`
+- Version: `v0.1.0-alpha.9`
+- X3 artifact: `Duet-X3-v0.1.0-alpha.9.bin`
+- X3 size: 5,960,976 bytes
+- X3 SHA-256: `f7ea78e91ff614872cb77156ee68b837ff4cae8d89cf58a36a8d605e481d087d`
+- X4 artifact: `Duet-X4-v0.1.0-alpha.9.bin`
+- X4 size: 5,823,888 bytes
+- X4 SHA-256: `1dee9f0fd99c0bf1d52be39cbda71dc81388945120f7e527c8ff52146f962d06`
+- Source state: public `release/alpha9` candidate; exact public-artifact acceptance remains open
 
-Both alpha.7 hardware targets build successfully. The X3 image leaves 611,696 bytes of OTA app-partition headroom. The X4 image leaves 748,736 bytes. All 117 host unit tests pass, and the X3 and X4 simulator smoke tests pass. This is useful development evidence, but it is not a substitute for testing these exact cleanly named alpha.7 artifacts. Simulator results do not prove physical panel refresh behavior.
+Both Alpha.9 hardware targets build successfully from the same public source. The X3 image leaves 592,624 bytes of OTA app-partition headroom. The X4 image leaves 729,712 bytes. All 118 host unit tests pass, and full X3 and X4 simulator smoke tests exercise small caps, reader relayout, Home, and statistics. This is useful development evidence, but it is not a substitute for testing these exact cleanly named Alpha.9 artifacts. Simulator results do not prove physical panel refresh behavior.
 
 ## Alpha 2 Status
 
@@ -21,11 +21,18 @@ Alpha.2 was not physically tested. The X4 photo initially attributed to alpha.2 
 
 Code review still found an installation-path weakness worth fixing before the next flash: SD updates restart with `ESP_RST_SW`, which HalGPIO classifies as `Other`, so an `AfterFlash`-only cleanup gate is unreliable. Alpha.3 replaces that gate with a device-and-version marker.
 
-## Alpha 7 Acceptance
+## Alpha 9 Acceptance
 
 | Area | X3 | X4 | Evidence needed |
 | --- | --- | --- | --- |
-| Install and reported version | Pending | Pending | System page shows `Duet 0.1.0-alpha.7` |
+| Install and reported version | Pending | Pending | System page shows `Duet 0.1.0-alpha.9` |
+| Current FreeInk hardware detection | Pending | Pending | Correct display driver selected; no boot loop, SD Card Error, or power-latch failure on the tested hardware variant |
+| Update Complete handoff | Pending | Pending | Updater exits and reaches Home without a manual reset or repeated flash |
+| Font-size direction and reading-position anchor | Pending | Pending | X3 right increases and left decreases; X4 Up increases and Down decreases; both reflow without advancing the visible text, including from a chapter's first page |
+| Relayout rollback | Pending | Pending | A failed complex relayout restores the prior font, size, spacing, and orientation rather than persisting the failed settings |
+| Small-caps EPUB styling | Pending | Pending | CSS small caps render as compact capitals and preserve surrounding bold/italic style |
+| SD-font UI fallback | Pending | Pending | Compatible extended/CJK glyphs render through the active SD font; unloading or changing the family clears the prior fallback |
+| Clock Sync | Pending | Pending | X3 hardware clock and X4 software clock show the synchronized local time after leaving the sync screen |
 | Canonical storage migration | Pending | Pending | `/.duet` created; active book, progress, settings, stats, achievements, covers, and catalog preserved; legacy roots untouched |
 | Second boot after migration | Pending | Pending | Migration does not visibly repeat and the same active book remains selected |
 | Post-install Home ghosting | Pending | Pending | No updater text or prior screen after first settled Home frame |
@@ -56,7 +63,7 @@ Matched private/test `v0.1.0-alpha.7.1` builds physically passed the WPM detail-
 - X3 SHA-256: `287e1ae508a59b3f4717bd98570d071537b1b59ea181954a48259c32759f23b4`
 - X4 SHA-256: `2bc4d7de14f732c6564fafc85250388e088e7d320615d35bae2195438412bb34`
 
-This result clears the hardware-verification gate for the Alpha.7.1 WPM/detail-snapshot repair. It does not retroactively mark the Alpha.7 rows above as passed because the published Alpha.7 BINs do not contain that final repair. The next public matched build must include the accepted source before testers can reproduce this result from a release download.
+This result cleared the hardware-verification gate for the Alpha.7.1 WPM/detail-snapshot repair. It does not retroactively mark the published Alpha.7 BINs as passed because they do not contain that final repair. Alpha.8 and later include the accepted source so testers can reproduce the behavior from matched public X3 and X4 downloads.
 
 ## Reporting a result
 

@@ -49,7 +49,7 @@ class CssParser {
  public:
   // Bump when CSS cache format or rules change; section caches are invalidated when this changes
   static constexpr uint32_t CSS_CACHE_MAGIC = 0x435843FF;  // bytes: 0xFF, "CXC"
-  static constexpr uint8_t CSS_CACHE_VERSION = 14;
+  static constexpr uint8_t CSS_CACHE_VERSION = 15;
 
   static constexpr size_t MAX_DESCENDANT_RULES = 100;
   static constexpr size_t CSS_INDEX_BYTES_PER_RULE = 8;

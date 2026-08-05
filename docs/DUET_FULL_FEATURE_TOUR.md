@@ -469,7 +469,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The initial public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. Alpha.7 also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
+The public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. The current release also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
 
 ## Dictionary and reference tools
 
@@ -490,7 +490,7 @@ That combined implementation includes corrupt-cache recovery, yielding index bui
 
 ## Sleep screens, power, and display care
 
-**Lineage:** Sleep/wake, Custom, Cover, and Quick Resume foundations are inherited from CrossPoint/CrossInk. CrossInk also supplied its statistics sleep screens and control foundation. Duet adds Dashboard sleep, PNG Page Overlay composition, large-folder caching, and device-specific refresh work; locked Power-click cycling is adapted from CrumBLE, and awake multi-click detection is adapted from CrossPet.
+**Lineage:** Sleep/wake, Custom, Cover, and Quick Resume foundations are inherited from CrossPoint/CrossInk. CrossInk also supplied its statistics sleep screens and control foundation. Transparency-aware PNG composition in Page Overlay mode and locked Power-click cycling come from CrumBLE. Duet adds Dashboard sleep, large-folder caching, device-specific refresh work, and configurable Off/1/2/3-click cycling around CrumBLE's original one-tap behavior; awake multi-click detection is adapted from CrossPet.
 
 Duet has 12 sleep-screen modes:
 
@@ -654,7 +654,6 @@ Nearby Position Sync is inherited from CrossInk. KOReader Sync is inherited from
 
 ### Display, power, performance, and recovery
 
-- PNG Page Overlay composition over the stored reader page
 - Dashboard sleep presentation and large-folder sleep-image inventory caching
 - Duet's expanded Power-action system around credited CrossPet/CrossInk foundations
 - Shared X3/X4 integration with device-specific geometry, memory, refresh, and ghosting work
@@ -720,11 +719,11 @@ Known constraints:
 - X3 and X4 can behave differently under the same library and SD-card load.
 - Damaged SD-card filesystems can imitate firmware defects because the books and persistent state live on the card.
 - Protocol v6 Nearby Stats Sync requires a v6-capable build on both readers and does not pair with Alpha.7's protocol v5 implementation.
-- Physical acceptance of the exact public candidate is still pending.
+- Broader physical acceptance remains an explicit alpha-test target.
 
 ## Testing and privacy
 
-Start with [Alpha Testing][16], the short [alpha.7 acceptance route][17], and the full [Physical Test Matrix][18].
+Start with [Alpha Testing][16], the short [Alpha.9 acceptance route][17], and the full [Physical Test Matrix][18].
 
 A useful report includes:
 
@@ -782,7 +781,7 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [14]: https://github.com/seek-reader/seek
 [15]: https://github.com/aaludon/crosspoint-reader-aalu
 [16]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
-[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA7_ACCEPTANCE_QUICKSTART.html
+[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA9_ACCEPTANCE_QUICKSTART.html
 [18]: https://lauren-alexandra.github.io/duet-xteink/PHYSICAL_TEST_MATRIX.html
 [19]: https://github.com/lauren-alexandra/duet-xteink/releases
 [20]: https://lauren-alexandra.github.io/duet-xteink/

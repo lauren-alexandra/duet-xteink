@@ -21,7 +21,7 @@ REQUIRED_FILES = (
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
     "docs/ALPHA_TESTING.md",
-    "docs/ALPHA7_ACCEPTANCE_QUICKSTART.md",
+    "docs/ALPHA8_ACCEPTANCE_QUICKSTART.md",
     "docs/AI_LIBRARY_PREP_PROMPT.md",
     "docs/COVER_PREFILL.md",
     "docs/EPUB_LOCATION_ENRICHMENT.md",
@@ -71,6 +71,7 @@ FORMATTED_PHONE_RE = re.compile(
     r"[2-9]\d{2}[\s.-]\d{4}(?!\d)"
 )
 PLAIN_PHONE_RE = re.compile(r"(?<!\d)[2-9]\d{2}[2-9]\d{2}\d{4}(?!\d)")
+PUBLIC_DEMO_PHONE = "555-555-5555"
 SHA256_RE = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])")
 PUBLIC_PROSE_SUFFIXES = (".ini", ".json", ".md", ".toml", ".txt", ".yaml", ".yml")
 COPY_SUFFIX_RE = re.compile(r" 2(?:\.[^/]+)?$")
@@ -170,7 +171,7 @@ def main() -> int:
             "/" not in relative_path
             or relative_path.startswith((".github/", "docs/", "release/"))
         ) and relative_path.lower().endswith(PUBLIC_PROSE_SUFFIXES)
-        phone_scan_text = SHA256_RE.sub("", text)
+        phone_scan_text = SHA256_RE.sub("", text).replace(PUBLIC_DEMO_PHONE, "")
         if FORMATTED_PHONE_RE.search(phone_scan_text) or (
             public_prose and PLAIN_PHONE_RE.search(phone_scan_text)
         ):

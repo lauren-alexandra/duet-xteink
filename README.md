@@ -24,15 +24,15 @@ For the complete public-facing story in one place, including how the features wo
 
 ## Downloads
 
-The current tester release is **Duet v0.1.0-alpha.7**:
+The current tester release is **Duet v0.1.0-alpha.9**:
 
-- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X3-v0.1.0-alpha.7.bin)
-- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-X4-v0.1.0-alpha.7.bin)
-- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-v0.1.0-alpha.7-firmware.zip)
-- [Download the complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-Open-Font-Pack-v1.zip)
-- [Download the ready-to-copy WordNet 3.0 dictionary pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/Duet-WordNet-3.0-StarDict.zip)
-- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.7/SHA256SUMS.txt)
-- [Read the alpha.7 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.7)
+- [Download the X3 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-X3-v0.1.0-alpha.9.bin)
+- [Download the X4 firmware BIN](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-X4-v0.1.0-alpha.9.bin)
+- [Download the complete firmware ZIP](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-v0.1.0-alpha.9-firmware.zip)
+- [Download the complete 123-family Duet font pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-Open-Font-Pack-v1.zip)
+- [Download the ready-to-copy WordNet 3.0 dictionary pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-WordNet-3.0-StarDict.zip)
+- [Download SHA-256 checksums](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/SHA256SUMS.txt)
+- [Read the alpha.9 release page](https://github.com/lauren-alexandra/duet-xteink/releases/tag/v0.1.0-alpha.9)
 
 The optional Duet Open Font Pack contains 123 ready-to-copy families and all six reader sizes for both devices. If you only want a few fonts, use **Settings > Reader > Font Options > Manage Fonts** for the credited 24-family compatibility catalog or follow the exact upstream source links in the pack's manifest. See [Fonts](docs/sd-card-fonts.md) for installation, previews, selective-source options, and conversion instructions.
 
@@ -45,14 +45,14 @@ New to Duet? Begin with the [Start Here guide](docs/START_HERE.md). It puts the 
 - **Loading books, fonts, dictionaries, and library metadata:** [library setup](docs/START_HERE.md#loading-books-and-building-the-library), [Dictionary Setup](docs/DICTIONARY_SETUP.md), and the full [User Guide](USER_GUIDE.md).
 - **Preparing EPUB metadata and a large cover library:** run [EPUB WPM Preparation](docs/EPUB_LOCATION_ENRICHMENT.md) before [Desktop Cover Prefill](docs/COVER_PREFILL.md), or give a local computer assistant the combined [AI Library Prep Prompt](docs/AI_LIBRARY_PREP_PROMPT.md).
 - **Syncing an X3 and X4:** [Nearby Position Sync](docs/nearby-position-sync.md) and [Nearby Reading Stats Sync](docs/reading-stats-sync.md).
-- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.7 Acceptance Quickstart](docs/ALPHA7_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
+- **Testing and reporting:** [Alpha Testing](docs/ALPHA_TESTING.md), the ordered [Alpha.9 Acceptance Quickstart](docs/ALPHA9_ACCEPTANCE_QUICKSTART.md), and the repository's report forms.
 - **Fixing a failed update, damaged card, or missing covers:** [Troubleshooting](docs/troubleshooting.md).
 
 ---
 
 ## Alpha status
 
-Duet v0.1.0-alpha.7 targets both X3 and X4, but the public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include statistics responsiveness and WPM estimates, first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, font-download back-out, and repeated two-device sync.
+Duet v0.1.0-alpha.9 targets both X3 and X4, including newer display and power-latch hardware detected by the current FreeInk SDK. The public alpha is intended to find device-specific and large-library behavior that two personal devices cannot reproduce alone. The current test targets include hardware-variant detection, statistics responsiveness and WPM estimates, first-use cover hydration, picker responsiveness while covers load, carousel thumbnail quality, guarded chapter pre-indexing, X3/X4 performance differences, font-download back-out, and repeated two-device sync.
 
 See [Duet Alpha Testing](docs/ALPHA_TESTING.md) for the current known issues, test matrix, privacy rules, and useful logs. A successful build or simulator run is not presented as physical-device acceptance. Use the repository's **Alpha Test Report** form for successful or mixed sessions and **Alpha Bug Report** for one reproducible defect. Maintainer-side publication follows the [release runbook](docs/MAINTAINER_RELEASE_RUNBOOK.md); incoming reports follow the [alpha triage guide](docs/ISSUE_TRIAGE.md).
 
@@ -153,7 +153,7 @@ Exactly **33 top-level pages** for people who want to _see_ their reading. Aggre
 - **A/B comparison view** at matched sizes, compact Normal/Italic/Bold specimens, real face detection, and synthetic bold/italic fallbacks when a family lacks those files.
 - A cached font catalog avoids rescanning every installed family on each boot. On the maintainer's development cards this reduced discovery to a small fraction of the prior path; exact timing varies with card and font set.
 
-The Alpha.7 release also offers an optional 123-family Duet Open Font Pack with 738 validated `.cpfont` files covering 10, 12, 14, 16, 18, and 20 pt. People who want only selected families can use the smaller on-device catalog or follow the upstream projects recorded in the pack's source manifest. See [Fonts](docs/sd-card-fonts.md) for installation and [FONT_SOURCES.md](FONT_SOURCES.md) for the source and redistribution ledger.
+The Alpha.9 release also offers an optional 123-family Duet Open Font Pack with 738 validated `.cpfont` files covering 10, 12, 14, 16, 18, and 20 pt. People who want only selected families can use the smaller on-device catalog or follow the upstream projects recorded in the pack's source manifest. See [Fonts](docs/sd-card-fonts.md) for installation and [FONT_SOURCES.md](FONT_SOURCES.md) for the source and redistribution ledger.
 
 ## Apps
 
@@ -182,7 +182,7 @@ Public alpha downloads will be published only through this repository's [Release
 Read the [Start Here guide](docs/START_HERE.md) and [full installation instructions](docs/installation.md) before flashing. The short version is:
 
 1. **Back up your SD card.**
-2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.7.bin` or `Duet-X4-v0.1.0-alpha.7.bin`).
+2. Download the correct BIN for your device (`Duet-X3-v0.1.0-alpha.9.bin` or `Duet-X4-v0.1.0-alpha.9.bin`).
 3. For a first Duet installation or recovery, use the CrossPoint web installer's **Custom .bin** option.
 4. For a Duet-to-Duet update, put exactly one firmware BIN at the SD-card root, then choose **Settings → System → SD Firmware Update**.
 5. After flashing, confirm **Settings → System** shows the expected Duet version before a long reading session.

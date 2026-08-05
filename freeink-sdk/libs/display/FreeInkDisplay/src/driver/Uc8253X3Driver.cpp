@@ -43,6 +43,8 @@ const Uc8253X3Config& uc8253X3DefaultConfig() {
       {lut_x3_vcom_gc, lut_x3_ww_gc, lut_x3_bw_gc, lut_x3_wb_gc, lut_x3_bb_gc},
       {lut_x3_vcom_aa_pre_bw_mid, lut_x3_ww_aa_pre_bw_mid, lut_x3_bw_aa_pre_bw_mid, lut_x3_wb_aa_pre_bw_mid,
        lut_x3_bb_aa_pre_bw_mid},
+      {lut_x3_vcom_factory_p1, lut_x3_ww_factory_p1, lut_x3_bw_factory_p1, lut_x3_wb_factory_p1, lut_x3_bb_factory_p1},
+      {lut_x3_vcom_factory_p2, lut_x3_ww_factory_p2, lut_x3_bw_factory_p2, lut_x3_wb_factory_p2, lut_x3_bb_factory_p2},
       42,  // controller accepts 42 bytes of each 43-byte array
   };
   return cfg;
@@ -149,6 +151,11 @@ void Uc8253X3Driver::begin(EpdBus& bus) {
 }
 
 void Uc8253X3Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff) {
+  displayStart(bus, fb, prev, mode, turnOff);
+  displayFinish(bus, fb);
+}
+
+bool Uc8253X3Driver::displayStart(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff) {
   (void)prev;
   if (!_isScreenOn && !turnOff) {
     mode = RefreshMode::Half;  // wake transition gets a stronger waveform
@@ -188,6 +195,32 @@ void Uc8253X3Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev
     _isScreenOn = true;
   }
   bus.cmd(CMD_DISPLAY_REFRESH);
+  // Confirm the waveform actually started (BUSY dropped LOW) before handing the
+  // CPU back, so displayFinish()'s waitBusy() only rides out the second
+  // (LOW->HIGH) phase. Short timeout: a missed edge just falls through to the
+  // full two-phase wait in displayFinish().
+  {
+    const int8_t busyPin = bus.pins().busy;
+    const unsigned long t0 = millis();
+    while (digitalRead(busyPin) == HIGH && millis() - t0 < 50) delay(1);
+  }
+  _pendingTurnOff = turnOff;
+  _pendingDoFullSync = doFullSync;
+  _pendingFastMode = fastMode;
+  _pendingRefresh = true;
+  return true;
+}
+
+void Uc8253X3Driver::displayFinish(EpdBus& bus, const uint8_t* fb) {
+  if (!_pendingRefresh) return;
+  _pendingRefresh = false;
+  const bool turnOff = _pendingTurnOff;
+  const bool doFullSync = _pendingDoFullSync;
+  const bool fastMode = _pendingFastMode;
+
+  // Keep the X3 on its proven two-phase BUSY polling path. The UC8253 can
+  // complete between the start confirmation and interrupt attachment, leaving
+  // the first post-update frame stranded even though the application booted.
   bus.waitBusy(" X3_DRF");
   if (turnOff) {
     bus.cmd(CMD_POWER_OFF);
@@ -199,8 +232,10 @@ void Uc8253X3Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev
 
   uint8_t postConditionPasses = 0;
   if (doFullSync) {
-    if (forcedFullSync) postConditionPasses = _forcedConditionPassesNext;
-    else if (_initialFullSyncsRemaining == 1) postConditionPasses = 1;
+    if (_forceFullSyncNext)
+      postConditionPasses = _forcedConditionPassesNext;
+    else if (_initialFullSyncsRemaining == 1)
+      postConditionPasses = 1;
   }
   if (postConditionPasses > 0) {
     const uint16_t xEnd = static_cast<uint16_t>(_w - 1);
@@ -243,71 +278,6 @@ void Uc8253X3Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev
   }
   _forceFullSyncNext = false;
   _forcedConditionPassesNext = 0;
-}
-
-void Uc8253X3Driver::displayWindow(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, uint16_t x, uint16_t y,
-                                   uint16_t w, uint16_t h, bool turnOff) {
-  (void)prev;
-  if (!fb || w == 0 || h == 0 || x >= _w || y >= _h || x + w > _w || y + h > _h) return;
-
-  // A partial differential only works when controller RAM is a clean BW copy
-  // of the visible screen. Falling back here keeps wake, grayscale, and resync
-  // paths safe while allowing ordinary library focus moves to stay tiny.
-  if (_inGrayscaleMode || !_redRamSynced || _grayState.lsbValid || _initialFullSyncsRemaining > 0 ||
-      _forceFullSyncNext || !_isScreenOn) {
-    display(bus, fb, prev, RefreshMode::Fast, turnOff);
-    return;
-  }
-
-  const uint16_t xStart = static_cast<uint16_t>(x & ~7u);
-  const uint16_t xEnd = static_cast<uint16_t>(std::min<uint32_t>(_w - 1, static_cast<uint32_t>(x + w - 1) | 7u));
-  const uint16_t yStart = y;
-  const uint16_t yEnd = static_cast<uint16_t>(y + h - 1);
-  const uint16_t gateYStart = static_cast<uint16_t>((_h - 1) - yEnd);
-  const uint16_t gateYEnd = static_cast<uint16_t>((_h - 1) - yStart);
-  const uint16_t rowBytes = static_cast<uint16_t>((xEnd - xStart + 1) / 8);
-  const uint8_t window[9] = {static_cast<uint8_t>(xStart >> 8),
-                             static_cast<uint8_t>(xStart & 0xFF),
-                             static_cast<uint8_t>(xEnd >> 8),
-                             static_cast<uint8_t>(xEnd & 0xFF),
-                             static_cast<uint8_t>(gateYStart >> 8),
-                             static_cast<uint8_t>(gateYStart & 0xFF),
-                             static_cast<uint8_t>(gateYEnd >> 8),
-                             static_cast<uint8_t>(gateYEnd & 0xFF),
-                             0x01};
-
-  const auto writeWindow = [&](const uint8_t command) {
-    bus.cmd(command);
-    bus.beginTxn();
-    for (int row = static_cast<int>(yEnd); row >= static_cast<int>(yStart); --row) {
-      const uint32_t offset = static_cast<uint32_t>(row) * _wb + xStart / 8;
-      bus.rawWriteBytes(fb + offset, rowBytes);
-    }
-    bus.endTxn();
-    bus.cmd(CMD_DATA_STOP);
-  };
-
-  bus.cmd(CMD_PARTIAL_IN);
-  bus.cmdData(CMD_PARTIAL_WINDOW, window, sizeof(window));
-  loadBankCdi(bus, 0x29, 0x07, _cfg.fast);
-  writeWindow(CMD_DTM2);
-  bus.cmd(CMD_PARTIAL_OUT);
-  triggerRefresh(bus, /*turnOff=*/false);
-
-  // Keep the old RAM plane in lockstep with the changed rectangle so the next
-  // differential focus move compares against the frame now on screen.
-  bus.cmd(CMD_PARTIAL_IN);
-  bus.cmdData(CMD_PARTIAL_WINDOW, window, sizeof(window));
-  writeWindow(CMD_DTM1);
-  bus.cmd(CMD_PARTIAL_OUT);
-  if (turnOff) {
-    bus.cmd(CMD_POWER_OFF);
-    bus.waitBusy(" X3_POF");
-    _isScreenOn = false;
-  }
-  _grayState.lastBaseWasPartial = true;
-  _grayState.lsbValid = false;
-  _redRamSynced = true;
 }
 
 void Uc8253X3Driver::displayGrayscaleBase(EpdBus& bus, const uint8_t* fb, RefreshMode fallback, bool turnOff) {
@@ -447,9 +417,14 @@ void Uc8253X3Driver::displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, c
   // revert first; factory absolute mode self-cleans.
   _inGrayscaleMode = !factoryMode;
   if (factoryMode) {
-    loadBankCdi(bus, 0x29, 0x07, _cfg.full);  // X3 has no fast factory bank
+    // NOT the OEM standalone grayscale: stock's "X3灰阶" banks (factoryP1/P2)
+    // require a dedicated grayscale panel init (PSR 3F 4A, PWR 43 00 78 78 17,
+    // VCOM 0x26 — different rails from the B/W init) plus their own DTM data
+    // framing. Running them on the B/W-mode rails washes the panel gray.
+    // Until that mode switch is ported, factory mode stays on the _full bank.
+    loadBankCdi(bus, 0x29, 0x07, _cfg.full);
   } else {
-    loadBankCdi(bus, 0x29, 0x07, _cfg.gc);  // community 4-level
+    loadBankCdi(bus, 0x29, 0x07, _cfg.gc);  // OEM 4-level nudge bank
   }
   triggerRefresh(bus, turnOff);
 

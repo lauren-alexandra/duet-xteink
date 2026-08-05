@@ -2,8 +2,7 @@
 
 #include <BoardConfig.h>
 
-#include <memory>
-#include <new>
+#include <vector>
 
 #include "../lut/Ssd1677Luts.h"
 
@@ -57,7 +56,6 @@ const Ssd1677Config& ssd1677DefaultConfig() {
       0x80,  // borderWaveformInit: stock X4 init border
       0x5A,  // HALF refresh temperature
       lut_grayscale,
-      lut_grayscale_revert,
       0xF7,  // fullSeqOverride: stock X4 full update sequence
       0xFC,  // fastSeqOverride: stock X4 partial update sequence
       0xD7,  // halfSeqOverride: stock X4 warmed/full-clean update sequence
@@ -80,19 +78,58 @@ static const Ssd1677Config& ssd1677StickyConfig() {
   static const Ssd1677Config cfg = {
       {0xAE, 0xC7, 0xC3, 0xC0, 0x80},  // booster soft-start (matches Seeed's panel driver)
       DRIVER_OUTPUT_SCAN,
-      0x01,  // borderWaveformInit: vendor FULL/partial-clear border
-      0x5A,  // halfRefreshTemp (unused once fullSeqOverride loads temperature itself)
-      lut_grayscale,
-      lut_grayscale_revert,
-      0xF7,  // fullSeqOverride: vendor FULL update sequence
-      0xFF,  // fastSeqOverride: vendor PARTIAL/DU update sequence (the actual fast path)
-      0x00,  // halfSeqOverride: use fullSeqOverride
-      0x01,  // borderWaveformFull: vendor FULL/partial-clear border
-      0x80,  // borderWaveformFast: vendor PARTIAL/DU border (stops the dark edge ring)
-      0x00,  // borderWaveformHalf: use borderWaveformFull
+      0x01,                  // borderWaveformInit: vendor FULL/partial-clear border
+      0x5A,                  // halfRefreshTemp (unused once fullSeqOverride loads temperature itself)
+      lut_grayscale_sticky,  // own copy: voltage tail is per-module, tune there
+                             // (see Ssd1677Luts.h), never in the shared X4 LUT
+      0xF7,                  // fullSeqOverride: vendor FULL update sequence
+      0xFF,                  // fastSeqOverride: vendor PARTIAL/DU update sequence (the actual fast path)
+      0x00,                  // halfSeqOverride: use fullSeqOverride
+      0x01,                  // borderWaveformFull: vendor FULL/partial-clear border
+      0x80,                  // borderWaveformFast: vendor PARTIAL/DU border (stops the dark edge ring)
+      0x00,                  // borderWaveformHalf: use borderWaveformFull
+      0x80,                  // borderWaveformGray: hold at VCOM; follow-LUT (0x01) drives the border
+                             // black under the grayscale LUT (black frame on every AA/cover refresh)
+      true,                  // grayPowerUpFirst: vendor sequences power down after every refresh, so
+                             // settle the rails before the short gray LUT phases (see Ssd1677Config)
   };
   return cfg;
 }
+
+// ── Reusable per-board waveform shortcuts ────────────────────────────────────
+// Opt-in optimizations a board can layer onto a base Ssd1677Config when its
+// specific panel is known to tolerate them. Each is a pure copy-and-tweak so a
+// board picks only the shortcuts it has validated — apply like:
+//   static const Ssd1677Config cfg = fastDuRefreshShortcut(ssd1677DefaultConfig());
+// and add a `case Board::Xxx:` in ssd1677ActiveConfig() returning it.
+
+// Fast-DU refresh shortcut (~77 ms/refresh). A fast BW refresh uses the
+// incremental CTRL2=0x1C differential-update path (load LUT + display) instead
+// of a 0xFC-style vendor sequence that also reloads temperature and re-cycles
+// clock/analog on every refresh. SAFE ONLY on panels that honor 0x1C as a true
+// partial update; on panels where 0x1C silently promotes to the FULL waveform
+// this is a big regression, so leave fastSeqOverride != 0 there. Validated on
+// the Xteink X4 (the CrossPoint community-sdk drives that exact panel with 0x1C).
+static Ssd1677Config fastDuRefreshShortcut(Ssd1677Config base) {
+  base.fastSeqOverride = 0;  // 0 -> incremental CTRL2=0x1C DU path
+  return base;
+}
+
+// Xteink X4 with the fast-DU shortcut — OPT-IN via -DFREEINK_X4_FAST_DU_SHORTCUT.
+// The X4 default stays the stock 0xFC absolute partial sequence: the 0x1C path
+// skips the per-refresh temperature load and power sequencing, which is the
+// community-sdk behavior the stock-parity work moved away from after ghosting /
+// blotching reports on some panels ("weaker partial selection shows heavy
+// ghosting", see ssd1677DefaultConfig). Enable the flag only after validating
+// long reading sessions across temperatures on your panel (~85 ms/refresh win).
+// A d2-class board that shares this panel can reuse ssd1677X4Config() or build
+// its own base and layer the same shortcut(s).
+#ifdef FREEINK_X4_FAST_DU_SHORTCUT
+static const Ssd1677Config& ssd1677X4Config() {
+  static const Ssd1677Config cfg = fastDuRefreshShortcut(ssd1677DefaultConfig());
+  return cfg;
+}
+#endif
 
 Ssd1677Driver::Ssd1677Driver(const Ssd1677Config& cfg)
     : _cfg(cfg),
@@ -102,9 +139,11 @@ Ssd1677Driver::Ssd1677Driver(const Ssd1677Config& cfg)
       _bufferSize(static_cast<uint32_t>(BoardConfig::ACTIVE.displayWidth / 8) * BoardConfig::ACTIVE.displayHeight),
       _mirrorX(BoardConfig::ACTIVE.orientation.mirrorX),
 #if defined(FREEINK_DISPLAY_FLIPPED) || defined(FLIPPED)
-      _mirrorY(true) {}  // FREEINK_DISPLAY_FLIPPED maps to mirrorY
+      _mirrorY(true) {
+}  // FREEINK_DISPLAY_FLIPPED maps to mirrorY
 #else
-      _mirrorY(BoardConfig::ACTIVE.orientation.mirrorY) {}
+      _mirrorY(BoardConfig::ACTIVE.orientation.mirrorY) {
+}
 #endif
 
 uint32_t Ssd1677Driver::spiHz() const {
@@ -204,10 +243,6 @@ void Ssd1677Driver::writeRam(EpdBus& bus, uint8_t ramCmd, const uint8_t* data, u
 }
 
 void Ssd1677Driver::deghostClear(EpdBus& bus) {
-  // White-inversion scrub. AUTO_WRITE 0xF7 fills the plane white (same fill
-  // initController uses); driving a FULL cycle over it neutralizes DU residue
-  // far better than re-driving the current image. The framebuffer is not
-  // touched — the caller's next display() rewrites RAM from it.
   setRamArea(bus, 0, 0, _w, _h);
   bus.cmd(CMD_AUTO_WRITE_BW_RAM);
   bus.data(0xF7);
@@ -218,7 +253,7 @@ void Ssd1677Driver::deghostClear(EpdBus& bus) {
   refresh(bus, RefreshMode::Full, false);
 }
 
-void Ssd1677Driver::refresh(EpdBus& bus, RefreshMode mode, bool turnOff) {
+void Ssd1677Driver::refresh(EpdBus& bus, RefreshMode mode, bool turnOff, bool async) {
 #if defined(SSD1677_PROBE_DEBUG) && SSD1677_PROBE_DEBUG
   const uint32_t dbgStart = millis();
   const char* dbgMode = (mode == RefreshMode::Full) ? "FULL" : (mode == RefreshMode::Half) ? "HALF" : "FAST";
@@ -232,18 +267,16 @@ void Ssd1677Driver::refresh(EpdBus& bus, RefreshMode mode, bool turnOff) {
   // doesn't trigger some panels' DU waveform (they then run the full waveform on
   // every "fast" refresh); these values fix that. Skipped while a custom grayscale
   // LUT is active (that path needs the 0x0C sequence with the loaded LUT).
-  const uint8_t seqOverride = (mode == RefreshMode::Fast) ? _cfg.fastSeqOverride
-                              : (mode == RefreshMode::Half && _cfg.halfSeqOverride != 0)
-                                  ? _cfg.halfSeqOverride
-                                  : _cfg.fullSeqOverride;
+  const uint8_t seqOverride = (mode == RefreshMode::Fast)                                ? _cfg.fastSeqOverride
+                              : (mode == RefreshMode::Half && _cfg.halfSeqOverride != 0) ? _cfg.halfSeqOverride
+                                                                                         : _cfg.fullSeqOverride;
   if (seqOverride != 0 && !_customLutActive) {
     // Track the border waveform to the refresh mode (vendor parity): a partial/DU
     // (fast) refresh leaves the border driven dark if it keeps the full-refresh
     // border, producing a black ring around the page. 0 = leave the init value.
-    const uint8_t border = (mode == RefreshMode::Fast) ? _cfg.borderWaveformFast
-                           : (mode == RefreshMode::Half && _cfg.borderWaveformHalf != 0)
-                               ? _cfg.borderWaveformHalf
-                               : _cfg.borderWaveformFull;
+    const uint8_t border = (mode == RefreshMode::Fast)                                   ? _cfg.borderWaveformFast
+                           : (mode == RefreshMode::Half && _cfg.borderWaveformHalf != 0) ? _cfg.borderWaveformHalf
+                                                                                         : _cfg.borderWaveformFull;
     if (border != 0) {
       bus.cmd(CMD_BORDER_WAVEFORM);
       bus.data(border);
@@ -255,7 +288,7 @@ void Ssd1677Driver::refresh(EpdBus& bus, RefreshMode mode, bool turnOff) {
     bus.cmd(CMD_DISPLAY_UPDATE_CTRL2);
     bus.data(seqOverride);
     bus.cmd(CMD_MASTER_ACTIVATION);
-    bus.waitBusy("refresh");
+    if (!async) bus.waitRefreshComplete("refresh");
     // The sequence powered the panel down at the end, but keep the flag truthful
     // to intent: leave it "on" between active updates so display() doesn't force a
     // full HALF refresh next time (which would defeat fast refresh). turnOff marks
@@ -294,23 +327,61 @@ void Ssd1677Driver::refresh(EpdBus& bus, RefreshMode mode, bool turnOff) {
   bus.cmd(CMD_DISPLAY_UPDATE_CTRL2);
   bus.data(displayMode);
   bus.cmd(CMD_MASTER_ACTIVATION);
-  bus.waitBusy("refresh");
+  if (!async) bus.waitRefreshComplete("refresh");
 #if defined(SSD1677_PROBE_DEBUG) && SSD1677_PROBE_DEBUG
   // esp_rom_printf hits the always-on IDF console; Serial (HWCDC) drops on S3.
   esp_rom_printf("[SSD1677] %s refresh %ums (ctrl2=0x%x)\n", dbgMode, (unsigned)(millis() - dbgStart), displayMode);
 #endif
 }
 
+void Ssd1677Driver::powerOn(EpdBus& bus) {
+  if (_isScreenOn) return;
+  bus.cmd(CMD_DISPLAY_UPDATE_CTRL2);
+  bus.data(0xC0);  // CLOCK_ON | ANALOG_ON
+  bus.cmd(CMD_MASTER_ACTIVATION);
+  bus.waitBusy("gray power-on");
+  _isScreenOn = true;
+}
+
 void Ssd1677Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff) {
-  // The first paint after boot/wake must be a FULL refresh: a partial/DU refresh
-  // only drives pixels that differ from the RED "old" plane, so it can't clear what
-  // is physically on the panel at boot (the black boot screen) — that ghosts through
-  // forever otherwise. One full clear also seeds RED with a correct baseline for the
-  // fast pages that follow.
+  displayImpl(bus, fb, prev, mode, turnOff, /*async=*/false);
+}
+
+// Deferred refresh: fire the update and return; displayFinish() waits it out.
+// Skips the single-buffer post-refresh baseline resync — the facade supplies
+// `prev` (its shadow) on shadowed updates, and the no-shadow/grayscale flow
+// re-seeds the baseline itself (cleanupGrayscaleBuffers).
+bool Ssd1677Driver::displayStart(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff) {
+  displayImpl(bus, fb, prev, mode, turnOff, /*async=*/true);
+  return true;
+}
+
+void Ssd1677Driver::displayFinish(EpdBus& bus, const uint8_t* fb) {
+  (void)fb;  // X4 post-waveform needs nothing from the host frame
+  bus.waitRefreshComplete("refresh");
+}
+
+void Ssd1677Driver::displayImpl(EpdBus& bus, const uint8_t* fb, const uint8_t* prev, RefreshMode mode, bool turnOff,
+                                bool async) {
+  // The first paint after boot/wake must be an absolute clean, not a partial/DU
+  // refresh: a partial only drives pixels that differ from the RED "old" plane, so
+  // it can't clear what is physically on the panel at boot (e.g. the sleep screen).
+  // Stock parity: the OEM firmware's only clean primitive in normal operation is
+  // the single-pass HALF (0xD7 "_updateFull"); it never runs the multi-flash OTP
+  // full waveform (0xF7 is a dead fallback branch there). Promote to HALF where
+  // the board has one; boards without (Sticky) promote to their vendor FULL.
   if (!turnOff) {
     if (_needsInitialFull) {
-      mode = RefreshMode::Full;
+      // First paint after boot/wake must not be a differential FAST: it only drives
+      // pixels that differ from the RED baseline, so it can't clear whatever is
+      // physically on the panel (the boot screen) and that ghosts through. But a HALF
+      // or FULL the caller already asked for is non-differential (BYPASS_RED) and
+      // clears the panel + seeds the baseline on its own — honor it and just consume
+      // the one-shot. Only upgrade a FAST request. This keeps the boot logo (a HALF)
+      // from paying an extra multi-inversion FULL-waveform flash on top of its own.
+      if (mode == RefreshMode::Fast) mode = RefreshMode::Full;
       _needsInitialFull = false;
+      mode = (_cfg.halfSeqOverride != 0) ? RefreshMode::Half : RefreshMode::Full;
     } else if (!_isScreenOn && _cfg.fullSeqOverride == 0) {
       // X4-class cold start: panel asleep -> a (warmed) HALF full-clear. Override
       // boards skip this — their fast sequence self-powers, so _isScreenOn is false
@@ -319,10 +390,17 @@ void Ssd1677Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev,
     }
   }
 
-  // A grayscale frame leaves the LUT loaded; revert to clean B/W first.
-  // grayscaleRevert() runs the revert waveform.
+  // Leaving grayscale content without the firmware's cleanup: stock parity — the
+  // OEM firmware has NO revert waveform (its grayscale sequence just resyncs RED
+  // afterwards). RED still holds the gray MSB plane here, so it can't serve as a
+  // differential baseline; promote a Fast update to the single-pass HALF clean
+  // (absolute waveform, both planes rewritten below), which is also how stock
+  // erases AA residue (its periodic 0xD7 promote).
   if (_inGrayscaleMode) {
-    grayscaleRevert(bus, fb);
+    _inGrayscaleMode = false;
+    if (mode == RefreshMode::Fast) {
+      mode = RefreshMode::Half;
+    }
   }
 
   setRamArea(bus, 0, 0, _w, _h);
@@ -339,12 +417,14 @@ void Ssd1677Driver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev,
     }
   }
 
-  refresh(bus, mode, turnOff);
+  refresh(bus, mode, turnOff, async);
 
   // Stock X4 syncs both controller RAM planes after activation. Do the same in
   // single-buffer mode so the next differential update starts from a matched
   // BW/RED baseline instead of assuming BW survived the refresh unchanged.
-  if (prev == nullptr) {
+  // (Async updates always come with a facade-owned prev, so this never runs
+  // while a refresh is still in flight.)
+  if (prev == nullptr && !async) {
     setRamArea(bus, 0, 0, _w, _h);
     writeRam(bus, CMD_WRITE_RAM_BW, fb, _bufferSize);
     writeRam(bus, CMD_WRITE_RAM_RED, fb, _bufferSize);
@@ -357,24 +437,19 @@ void Ssd1677Driver::displayWindow(EpdBus& bus, const uint8_t* fb, const uint8_t*
   if (x % 8 != 0 || w % 8 != 0) return;  // window must be byte-aligned
   if (!fb) return;
 
-  // A windowed update can't coexist with grayscale content on the rest of the
-  // screen — drive it back to clean BW first (upstream parity; not a bare flag
-  // clear, which would leave the gray residue unreverted).
+  // A windowed diff can't run against grayscale plane contents (RED holds the
+  // gray MSB plane, not the previous frame). With no revert waveform (stock
+  // parity), exit grayscale by painting the whole frame with the single-pass
+  // HALF clean instead; the window content is part of fb, so nothing is lost.
   if (_inGrayscaleMode) {
-    grayscaleRevert(bus, fb);
+    displayImpl(bus, fb, nullptr, RefreshMode::Half, turnOff, /*async=*/false);
+    return;
   }
 
   const uint16_t windowWidthBytes = w / 8;
   const uint32_t windowBufferSize = static_cast<uint32_t>(windowWidthBytes) * h;
 
-  auto windowBuffer = std::unique_ptr<uint8_t[]>(new (std::nothrow) uint8_t[windowBufferSize]);
-  if (!windowBuffer) {
-    // A partial update is an optimization, not a reason to reboot. Low-memory
-    // cover shelves can fragment the heap below this temporary window size;
-    // the full-screen fast path streams the existing frame buffers directly.
-    display(bus, fb, prev, RefreshMode::Fast, turnOff);
-    return;
-  }
+  std::vector<uint8_t> windowBuffer(windowBufferSize);
   for (uint16_t row = 0; row < h; row++) {
     const uint16_t srcY = y + row;
     const uint32_t srcOffset = static_cast<uint32_t>(srcY) * _wb + (x / 8);
@@ -383,27 +458,35 @@ void Ssd1677Driver::displayWindow(EpdBus& bus, const uint8_t* fb, const uint8_t*
   }
 
   setRamArea(bus, x, y, w, h);
-  writeRam(bus, CMD_WRITE_RAM_BW, windowBuffer.get(), windowBufferSize);
+  writeRam(bus, CMD_WRITE_RAM_BW, windowBuffer.data(), windowBufferSize);
 
   if (prev != nullptr) {
-    // The BW plane has already been transferred, so reuse the same allocation
-    // for the previous frame instead of requiring two equally large blocks.
+    std::vector<uint8_t> previousWindow(windowBufferSize);
     for (uint16_t row = 0; row < h; row++) {
       const uint16_t srcY = y + row;
       const uint32_t srcOffset = static_cast<uint32_t>(srcY) * _wb + (x / 8);
       const uint32_t dstOffset = static_cast<uint32_t>(row) * windowWidthBytes;
-      memcpy(&windowBuffer[dstOffset], &prev[srcOffset], windowWidthBytes);
+      memcpy(&previousWindow[dstOffset], &prev[srcOffset], windowWidthBytes);
     }
-    writeRam(bus, CMD_WRITE_RAM_RED, windowBuffer.get(), windowBufferSize);
+    writeRam(bus, CMD_WRITE_RAM_RED, previousWindow.data(), windowBufferSize);
   }
 
   refresh(bus, RefreshMode::Fast, turnOff);
 
   if (prev == nullptr) {
     setRamArea(bus, x, y, w, h);
-    writeRam(bus, CMD_WRITE_RAM_BW, windowBuffer.get(), windowBufferSize);
-    writeRam(bus, CMD_WRITE_RAM_RED, windowBuffer.get(), windowBufferSize);
+    writeRam(bus, CMD_WRITE_RAM_BW, windowBuffer.data(), windowBufferSize);
+    writeRam(bus, CMD_WRITE_RAM_RED, windowBuffer.data(), windowBufferSize);
   }
+}
+
+void Ssd1677Driver::seedPreviousFrame(EpdBus& bus, const uint8_t* buf) {
+  if (!buf) return;
+  // Write the frame into RED (the differential "old frame" plane) with no refresh —
+  // identical to the RED write display() does for `prev`, so the next prev==nullptr
+  // fast refresh diffs the new frame against this baseline instead of a stale one.
+  setRamArea(bus, 0, 0, _w, _h);
+  writeRam(bus, CMD_WRITE_RAM_RED, buf, _bufferSize);
 }
 
 void Ssd1677Driver::copyGrayscaleLsb(EpdBus& bus, const uint8_t* lsb) {
@@ -432,8 +515,8 @@ void Ssd1677Driver::displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, co
                                 bool factoryMode) {
   (void)fb;
 
-  // Differential mode leaves the LUT loaded (reverted before the next BW turn);
-  // factory absolute mode self-cleans.
+  // Differential mode marks grayscale content on the panel (the next BW update
+  // must not diff against the gray planes); factory absolute mode self-cleans.
   _inGrayscaleMode = !factoryMode;
 
   const unsigned char* selectedLut = lut;
@@ -454,6 +537,9 @@ void Ssd1677Driver::displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, co
     bus.waitBusy("factory_gray");
     _isScreenOn = false;  // 0xC7 always powers down after the update
   } else {
+    // Settled rails before the gray waveform (no-op where the panel is already
+    // on, i.e. the X4's fast path). refresh() then sends 0x0C, not 0xCC.
+    if (_cfg.grayPowerUpFirst) powerOn(bus);
     refresh(bus, RefreshMode::Fast, turnOff);
   }
 
@@ -465,19 +551,10 @@ void Ssd1677Driver::cleanupGrayscaleBuffers(EpdBus& bus, const uint8_t* bw) {
   setRamArea(bus, 0, 0, _w, _h);
   writeRam(bus, CMD_WRITE_RAM_RED, bw, _bufferSize);
   // The restored BW frame in RED RAM *is* the clean differential baseline for the
-  // next BW page turn, so no revert is needed — clear the flag (upstream parity).
-  // Leaving it set fires a spurious grayscaleRevert() on the next refresh, which
-  // drives the revert LUT against this baseline and leaves accumulating ghost.
+  // next BW page turn, so nothing else is needed — clear the flag (stock parity:
+  // the OEM firmware's grayscale sequence ends exactly this way, RED resync only;
+  // it has no revert waveform at all).
   _inGrayscaleMode = false;
-}
-
-void Ssd1677Driver::grayscaleRevert(EpdBus& bus, const uint8_t* fb) {
-  (void)fb;
-  if (!_inGrayscaleMode) return;
-  _inGrayscaleMode = false;
-  setCustomLut(bus, true, _cfg.grayRevertLut);
-  refresh(bus, RefreshMode::Fast, false);
-  setCustomLut(bus, false, nullptr);
 }
 
 void Ssd1677Driver::setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) {
@@ -503,21 +580,36 @@ void Ssd1677Driver::setCustomLut(EpdBus& bus, bool enabled, const unsigned char*
   bus.cmd(CMD_WRITE_VCOM);  // VCOM
   bus.data(pgm_read_byte(&data[109]));
 
+  // The border register keeps its last value across refreshes; a follow-LUT value
+  // (Sticky's 0x01) would now track the loaded grayscale LUT and drive the border
+  // black. Park it while the custom LUT is active; the next normal refresh restores
+  // the per-mode border via the seqOverride path.
+  if (_cfg.borderWaveformGray != 0) {
+    bus.cmd(CMD_BORDER_WAVEFORM);
+    bus.data(_cfg.borderWaveformGray);
+  }
+
   _customLutActive = true;
 }
 
 void Ssd1677Driver::deepSleep(EpdBus& bus) {
+  // Stock parity (_powerOff): park the border at its init value so it is not left
+  // driven with the full-refresh waveform through deep sleep, then power down
+  // analog/clock. Stock does not touch CTRL1 here.
   if (_isScreenOn) {
-    bus.cmd(CMD_DISPLAY_UPDATE_CTRL1);
-    bus.data(CTRL1_BYPASS_RED);
+    bus.cmd(CMD_BORDER_WAVEFORM);
+    bus.data(_cfg.borderWaveformInit);
     bus.cmd(CMD_DISPLAY_UPDATE_CTRL2);
     bus.data(0x03);  // ANALOG_OFF_PHASE | CLOCK_OFF
     bus.cmd(CMD_MASTER_ACTIVATION);
     bus.waitBusy(" display power-down");
     _isScreenOn = false;
   }
+  // Stock parity: deep sleep mode 2 (0x03) discards controller RAM. Nothing may
+  // treat RAM as a valid diff baseline after wake — initController() re-arms
+  // _needsInitialFull, so the first paint is an absolute clean anyway.
   bus.cmd(CMD_DEEP_SLEEP);
-  bus.data(0x01);
+  bus.data(0x03);
 }
 
 // Per-board waveform/LUT injection: a board supplies its own SSD1677 config
@@ -534,8 +626,20 @@ static const Ssd1677Config& ssd1677ActiveConfig() { return FREEINK_SSD1677_CONFI
 // use the X4/GDEQ0426T82 defaults.
 static const Ssd1677Config& ssd1677ActiveConfig() {
   switch (BoardConfig::ACTIVE.board) {
-    case BoardConfig::Board::Sticky: return ssd1677StickyConfig();
-    default: return ssd1677DefaultConfig();
+    case BoardConfig::Board::Sticky:
+      return ssd1677StickyConfig();
+    // X4 Pro runs on the stock X4/GDEQ0426T82 config — same controller and panel
+    // class, confirmed painting on hardware. No custom LUT or drive voltages needed.
+    case BoardConfig::Board::XteinkX4Pro:
+      return ssd1677DefaultConfig();
+      // X4 layers the fast-DU shortcut on the default only when the build has
+      // opted in (see ssd1677X4Config); stock 0xFC parity otherwise.
+#ifdef FREEINK_X4_FAST_DU_SHORTCUT
+    case BoardConfig::Board::XteinkX4:
+      return ssd1677X4Config();
+#endif
+    default:
+      return ssd1677DefaultConfig();
   }
 }
 #endif

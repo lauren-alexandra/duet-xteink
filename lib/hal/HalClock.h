@@ -50,13 +50,19 @@ class HalClock {
   // Returns false if RTC is not available or the RTC date is invalid.
   bool formatDate(char* buf, size_t bufSize, uint8_t utcOffsetQuarterHoursBiased = 48) const;
 
-  // Sync the DS3231 RTC from an NTP server. Requires WiFi to be connected.
+  // Sync the ESP system clock from an NTP server and, when present, mirror the
+  // result into the DS3231 RTC. Requires WiFi to be connected.
   // Blocks for up to ~5s while waiting for SNTP response.
-  // Returns true if the RTC was successfully updated.
+  // Returns true once the system clock is valid and, on RTC-equipped devices,
+  // the RTC was successfully updated.
   //
   // Debouncing (skip if already synced once) is enforced by the caller, not here,
   // so the HAL stays free of any app-layer settings dependency.
   bool syncFromNTP();
+
+  // HTTPS certificate validation needs a plausible wall clock even on devices
+  // such as the X4 that do not have a battery-backed RTC.
+  bool hasValidSystemTime() const;
 
  private:
   bool getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute) const;

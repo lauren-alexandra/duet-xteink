@@ -28,9 +28,9 @@ Do not publish the private working history as the initial public history. It con
 
 Duet uses semantic prerelease versions:
 
-- `0.1.0-alpha.7` for the current public-alpha candidate;
-- `0.1.0-alpha.8` for the next public alpha with changed firmware;
-- `0.1.0-alpha.7-rc.1` for an optional release candidate.
+- `0.1.0-alpha.9` for the current public-alpha candidate;
+- `0.1.0-alpha.9` for the next public alpha with changed firmware;
+- `0.1.0-alpha.9-rc.1` for an optional release candidate.
 
 Any firmware change after a candidate has been flashed must receive a distinguishable version. Do not silently replace a BIN while keeping the same version string.
 
@@ -93,7 +93,7 @@ python3 scripts/package_wordnet_dictionary.py \
   --output-dir .pio/build
 ```
 
-The script accepts only the reviewed Alpha.7 `.ifo`, `.idx`, `.dict`, and `.syn` hashes, adds the original WordNet license and copy instructions, and creates `Duet-WordNet-3.0-StarDict.zip`. Test the ZIP before publication:
+The script accepts only the reviewed `.ifo`, `.idx`, `.dict`, and `.syn` hashes, adds the original WordNet license and copy instructions, and creates `Duet-WordNet-3.0-StarDict.zip`. Test the ZIP before publication:
 
 ```bash
 unzip -t .pio/build/Duet-WordNet-3.0-StarDict.zip

@@ -104,6 +104,42 @@ static const EpdFontData kTestFontData = {
 static EpdFont testFont(&kTestFontData);
 static EpdFontFamily testFontFamily(&testFont);
 
+static int fallbackMissCalls = 0;
+static const EpdGlyph kFallbackCjkGlyph = {12, 12, 192, 0, 12, 0, 0};
+
+static const EpdGlyph* loadFallbackGlyph(void*, const uint32_t codepoint) {
+  fallbackMissCalls++;
+  return codepoint == 0x4E2D ? &kFallbackCjkGlyph : nullptr;
+}
+
+static const EpdFontData kFallbackFontData = {
+    .bitmap = nullptr,
+    .glyph = nullptr,
+    .intervals = nullptr,
+    .intervalCount = 0,
+    .advanceY = 16,
+    .ascender = 12,
+    .descender = 0,
+    .is2Bit = false,
+    .groups = nullptr,
+    .groupCount = 0,
+    .glyphToGroup = nullptr,
+    .kernLeftClasses = nullptr,
+    .kernRightClasses = nullptr,
+    .kernMatrix = nullptr,
+    .kernLeftEntryCount = 0,
+    .kernRightEntryCount = 0,
+    .kernLeftClassCount = 0,
+    .kernRightClassCount = 0,
+    .ligaturePairs = nullptr,
+    .ligaturePairCount = 0,
+    .glyphMissHandler = loadFallbackGlyph,
+    .glyphMissCtx = nullptr,
+};
+
+static EpdFont fallbackFont(&kFallbackFontData);
+static EpdFontFamily fallbackFontFamily(&fallbackFont);
+
 // Helper: return width from getTextDimensions
 static int textWidth(const char* str) {
   int w = 0, h = 0;
@@ -393,6 +429,26 @@ void testFamilySpaceGlyphsStayBlank() {
   PASS();
 }
 
+void testUiFallbackUsesOnDemandGlyphLoader() {
+  printf("testUiFallbackUsesOnDemandGlyphLoader...\n");
+
+  fallbackMissCalls = 0;
+  EpdFontFamily::setUiFallbackFamily(&fallbackFontFamily);
+
+  ASSERT_EQ(testFontFamily.getFallbackCodepoint(0x4E2D), 0x4E2D);
+  const EpdFontFamily::GlyphData glyphData = testFontFamily.getGlyphData(0x4E2D);
+  ASSERT_TRUE(glyphData.glyph == &kFallbackCjkGlyph);
+  ASSERT_TRUE(glyphData.fontData == &kFallbackFontData);
+  ASSERT_TRUE(fallbackMissCalls > 0);
+
+  EpdFontFamily::setUiFallbackFamily(nullptr);
+  ASSERT_EQ(testFontFamily.getFallbackCodepoint(0x4E2D), REPLACEMENT_GLYPH);
+  ASSERT_TRUE(EpdFontFamily::uiFallbackFamily() == nullptr);
+
+  printf("  UI fallback resolves an on-demand CJK glyph and clears safely\n");
+  PASS();
+}
+
 void testHeightCalculation() {
   printf("testHeightCalculation...\n");
 
@@ -423,6 +479,7 @@ int main() {
   testNullGlyphAdvancePreserved();
   testFamilyMissingGlyphUsesReplacementFallback();
   testFamilySpaceGlyphsStayBlank();
+  testUiFallbackUsesOnDemandGlyphLoader();
   testHeightCalculation();
 
   printf("\n=== Results: %d passed, %d failed ===\n", testsPassed, testsFailed);

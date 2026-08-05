@@ -124,6 +124,51 @@ def prepare_fs(temp_root: Path, book: Path, additional_books: list[Path]) -> str
     return f"/books/{book.name}"
 
 
+def write_reader_settings_fixture(
+    temp_root: Path, device_path: str, family_name: str, point_size: int = 14
+) -> Path:
+    """Stage a v4 custom per-book font setting as the rollback baseline."""
+    family_bytes = family_name.encode("utf-8")[:63]
+    family_field = family_bytes + bytes(64 - len(family_bytes))
+    snapshot = bytes(
+        (
+            0,  # built-in family fallback
+            1,  # legacy size-index hint; the stable 14 pt field below is authoritative
+            100,
+            0,
+            5,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+        )
+    ) + family_field + bytes((point_size, 0, 0))
+    payload = bytes((4, 0x05)) + struct.pack("<H", 15) + bytes((0,)) + snapshot
+    target = mounted_path(
+        temp_root / "fs_",
+        f"{canonical_book_cache_path(fnv1a64(device_path))}/reader_settings.bin",
+    )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(payload)
+    return target
+
+
+def reader_settings_fixture_has_font(path: Path, family_name: str, point_size: int) -> bool:
+    raw = path.read_bytes()
+    if len(raw) < 89 or raw[0] != 4 or not (raw[1] & 0x01):
+        return False
+    family = raw[22:86].split(b"\0", 1)[0].decode("utf-8", errors="replace")
+    return family == family_name and raw[86] == point_size
+
+
 def expand_first_chapter_for_preview_smoke(temp_root: Path, device_path: str) -> None:
     """Make the isolated first chapter long enough to prove preview truncation."""
     epub_path = temp_root / "fs_" / device_path.removeprefix("/")
@@ -575,6 +620,19 @@ def run_smoke(args: argparse.Namespace) -> int:
     if args.verify_chapter_transition and args.start_spine is None:
         print("--verify-chapter-transition requires --start-spine", file=sys.stderr)
         return 2
+    if args.verify_reader_relayout_rollback:
+        staged_names = {Path(path).expanduser().resolve().name for path in args.font_preview_family}
+        if args.font_root:
+            font_root = Path(args.font_root).expanduser().resolve()
+            if font_root.is_dir():
+                staged_names.update(path.name for path in font_root.iterdir() if path.is_dir())
+        if args.verify_reader_relayout_rollback not in staged_names:
+            print(
+                "--verify-reader-relayout-rollback requires its family to be staged with "
+                "--font-preview-family or --font-root",
+                file=sys.stderr,
+            )
+            return 2
     book = Path(args.book).resolve()
     if not book.exists():
         print(f"Smoke test book not found: {book}", file=sys.stderr)
@@ -624,7 +682,12 @@ def run_smoke(args: argparse.Namespace) -> int:
     with tempfile.TemporaryDirectory(prefix="crossink-sim-smoke-") as temp_dir_name:
         temp_root = Path(temp_dir_name)
         simulator_book_path = prepare_fs(temp_root, book, additional_books)
-        if args.verify_reader_relayout:
+        reader_settings_fixture = None
+        if args.verify_reader_relayout_rollback:
+            reader_settings_fixture = write_reader_settings_fixture(
+                temp_root, simulator_book_path, args.verify_reader_relayout_rollback
+            )
+        if args.verify_reader_relayout or args.verify_reader_relayout_rollback:
             expand_first_chapter_for_preview_smoke(temp_root, simulator_book_path)
         # Mirror the Alpha 5 canonical namespace before fixture state is saved.
         mounted_path(temp_root / "fs_", DUET_STATE_ROOT).mkdir(parents=True, exist_ok=True)
@@ -678,6 +741,14 @@ def run_smoke(args: argparse.Namespace) -> int:
             write_book_info_catalog_fixture(temp_root, simulator_book_path)
         if args.feature_screenshot_dir and not dictionaries_root:
             write_dictionary_fixture(temp_root)
+        if args.feature_screenshot_dir:
+            (temp_root / "fs_" / "if_found.txt").write_text(
+                "Hi! You found Lauren's tiny traveling library.\n\n"
+                "It contains an unreasonable number of books, is very loved, and is probably already missed.\n\n"
+                "Please text Lauren at 555-555-5555 OR contact me at lauren [at] example [dot] com so it can find its way home.\n\n"
+                "Thank you, kind human. May your next read be five stars.\n",
+                encoding="utf-8",
+            )
         sync_fixtures = os.environ.get("CROSSINK_SMOKE_SYNC_FIXTURES")
         if sync_fixtures:
             # Stage real synced_* peer files (e.g. harvested from a device card)
@@ -757,6 +828,11 @@ def run_smoke(args: argparse.Namespace) -> int:
             env["CROSSINK_SIMULATOR_SMOKE_EXPECT_LIBRARY_CATALOG"] = "1"
         if args.verify_reader_relayout:
             env["CROSSINK_SIMULATOR_SMOKE_VERIFY_READER_RELAYOUT"] = "1"
+        if args.verify_reader_relayout_rollback:
+            env["CROSSINK_SIMULATOR_SMOKE_VERIFY_READER_RELAYOUT_ROLLBACK"] = (
+                args.verify_reader_relayout_rollback
+            )
+            env["CROSSINK_SIMULATOR_FORCE_FONT_RELAYOUT_LOW_MEMORY"] = "1"
         if args.verify_chapter_transition:
             env["CROSSINK_SIMULATOR_SMOKE_VERIFY_CHAPTER_TRANSITION"] = "1"
         if args.headless:
@@ -786,9 +862,10 @@ def run_smoke(args: argparse.Namespace) -> int:
                 "Using visible-page-first chapter preview:",
                 "Chapter layout completion ready:",
                 "Stopping preview after 2 pages",
+                "Advancing relayout preview window",
                 "Started preview at paragraph",
                 "Font relayout completion ready:",
-                "Resolved cached paragraph",
+                "Reader settings relayout committed:",
                 "Changed reader font family to 1",
             )
             missing_markers = [marker for marker in required_markers if marker not in proc.stdout]
@@ -810,7 +887,11 @@ def run_smoke(args: argparse.Namespace) -> int:
                 )
                 print(proc.stdout, end="", file=sys.stderr)
                 return 2
-            for marker in required_markers[3:6]:
+            for marker in (
+                "Started preview at paragraph",
+                "Font relayout completion ready:",
+                "Reader settings relayout committed:",
+            ):
                 if proc.stdout.count(marker) < 2:
                     print(
                         f"Reader relayout smoke test did not complete both spacing and family changes: {marker}",
@@ -843,6 +924,35 @@ def run_smoke(args: argparse.Namespace) -> int:
             ]
             if not persistent_layouts:
                 print("Reader relayout did not persist a font-specific chapter cache", file=sys.stderr)
+                return 2
+
+        if args.verify_reader_relayout_rollback:
+            required_rollback_markers = (
+                f"Using {args.verify_reader_relayout_rollback} 14 pt for reader relayout rollback",
+                "Changed SD reader font size from 14 pt to 12 pt",
+                "Reader settings relayout transaction started:",
+                "Simulator forced low-memory font relayout cancellation",
+                "Reader settings relayout rolled back",
+                f"Validated failed relayout restored {args.verify_reader_relayout_rollback} at 14 pt",
+            )
+            missing_rollback_markers = [
+                marker for marker in required_rollback_markers if marker not in proc.stdout
+            ]
+            if missing_rollback_markers:
+                print(
+                    "Reader relayout rollback smoke test missed: "
+                    + ", ".join(missing_rollback_markers),
+                    file=sys.stderr,
+                )
+                print(proc.stdout, end="", file=sys.stderr)
+                return 2
+            if reader_settings_fixture is None or not reader_settings_fixture_has_font(
+                reader_settings_fixture, args.verify_reader_relayout_rollback, 14
+            ):
+                print(
+                    "Reader relayout rollback did not preserve the prior custom font setting on disk",
+                    file=sys.stderr,
+                )
                 return 2
 
         if args.verify_chapter_transition:
@@ -1109,6 +1219,7 @@ def run_smoke(args: argparse.Namespace) -> int:
                 "achievements",
                 "achievements-completed",
                 "favorites",
+                "if-found",
                 "dictionary",
                 "dictionary-definition",
                 "tetris",
@@ -1348,6 +1459,11 @@ def parse_args() -> argparse.Namespace:
         "--verify-reader-relayout",
         action="store_true",
         help="Verify visible-page-first typography relayout and idle full-chapter cache completion",
+    )
+    parser.add_argument(
+        "--verify-reader-relayout-rollback",
+        metavar="FAMILY",
+        help="Force a failed smaller SD-font relayout and verify the prior size is restored",
     )
     parser.add_argument(
         "--verify-chapter-transition",

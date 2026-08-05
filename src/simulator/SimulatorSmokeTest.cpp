@@ -31,6 +31,7 @@
 #include "activities/apps/AchievementsActivity.h"
 #include "activities/apps/DictionaryActivity.h"
 #include "activities/apps/FavoritesActivity.h"
+#include "activities/apps/IfFoundActivity.h"
 #include "activities/apps/TetrisActivity.h"
 #include "activities/apps/UtilitiesActivity.h"
 #include "activities/home/BookInfoActivity.h"
@@ -96,7 +97,16 @@ class SimulatorSmokeTest {
   }
 
  private:
-  enum class ScriptActionType : uint8_t { Press, Release, Render, Capture, Wait, SetFontFamily };
+  enum class ScriptActionType : uint8_t {
+    Press,
+    Release,
+    Render,
+    Capture,
+    Wait,
+    SetFontFamily,
+    DecreaseFontSize,
+    VerifyFontRollback
+  };
 
   struct ScriptAction {
     ScriptActionType type;
@@ -111,11 +121,18 @@ class SimulatorSmokeTest {
   std::vector<ScriptAction> inputScript;
   size_t scriptIndex = 0;
   unsigned long scriptWaitUntil = 0UL;
+  uint8_t rollbackExpectedFontSize = 0;
+  uint8_t rollbackExpectedPointSize = 0;
+  char rollbackExpectedFontFamily[sizeof(SETTINGS.sdFontFamilyName)] = {};
 
   static bool enabled() { return std::getenv("CROSSINK_SIMULATOR_SMOKE_TEST") != nullptr; }
 
   static bool verifyReaderRelayout() {
     return std::getenv("CROSSINK_SIMULATOR_SMOKE_VERIFY_READER_RELAYOUT") != nullptr;
+  }
+
+  static bool verifyReaderRelayoutRollback() {
+    return std::getenv("CROSSINK_SIMULATOR_SMOKE_VERIFY_READER_RELAYOUT_ROLLBACK") != nullptr;
   }
 
   static bool verifyChapterTransition() {
@@ -176,6 +193,27 @@ class SimulatorSmokeTest {
     SETTINGS.sleepScreen = CrossPointSettings::CUSTOM;
     SETTINGS.sleepScreenCoverFilter = CrossPointSettings::NO_FILTER;
     LOG_INF("SMOKE", "Using custom grayscale sleep screen");
+  }
+
+  static void verifySmallCapsCssContract() {
+    const CssStyle smallCaps = CssParser::parseInlineStyle("font-variant: small-caps");
+    const CssStyle allSmallCaps = CssParser::parseInlineStyle("font-variant-caps: all-small-caps !important");
+    const CssStyle normalCaps = CssParser::parseInlineStyle("font-variant-caps: normal");
+    const CssStyle unrelated = CssParser::parseInlineStyle("font-variant: lining-nums");
+    if (!smallCaps.hasFontVariantCaps() || smallCaps.fontVariantCaps != CssFontVariantCaps::SmallCaps ||
+        !allSmallCaps.hasFontVariantCaps() || allSmallCaps.fontVariantCaps != CssFontVariantCaps::AllSmallCaps ||
+        !normalCaps.hasFontVariantCaps() || normalCaps.fontVariantCaps != CssFontVariantCaps::Normal ||
+        unrelated.hasFontVariantCaps()) {
+      fail("EPUB small-caps CSS parsing contract failed");
+    }
+
+    CssStyle inherited;
+    inherited.applyOver(smallCaps);
+    inherited.applyOver(normalCaps);
+    if (!inherited.hasFontVariantCaps() || inherited.fontVariantCaps != CssFontVariantCaps::Normal) {
+      fail("EPUB small-caps CSS cascade contract failed");
+    }
+    LOG_INF("SMOKE", "Validated EPUB small-caps CSS parsing and cascade");
   }
 
   static void verifyLibraryCatalogContract() {
@@ -927,6 +965,12 @@ class SimulatorSmokeTest {
     save("/smoke-utilities.bmp");
     utilities.onExit();
 
+    IfFoundActivity ifFound(renderer, mappedInputManager);
+    ifFound.onEnter();
+    ifFound.render(RenderLock{});
+    save("/smoke-if-found.bmp");
+    ifFound.onExit();
+
     AchievementSnapshot achievementSnapshot;
     achievementSnapshot.booksStarted = 1;
     std::vector<AchievementView> achievementViews = AchievementCatalog::buildViews(achievementSnapshot);
@@ -1179,6 +1223,16 @@ class SimulatorSmokeTest {
     strncpy(SETTINGS.sdFontFamilyName, family.name.c_str(), sizeof(SETTINGS.sdFontFamilyName) - 1);
     SETTINGS.sdFontFamilyName[sizeof(SETTINGS.sdFontFamilyName) - 1] = '\0';
     sdFontSystem.ensureLoaded(renderer);
+  }
+
+  static void applyRequestedReaderRollbackFont() {
+    const char* requestedFamily = std::getenv("CROSSINK_SIMULATOR_SMOKE_VERIFY_READER_RELAYOUT_ROLLBACK");
+    if (requestedFamily == nullptr || requestedFamily[0] == '\0') return;
+
+    const SdCardFontFamilyInfo* family = sdFontSystem.registry().findFamily(requestedFamily);
+    if (!family) fail("Reader relayout rollback family is missing: %s", requestedFamily);
+    selectSdFont(*family, requireFontSizeIndex(*family, 14));
+    LOG_INF("SMOKE", "Using %s 14 pt for reader relayout rollback", requestedFamily);
   }
 
   static void verifySdFontSizeContract() {
@@ -1491,6 +1545,14 @@ class SimulatorSmokeTest {
     }
   }
 
+  static void verifySettingsLauncherPlacement() {
+    if (LAUNCHER_LAYOUT.placement(LauncherItem::Settings) != LAUNCHER_APPS ||
+        LAUNCHER_LAYOUT.count(LauncherSurface::Apps) == 0 ||
+        LAUNCHER_LAYOUT.itemAt(LauncherSurface::Apps, 0) != LauncherItem::Settings) {
+      fail("Settings must remain the first item inside Apps");
+    }
+  }
+
   static void verifyTimeLeftReliabilityContract() {
     BookReadingStats stats;
     stats.avgSecondsPerForwardPage = 30;
@@ -1710,7 +1772,9 @@ class SimulatorSmokeTest {
         verifySdFontSizeContract();
         verifyFilesCacheGridLayoutSetting();
         verifyKOReaderSyncLauncherPlacement();
+        verifySettingsLauncherPlacement();
         verifyTimeLeftReliabilityContract();
+        verifySmallCapsCssContract();
         verifyCoverBackgroundRefreshContract();
         verifyDetailedBookStatsSyncContract();
         verifyPeerSyncMergeRepro();
@@ -1718,6 +1782,7 @@ class SimulatorSmokeTest {
         applyRequestedFileBrowserDisplay();
         applyRequestedFileBrowserGridLayout();
         applyRequestedSleepScreen();
+        applyRequestedReaderRollbackFont();
         verifyLibraryCatalogContract();
         verifyEpubCachePathContract();
         renderRequestedDashboardHomeScreenshot();
@@ -1838,6 +1903,14 @@ class SimulatorSmokeTest {
     return {ScriptActionType::SetFontFamily, MappedInputManager::Button::Back, nullptr, static_cast<int>(family)};
   }
 
+  static ScriptAction decreaseFontSize() {
+    return {ScriptActionType::DecreaseFontSize, MappedInputManager::Button::Back, nullptr, 0};
+  }
+
+  static ScriptAction verifyFontRollbackAction() {
+    return {ScriptActionType::VerifyFontRollback, MappedInputManager::Button::Back, nullptr, 0};
+  }
+
   void addTap(MappedInputManager::Button button) {
     inputScript.push_back(press(button));
     inputScript.push_back(release(button));
@@ -1885,6 +1958,17 @@ class SimulatorSmokeTest {
     scriptIndex = 0;
     scriptWaitUntil = 0UL;
 
+    if (verifyReaderRelayoutRollback()) {
+      inputScript.push_back(wait(500));
+      inputScript.push_back(decreaseFontSize());
+      inputScript.push_back(render("Reader after smaller SD font preview", 5));
+      inputScript.push_back(wait(3000));
+      inputScript.push_back(render("Reader after failed relayout rollback", 5));
+      inputScript.push_back(verifyFontRollbackAction());
+      LOG_INF("SMOKE", "Running reader font relayout rollback script");
+      return;
+    }
+
     // Leave the freshly painted reader idle long enough to exercise guarded
     // next-chapter pre-indexing before the scripted page turns interrupt it.
     inputScript.push_back(wait(verifyChapterTransition() ? 7000 : verifyReaderRelayout() ? 2500 : 1000));
@@ -1918,11 +2002,18 @@ class SimulatorSmokeTest {
     addTap(MappedInputManager::Button::Back);
     inputScript.push_back(render("Reader after closing Quick Reader Menu", 5));
     if (verifyReaderRelayout()) {
-      inputScript.push_back(wait(5000));
+      inputScript.push_back(wait(14000));
       inputScript.push_back(render("Reader after idle line-spacing relayout", 5));
       inputScript.push_back(setFontFamily(CrossPointSettings::BITTER));
       inputScript.push_back(render("Reader after font-family change preview", 5));
-      inputScript.push_back(wait(5000));
+      // A relayout preview contains at most six pages. Walk to its edge and
+      // press forward once more so the next preview window is exercised before
+      // the idle full-cache build replaces it.
+      for (int i = 0; i < 6; i++) {
+        addTap(MappedInputManager::Button::PageForward);
+        inputScript.push_back(render("Reader after relayout preview forward", 3));
+      }
+      inputScript.push_back(wait(14000));
       inputScript.push_back(render("Reader after idle font-family relayout", 5));
     }
 
@@ -1991,6 +2082,28 @@ class SimulatorSmokeTest {
         SETTINGS.sdFontFamilyName[0] = '\0';
         SETTINGS.fontFamily = static_cast<uint8_t>(action.settleFrames);
         LOG_INF("SMOKE", "Changed reader font family to %d", action.settleFrames);
+        break;
+      case ScriptActionType::DecreaseFontSize:
+        rollbackExpectedFontSize = SETTINGS.fontSize;
+        rollbackExpectedPointSize = sdFontSystem.currentPointSize();
+        strncpy(rollbackExpectedFontFamily, SETTINGS.sdFontFamilyName, sizeof(rollbackExpectedFontFamily) - 1);
+        rollbackExpectedFontFamily[sizeof(rollbackExpectedFontFamily) - 1] = '\0';
+        if (!sdFontSystem.changeReaderFontSize(/*larger=*/false)) {
+          fail("Could not decrease the requested SD reader font size");
+        }
+        sdFontSystem.ensureLoaded(renderer);
+        LOG_INF("SMOKE", "Changed SD reader font size from %u pt to %u pt",
+                static_cast<unsigned>(rollbackExpectedPointSize),
+                static_cast<unsigned>(sdFontSystem.currentPointSize()));
+        break;
+      case ScriptActionType::VerifyFontRollback:
+        if (SETTINGS.fontSize != rollbackExpectedFontSize ||
+            sdFontSystem.currentPointSize() != rollbackExpectedPointSize ||
+            strncmp(SETTINGS.sdFontFamilyName, rollbackExpectedFontFamily, sizeof(rollbackExpectedFontFamily)) != 0) {
+          fail("Failed reader relayout did not restore the prior SD font size");
+        }
+        LOG_INF("SMOKE", "Validated failed relayout restored %s at %u pt", rollbackExpectedFontFamily,
+                static_cast<unsigned>(rollbackExpectedPointSize));
         break;
     }
   }

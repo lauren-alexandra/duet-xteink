@@ -251,12 +251,13 @@ uint32_t estimatedWordsRead(const uint32_t totalWords, const float progressPerce
 }
 
 uint32_t wordsPerMinute(const BookReadingStats& stats, const uint32_t totalWords, const float progressPercent) {
-  constexpr uint32_t MIN_WPM_READING_SECONDS = 10;
-  if (stats.totalReadingSeconds < MIN_WPM_READING_SECONDS) return 0;
+  if (!stats.hasReliableTimeLeftBasis()) return 0;
   const uint32_t wordsRead = estimatedWordsRead(totalWords, progressPercent);
   if (wordsRead == 0) return 0;
-  return static_cast<uint32_t>((static_cast<uint64_t>(wordsRead) * 60ULL + stats.totalReadingSeconds / 2ULL) /
-                               stats.totalReadingSeconds);
+  const uint32_t wpm = static_cast<uint32_t>(
+      (static_cast<uint64_t>(wordsRead) * 60ULL + stats.totalReadingSeconds / 2ULL) / stats.totalReadingSeconds);
+  constexpr uint32_t MAX_PLAUSIBLE_WPM = 1200;
+  return wpm <= MAX_PLAUSIBLE_WPM ? wpm : 0;
 }
 
 void formatWordsPerMinute(const BookReadingStats& stats, const uint32_t totalWords, const float progressPercent,
@@ -2524,8 +2525,8 @@ void renderSessionLengthsPage(GfxRenderer& renderer, const MappedInputManager* m
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = contentTop + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -2534,7 +2535,7 @@ void renderSessionLengthsPage(GfxRenderer& renderer, const MappedInputManager* m
 
   char scaleText[20];
   snprintf(scaleText, sizeof(scaleText), "%u", static_cast<unsigned>(maxDays));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
 
   const int slotWidth = std::max(1, plotWidth / 4);
   const int barWidth = std::max(10, slotWidth - 18);
@@ -2794,8 +2795,8 @@ void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* 
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = contentTop + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -2804,7 +2805,7 @@ void renderStartedFinishedPage(GfxRenderer& renderer, const MappedInputManager* 
 
   char scaleText[20];
   snprintf(scaleText, sizeof(scaleText), "%u", static_cast<unsigned>(maxCount));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
 
   // Per month: outlined bar = started, solid bar = finished.
   const int slotWidth = std::max(2, plotWidth / 12);
@@ -2943,8 +2944,8 @@ void renderTimeOfDayPage(GfxRenderer& renderer, const MappedInputManager* mapped
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = contentTop + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -2954,7 +2955,7 @@ void renderTimeOfDayPage(GfxRenderer& renderer, const MappedInputManager* mapped
   char scaleText[20];
   formatCompactEstimate(static_cast<uint32_t>(std::min<uint64_t>(maxSeconds, UINT32_MAX)), scaleText,
                         sizeof(scaleText));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
 
   const int slotWidth = std::max(1, plotWidth / 4);
   const int barWidth = std::max(10, slotWidth - 18);
@@ -3052,8 +3053,8 @@ void renderMonthlyTrendPage(GfxRenderer& renderer, const MappedInputManager* map
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = contentTop + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -3063,7 +3064,7 @@ void renderMonthlyTrendPage(GfxRenderer& renderer, const MappedInputManager* map
   char scaleText[20];
   formatCompactEstimate(static_cast<uint32_t>(std::min<uint64_t>(maxSeconds, UINT32_MAX)), scaleText,
                         sizeof(scaleText));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
 
   const int slotWidth = std::max(1, plotWidth / 12);
   const int barWidth = std::max(4, slotWidth - 8);
@@ -3233,8 +3234,8 @@ void renderWeekdayPatternPage(GfxRenderer& renderer, const MappedInputManager* m
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = contentTop + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -3244,7 +3245,7 @@ void renderWeekdayPatternPage(GfxRenderer& renderer, const MappedInputManager* m
   char scaleText[20];
   formatCompactEstimate(static_cast<uint32_t>(std::min<uint64_t>(maxSeconds, UINT32_MAX)), scaleText,
                         sizeof(scaleText));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
 
   const int slotWidth = std::max(1, plotWidth / 7);
   const int barWidth = std::max(6, slotWidth - 12);
@@ -3335,8 +3336,9 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelY = contentTop + 2;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = chartLabelY + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -3345,20 +3347,94 @@ void renderPaceTrendPage(GfxRenderer& renderer, const MappedInputManager* mapped
 
   char scaleText[20];
   formatWpmX10(maxPaceX10, scaleText, sizeof(scaleText));
-  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - renderer.getLineHeight(SMALL_FONT_ID) / 2, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
+  const char* chartLabel = tr(STR_STATS_DESC_PACE);
+  renderer.drawText(SMALL_FONT_ID,
+                    chartLeft + (plotWidth - renderer.getTextWidth(SMALL_FONT_ID, chartLabel, EpdFontFamily::BOLD)) / 2,
+                    chartLabelY, chartLabel, true, EpdFontFamily::BOLD);
 
-  const int slotWidth = std::max(1, plotWidth / static_cast<int>(dayCount));
-  const int barWidth = std::max(2, slotWidth - 3);
-  for (size_t i = 0; i < dayCount; ++i) {
-    if (paceX10[i] == 0) continue;
-    const int barX = chartLeft + static_cast<int>(i) * slotWidth + (slotWidth - barWidth) / 2;
-    const int barHeight = std::max(2, static_cast<int>((static_cast<uint64_t>(chartHeight) * paceX10[i]) / maxPaceX10));
-    if (i + 1 == dayCount) {
-      renderer.fillRect(barX, chartBottom - barHeight, barWidth, barHeight, true);
-    } else {
-      renderer.fillRectDither(barX, chartBottom - barHeight, barWidth, barHeight, Color::DarkGray);
+  constexpr std::array<uint8_t, 5> trendWeights = {1, 2, 3, 2, 1};
+  std::array<uint16_t, dayCount> plottedPace{};
+  uint32_t smoothedPeak = 0;
+  for (size_t day = 0; day < dayCount; ++day) {
+    uint32_t weightedPace = 0;
+    uint32_t weightTotal = 0;
+    for (int offset = -2; offset <= 2; ++offset) {
+      const int sourceDay = static_cast<int>(day) + offset;
+      if (sourceDay < 0 || sourceDay >= static_cast<int>(dayCount)) continue;
+      const uint16_t sourcePace = paceX10[static_cast<size_t>(sourceDay)];
+      if (sourcePace == 0) continue;
+      const uint8_t weight = trendWeights[static_cast<size_t>(offset + 2)];
+      weightedPace += static_cast<uint32_t>(sourcePace) * weight;
+      weightTotal += weight;
+    }
+    plottedPace[day] = weightTotal > 0 ? static_cast<uint16_t>(weightedPace / weightTotal) : 0;
+    smoothedPeak = std::max<uint32_t>(smoothedPeak, plottedPace[day]);
+  }
+  if (smoothedPeak > 0) {
+    for (uint16_t& pace : plottedPace) {
+      pace = static_cast<uint16_t>(
+          std::min<uint32_t>((static_cast<uint32_t>(pace) * maxPaceX10 + smoothedPeak / 2) / smoothedPeak, UINT16_MAX));
     }
   }
+
+  struct ChartPoint {
+    int x = 0;
+    int y = 0;
+  };
+  std::array<ChartPoint, dayCount> points{};
+  for (size_t i = 0; i < dayCount; ++i) {
+    const int x = chartLeft + static_cast<int>((static_cast<uint64_t>(plotWidth) * i) / (dayCount - 1));
+    const int y = chartBottom - static_cast<int>((static_cast<uint64_t>(chartHeight) * plottedPace[i]) / maxPaceX10);
+    points[i] = {x, std::clamp(y, chartTop, chartBottom)};
+  }
+  std::array<float, dayCount> tangents{};
+  for (size_t i = 1; i + 1 < points.size(); ++i) {
+    if (plottedPace[i - 1] == 0 || plottedPace[i] == 0 || plottedPace[i + 1] == 0) continue;
+    const float incoming = static_cast<float>(points[i].y - points[i - 1].y);
+    const float outgoing = static_cast<float>(points[i + 1].y - points[i].y);
+    if ((incoming > 0.0f && outgoing > 0.0f) || (incoming < 0.0f && outgoing < 0.0f)) {
+      tangents[i] = (incoming + outgoing) * 0.5f;
+    }
+  }
+  constexpr int curveSteps = 5;
+  bool hasPrevious = false;
+  ChartPoint previous;
+  for (size_t segment = 0; segment + 1 < points.size(); ++segment) {
+    if (plottedPace[segment] == 0) {
+      hasPrevious = false;
+      continue;
+    }
+    if (!hasPrevious) {
+      previous = points[segment];
+      hasPrevious = true;
+    }
+    if (plottedPace[segment + 1] == 0) {
+      renderer.drawLine(previous.x - 1, previous.y, previous.x + 1, previous.y);
+      hasPrevious = false;
+      continue;
+    }
+    const ChartPoint& start = points[segment];
+    const ChartPoint& end = points[segment + 1];
+    for (int step = 1; step <= curveSteps; ++step) {
+      const float t = static_cast<float>(step) / curveSteps;
+      const float t2 = t * t;
+      const float t3 = t2 * t;
+      const float h00 = 2.0f * t3 - 3.0f * t2 + 1.0f;
+      const float h10 = t3 - 2.0f * t2 + t;
+      const float h01 = -2.0f * t3 + 3.0f * t2;
+      const float h11 = t3 - t2;
+      ChartPoint point;
+      point.x = start.x + static_cast<int>((end.x - start.x) * t);
+      point.y = std::clamp(
+          static_cast<int>(h00 * start.y + h10 * tangents[segment] + h01 * end.y + h11 * tangents[segment + 1]),
+          chartTop, chartBottom);
+      renderer.drawLine(previous.x, previous.y, point.x, point.y);
+      previous = point;
+    }
+  }
+
+  const int slotWidth = std::max(1, plotWidth / static_cast<int>(dayCount));
   if (hasNow) {
     for (size_t i = 0; i < dayCount; i += 7) {
       const uint32_t offset = static_cast<uint32_t>(dayCount - 1 - i);
@@ -3498,8 +3574,9 @@ void renderReadingActivityChartPage(GfxRenderer& renderer, const MappedInputMana
   const int summaryTop = std::max(contentTop + 120, contentBottom - summaryHeight);
   const int chartLeft = contentX + 36;
   const int chartRight = contentX + contentWidth;
-  const int scaleY = contentTop + 4;
-  const int chartTop = scaleY + renderer.getLineHeight(SMALL_FONT_ID) + 8;
+  const int chartLabelY = contentTop + 2;
+  const int chartLabelHeight = renderer.getLineHeight(SMALL_FONT_ID);
+  const int chartTop = chartLabelY + chartLabelHeight * 2 + 8;
   const int chartBottom = summaryTop - xLabelHeight;
   const int chartHeight = std::max(20, chartBottom - chartTop);
   const int plotWidth = std::max(14, chartRight - chartLeft);
@@ -3508,7 +3585,11 @@ void renderReadingActivityChartPage(GfxRenderer& renderer, const MappedInputMana
 
   char scaleText[20];
   formatCompactEstimate(maxSeconds, scaleText, sizeof(scaleText));
-  renderer.drawText(SMALL_FONT_ID, contentX, scaleY, scaleText);
+  renderer.drawText(SMALL_FONT_ID, contentX, chartTop - chartLabelHeight - 3, scaleText);
+  const char* chartLabel = tr(STR_STATS_ACTIVITY_CHART);
+  renderer.drawText(SMALL_FONT_ID,
+                    chartLeft + (plotWidth - renderer.getTextWidth(SMALL_FONT_ID, chartLabel, EpdFontFamily::BOLD)) / 2,
+                    chartLabelY, chartLabel, true, EpdFontFamily::BOLD);
   const uint32_t goalSeconds = static_cast<uint32_t>(goalMinutes) * 60u;
   if (goalSeconds > 0 && goalSeconds <= maxSeconds) {
     const int goalY = chartBottom - static_cast<int>((static_cast<uint64_t>(chartHeight) * goalSeconds) / maxSeconds);
@@ -4441,33 +4522,27 @@ void renderReadingTastePage(GfxRenderer& renderer, const MappedInputManager* map
   constexpr int authorRows = 3;
   constexpr int titleHeight = 32;
   constexpr int baseRowHeight = 34;
+  const bool hasSpiceLevels = insights->spiceLevelCount > 0;
   const int baseGenreHeight = titleHeight + genreRows * baseRowHeight;
-  const int baseAuthorHeight = titleHeight + authorRows * baseRowHeight;
-  if (insights->spiceLevelCount == 0) {
-    const int extra = std::max(0, availableHeight - gap - baseGenreHeight - baseAuthorHeight);
-    const int genreHeight = baseGenreHeight + extra / 2;
-    const int authorHeight = availableHeight - gap - genreHeight;
-    drawInsightListCard(renderer, x, top, width, genreHeight, tr(STR_STATS_FAVORITE_GENRES), insights->topGenres.data(),
-                        insights->topGenreCount, genreRows);
-    drawInsightListCard(renderer, x, top + genreHeight + gap, width, authorHeight, tr(STR_STATS_FAVORITE_AUTHORS),
-                        insights->topAuthors.data(), insights->topAuthorCount, authorRows);
-    drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
-    return;
-  }
-
   const int baseSpiceHeight = titleHeight + spiceRows * baseRowHeight;
-  const int extra = std::max(0, availableHeight - gap * 2 - baseGenreHeight - baseSpiceHeight - baseAuthorHeight);
-  const int genreHeight = baseGenreHeight + extra / 3;
-  const int spiceHeight = baseSpiceHeight + extra / 3;
-  const int authorHeight = availableHeight - gap * 2 - genreHeight - spiceHeight;
+  const int baseAuthorHeight = titleHeight + authorRows * baseRowHeight;
+  const int gapCount = hasSpiceLevels ? 2 : 1;
+  const int baseUsedHeight = baseGenreHeight + baseAuthorHeight + (hasSpiceLevels ? baseSpiceHeight : 0);
+  const int extra = std::max(0, availableHeight - gap * gapCount - baseUsedHeight);
+  const int sectionCount = hasSpiceLevels ? 3 : 2;
+  const int genreHeight = baseGenreHeight + extra / sectionCount;
+  const int spiceHeight = hasSpiceLevels ? baseSpiceHeight + extra / sectionCount : 0;
+  const int authorTop = top + genreHeight + gap + (hasSpiceLevels ? spiceHeight + gap : 0);
+  const int authorHeight = availableHeight - (authorTop - top);
 
   drawInsightListCard(renderer, x, top, width, genreHeight, tr(STR_STATS_FAVORITE_GENRES), insights->topGenres.data(),
                       insights->topGenreCount, genreRows);
-  drawInsightListCard(renderer, x, top + genreHeight + gap, width, spiceHeight, tr(STR_STATS_SPICE_BY_TIME),
-                      insights->spiceLevels.data(), insights->spiceLevelCount, spiceRows);
-  drawInsightListCard(renderer, x, top + genreHeight + gap + spiceHeight + gap, width, authorHeight,
-                      tr(STR_STATS_FAVORITE_AUTHORS), insights->topAuthors.data(), insights->topAuthorCount,
-                      authorRows);
+  if (hasSpiceLevels) {
+    drawInsightListCard(renderer, x, top + genreHeight + gap, width, spiceHeight, tr(STR_STATS_SPICE_BY_TIME),
+                        insights->spiceLevels.data(), insights->spiceLevelCount, spiceRows);
+  }
+  drawInsightListCard(renderer, x, authorTop, width, authorHeight, tr(STR_STATS_FAVORITE_AUTHORS),
+                      insights->topAuthors.data(), insights->topAuthorCount, authorRows);
   drawStatsButtonHints(renderer, mappedInput, showButtonHints, false, showMoreButton);
 }
 

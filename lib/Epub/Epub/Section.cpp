@@ -17,8 +17,8 @@
 
 namespace {
 constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
-// v43: TextBlock background/hyphen flags are stored only when a line uses them.
-constexpr uint8_t SECTION_FILE_VERSION = 43;
+// v44: Per-word style bytes can carry synthesized small-caps variants.
+constexpr uint8_t SECTION_FILE_VERSION = 44;
 constexpr uint16_t INITIAL_SECTION_PAGE_LUT_ENTRIES = 128;
 constexpr uint16_t MIN_PREVIEW_PAGE_LUT_ENTRIES = 8;
 constexpr uint32_t HEADER_SIZE = sizeof(SECTION_CACHE_MAGIC) + sizeof(uint8_t) + sizeof(int) + sizeof(float) +
@@ -642,9 +642,9 @@ bool Section::createSectionFile(const int fontId, const float lineCompression, c
           "Create section done: spine=%d pages=%u html=%lums parse=%lums finalize=%lums total=%lums reusedHtml=%u "
           "free=%u maxAlloc=%u",
           spineIndex, pageCount, static_cast<unsigned long>(htmlReadyMs - createStartMs),
-          static_cast<unsigned long>(parserDoneMs - parserStartMs),
-          static_cast<unsigned long>(millis() - parserDoneMs), static_cast<unsigned long>(millis() - createStartMs),
-          reusedHtml ? 1U : 0U, ESP.getFreeHeap(), ESP.getMaxAllocHeap());
+          static_cast<unsigned long>(parserDoneMs - parserStartMs), static_cast<unsigned long>(millis() - parserDoneMs),
+          static_cast<unsigned long>(millis() - createStartMs), reusedHtml ? 1U : 0U, ESP.getFreeHeap(),
+          ESP.getMaxAllocHeap());
   return true;
 }
 

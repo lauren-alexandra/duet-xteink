@@ -235,11 +235,20 @@ void ChapterHtmlSlimParser::applyDirectionToEntry(StyleStackEntry& entry, const 
   }
 }
 
+void ChapterHtmlSlimParser::applyFontVariantToEntry(StyleStackEntry& entry, const CssStyle& css) {
+  if (css.hasFontVariantCaps()) {
+    entry.hasFontVariantCaps = true;
+    entry.fontVariantCaps = css.fontVariantCaps;
+  }
+}
+
 // Update effective bold/italic/underline based on block style and inline style stack
 void ChapterHtmlSlimParser::updateEffectiveInlineStyle() {
   // Start with block-level styles
   effectiveBold = currentCssStyle.hasFontWeight() && currentCssStyle.fontWeight == CssFontWeight::Bold;
   effectiveItalic = currentCssStyle.hasFontStyle() && currentCssStyle.fontStyle == CssFontStyle::Italic;
+  effectiveFontVariantCaps =
+      currentCssStyle.hasFontVariantCaps() ? currentCssStyle.fontVariantCaps : CssFontVariantCaps::Normal;
   effectiveUnderline = currentCssStyle.hasTextDecoration() &&
                        (currentCssStyle.textDecoration & CssTextDecoration::Underline) != CssTextDecoration::None;
   effectiveStrikethrough = currentCssStyle.hasTextDecoration() &&
@@ -259,6 +268,9 @@ void ChapterHtmlSlimParser::updateEffectiveInlineStyle() {
     }
     if (entry.hasItalic) {
       effectiveItalic = entry.italic;
+    }
+    if (entry.hasFontVariantCaps) {
+      effectiveFontVariantCaps = entry.fontVariantCaps;
     }
     if (entry.hasUnderline) {
       effectiveUnderline = entry.underline;
@@ -488,6 +500,11 @@ void ChapterHtmlSlimParser::flushPartWordBuffer() {
     fontStyle = static_cast<EpdFontFamily::Style>(fontStyle | EpdFontFamily::SUP);
   } else if (effectiveSub) {
     fontStyle = static_cast<EpdFontFamily::Style>(fontStyle | EpdFontFamily::SUB);
+  }
+  if (effectiveFontVariantCaps == CssFontVariantCaps::SmallCaps) {
+    fontStyle = static_cast<EpdFontFamily::Style>(fontStyle | EpdFontFamily::SMALL_CAPS);
+  } else if (effectiveFontVariantCaps == CssFontVariantCaps::AllSmallCaps) {
+    fontStyle = static_cast<EpdFontFamily::Style>(fontStyle | EpdFontFamily::ALL_SMALL_CAPS);
   }
 
   // flush the buffer
@@ -1456,6 +1473,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
         headerStyle.backgroundBlack = cssStyle.backgroundBlack;
       }
       ChapterHtmlSlimParser::applyDirectionToEntry(headerStyle, cssStyle);
+      ChapterHtmlSlimParser::applyFontVariantToEntry(headerStyle, cssStyle);
       if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
         self->inlineStyleBuf_[self->inlineStyleCount_++] = headerStyle;
       } else {
@@ -1872,6 +1890,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
         entry.backgroundBlack = cssStyle.backgroundBlack;
       }
       applyDirectionToEntry(entry, cssStyle);
+      applyFontVariantToEntry(entry, cssStyle);
       if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
         self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
       } else {
@@ -2046,6 +2065,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
       entry.backgroundBlack = cssStyle.backgroundBlack;
     }
     applyDirectionToEntry(entry, cssStyle);
+    applyFontVariantToEntry(entry, cssStyle);
     if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
       self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
     } else {
@@ -2077,6 +2097,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
       entry.backgroundBlack = cssStyle.backgroundBlack;
     }
     applyDirectionToEntry(entry, cssStyle);
+    applyFontVariantToEntry(entry, cssStyle);
     if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
       self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
     } else {
@@ -2110,6 +2131,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
       entry.backgroundBlack = cssStyle.backgroundBlack;
     }
     applyDirectionToEntry(entry, cssStyle);
+    applyFontVariantToEntry(entry, cssStyle);
     if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
       self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
     } else {
@@ -2143,6 +2165,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
       entry.backgroundBlack = cssStyle.backgroundBlack;
     }
     applyDirectionToEntry(entry, cssStyle);
+    applyFontVariantToEntry(entry, cssStyle);
     if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
       self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
     } else {
@@ -2164,6 +2187,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
       entry.sub = true;
     }
     ChapterHtmlSlimParser::applyDirectionToEntry(entry, cssStyle);
+    ChapterHtmlSlimParser::applyFontVariantToEntry(entry, cssStyle);
     if (self->inlineStyleCount_ < MAX_INLINE_STYLE_DEPTH) {
       self->inlineStyleBuf_[self->inlineStyleCount_++] = entry;
     } else {
@@ -2172,8 +2196,9 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
     self->updateEffectiveInlineStyle();
   } else if (strcmp(name, "span") == 0 || !isHeaderOrBlock(name)) {
     // Handle span and other inline elements for CSS styling
-    if (cssStyle.hasFontWeight() || cssStyle.hasFontStyle() || cssStyle.hasTextDecoration() ||
-        cssStyle.hasBackgroundBlack() || cssStyle.hasVerticalAlign() || cssStyle.hasDirection()) {
+    if (cssStyle.hasFontWeight() || cssStyle.hasFontStyle() || cssStyle.hasFontVariantCaps() ||
+        cssStyle.hasTextDecoration() || cssStyle.hasBackgroundBlack() || cssStyle.hasVerticalAlign() ||
+        cssStyle.hasDirection()) {
       // Flush buffer before style change so preceding text gets current style
       if (self->partWordBufferIndex > 0) {
         self->flushPartWordBuffer();
@@ -2189,6 +2214,7 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
         entry.hasItalic = true;
         entry.italic = cssStyle.fontStyle == CssFontStyle::Italic;
       }
+      ChapterHtmlSlimParser::applyFontVariantToEntry(entry, cssStyle);
       if (cssStyle.hasTextDecoration()) {
         entry.hasUnderline = true;
         entry.underline = (cssStyle.textDecoration & CssTextDecoration::Underline) != CssTextDecoration::None;
@@ -2199,7 +2225,6 @@ void XMLCALL ChapterHtmlSlimParser::startElement(void* userData, const XML_Char*
         entry.hasBackgroundBlack = true;
         entry.backgroundBlack = cssStyle.backgroundBlack;
       }
-      applyDirectionToEntry(entry, cssStyle);
       if (cssStyle.hasVerticalAlign()) {
         if (cssStyle.verticalAlign == CssVerticalAlign::Super) {
           entry.hasSup = true;
@@ -2611,16 +2636,14 @@ void ChapterHtmlSlimParser::prewarmSectionAdvanceTable(FsFile& file) {
   bool hitCap = false;
   uint32_t bytesScanned = 0;
 
-  while (file.available() > 0 && !hitCap &&
-         (fontPrewarmByteLimit_ == 0 || bytesScanned < fontPrewarmByteLimit_)) {
+  while (file.available() > 0 && !hitCap && (fontPrewarmByteLimit_ == 0 || bytesScanned < fontPrewarmByteLimit_)) {
     if (cancellationRequested()) {
       file.seekSet(0);
       return;
     }
-    const size_t remaining =
-        fontPrewarmByteLimit_ == 0
-            ? SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE
-            : std::min<size_t>(SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE, fontPrewarmByteLimit_ - bytesScanned);
+    const size_t remaining = fontPrewarmByteLimit_ == 0 ? SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE
+                                                        : std::min<size_t>(SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE,
+                                                                           fontPrewarmByteLimit_ - bytesScanned);
     const size_t len = file.read(buffer.get(), remaining);
     if (len == 0) {
       LOG_DBG("EHP", "Section advance prewarm stopped after short read");
@@ -3025,8 +3048,7 @@ void ChapterHtmlSlimParser::makePages() {
 
   if (!currentTextBlock->layoutAndExtractLines(
           renderer, fontId, effectiveWidth,
-          [this](const std::shared_ptr<TextBlock>& textBlock) { addLineToPage(textBlock); },
-          true,
+          [this](const std::shared_ptr<TextBlock>& textBlock) { addLineToPage(textBlock); }, true,
           [](void* context) {
             auto* parser = static_cast<ChapterHtmlSlimParser*>(context);
             return !parser || parser->cancellationRequested() || parser->lowMemoryAbort;

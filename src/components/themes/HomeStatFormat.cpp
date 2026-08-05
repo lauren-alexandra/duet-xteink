@@ -88,12 +88,13 @@ uint32_t estimatedWordsRead(const uint32_t totalWords, const float progressPerce
 }
 
 uint32_t wordsPerMinute(const BookReadingStats& stats, const uint32_t totalWords, const float progressPercent) {
-  constexpr uint32_t MIN_WPM_READING_SECONDS = 10;
-  if (stats.totalReadingSeconds < MIN_WPM_READING_SECONDS) return 0;
+  if (!stats.hasReliableTimeLeftBasis()) return 0;
   const uint32_t wordsRead = estimatedWordsRead(totalWords, progressPercent);
   if (wordsRead == 0) return 0;
-  return static_cast<uint32_t>(
+  const uint32_t wpm = static_cast<uint32_t>(
       (static_cast<uint64_t>(wordsRead) * 60ULL + stats.totalReadingSeconds / 2ULL) / stats.totalReadingSeconds);
+  constexpr uint32_t MAX_PLAUSIBLE_WPM = 1200;
+  return wpm <= MAX_PLAUSIBLE_WPM ? wpm : 0;
 }
 
 const char* dayCountText(const uint16_t days) { return days == 1 ? tr(STR_STATS_DAY) : tr(STR_STATS_DAYS); }
@@ -119,10 +120,10 @@ HomeStatContext buildHomeStatContext(const BookReadingStats& book, const float p
 }
 
 bool homeStatSelectionWantsAllDevices() {
-  const uint8_t slots[] = {SETTINGS.homeStatSlot1, SETTINGS.homeStatSlot2, SETTINGS.homeStatSlot3,
-                           SETTINGS.homeStatSlot4, SETTINGS.homeStatSlot5, SETTINGS.homeStatSlot6,
+  const uint8_t slots[] = {SETTINGS.homeStatSlot1, SETTINGS.homeStatSlot2,  SETTINGS.homeStatSlot3,
+                           SETTINGS.homeStatSlot4, SETTINGS.homeStatSlot5,  SETTINGS.homeStatSlot6,
                            SETTINGS.homeStatSlot7, SETTINGS.homeFooterLeft, SETTINGS.homeFooterRight,
-                           SETTINGS.homeStrip1,   SETTINGS.homeStrip2,     SETTINGS.homeStrip3,
+                           SETTINGS.homeStrip1,    SETTINGS.homeStrip2,     SETTINGS.homeStrip3,
                            SETTINGS.homeStrip4};
   for (const uint8_t kind : slots) {
     // Streak and reader-type are person-level facts: once peers exist they

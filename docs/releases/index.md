@@ -8,6 +8,8 @@ has_children: true
 
 Duet's release archive records what changed in each public X3/X4 alpha. Start with the newest release unless you are reviewing history or recovering with a previously accepted build.
 
+- [Duet v0.1.0-alpha.9](v0.1.0-alpha.9.md)
+- [Duet v0.1.0-alpha.8](v0.1.0-alpha.8.md)
 - [Duet v0.1.0-alpha.7](v0.1.0-alpha.7.md)
 - [Duet v0.1.0-alpha.6](v0.1.0-alpha.6.md)
 - [Duet v0.1.0-alpha.5](v0.1.0-alpha.5.md)

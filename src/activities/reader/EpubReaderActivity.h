@@ -61,10 +61,13 @@ class EpubReaderActivity final : public Activity {
   int cachedChapterPageNumber = 0;
   int cachedChapterTotalPageCount = 0;
   bool pendingRelayoutReposition = false;
+  bool cachedRelayoutAtChapterStart = false;
   uint16_t cachedPageParagraphIndex = UINT16_MAX;
   uint16_t cachedPageParagraphOffset = 0;
   uint16_t cachedPageParagraphSpan = 0;
   bool pendingRelayoutPreview = false;
+  bool pendingRelayoutPreviewFromBack = false;
+  bool relayoutPreviewUserMoved = false;
   bool activeRelayoutPreview = false;
   bool activeChapterPreview = false;
   std::atomic<bool> relayoutBuildWorkRequested{false};
@@ -86,6 +89,7 @@ class EpubReaderActivity final : public Activity {
   uint32_t sessionReadingSeconds = 0;
   uint16_t sessionScreenPages = 0;
   bool readingStatsCommitted = false;
+  bool fastHomeExitRequested = false;
   std::atomic<bool> firstRenderCompleted{false};
   bool deferredOnEnterPending = false;
   std::atomic<bool> nextChapterPreindexWorkRequested{false};
@@ -103,6 +107,11 @@ class EpubReaderActivity final : public Activity {
   bool bookHasCustomReaderSettings = false;
   bool bookHasAutoPageTurnInterval = false;
   bool bookHasRenderModeOverride = false;
+  bool committedReaderSettingsValid = false;
+  bool relayoutSettingsTransactionActive = false;
+  bool committedBookHasCustomReaderSettings = false;
+  bool committedBookHasRenderModeOverride = false;
+  ReaderSettingsSnapshot committedReaderSettings;
   bool restoreGlobalReaderSettingsOnExit = false;
   ReaderSettingsSnapshot globalReaderSettingsBeforeBook;
   bool bookReaderSettingsSuspendedForGlobalEdit = false;
@@ -290,6 +299,11 @@ class EpubReaderActivity final : public Activity {
   void captureGlobalReaderSettings();
   void restoreGlobalReaderSettings();
   void loadBookReaderSettings();
+  void rememberCommittedReaderSettings();
+  bool persistCommittedReaderSettings();
+  bool beginReaderSettingsRelayoutTransaction();
+  void commitReaderSettingsRelayout();
+  void rollbackReaderSettingsRelayout(const char* reason);
   void saveCurrentBookReaderSettings();
   void saveGlobalSettingsPreservingBookOverrides();
   void beginGlobalSettingsEdit();

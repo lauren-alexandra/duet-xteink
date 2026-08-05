@@ -5,7 +5,7 @@
 
 #include "ReadingStatsUtils.h"
 
-// Per-book reading statistics, persisted to cachePath/stats_v7.bin.
+// Per-book reading statistics, persisted to cachePath/stats_v8.bin.
 struct BookReadingStats {
   static constexpr uint32_t MIN_RELIABLE_TIME_LEFT_READING_SECONDS = 10 * 60;
   static constexpr uint16_t MIN_RELIABLE_TIME_LEFT_PACE_SAMPLES = 3;
@@ -22,10 +22,11 @@ struct BookReadingStats {
   uint16_t latestSessionScreenPages = 0;
   uint32_t latestSessionDayIndex = 0;
   uint16_t latestSessionStartMinute = 0;
-  bool startDateManual = false;           // Permanent user override for the reading start date
-  bool finishedDateManual = false;        // Permanent user override for the finished date
-  ReadingStatsDate startDate;             // First qualifying reading date (or manual override)
-  ReadingStatsDate finishedDate;          // Manual or auto-finished date on X3
+  uint32_t totalWordCount = 0;      // EPUB x-locations totalWords cached for WPM displays
+  bool startDateManual = false;     // Permanent user override for the reading start date
+  bool finishedDateManual = false;  // Permanent user override for the finished date
+  ReadingStatsDate startDate;       // First qualifying reading date (or manual override)
+  ReadingStatsDate finishedDate;    // Manual or auto-finished date on X3
   std::array<uint32_t, READING_TIME_BUCKET_COUNT> timeOfDaySeconds{};
   std::array<uint32_t, READING_DAY_OF_WEEK_COUNT> dayOfWeekSeconds{};
 

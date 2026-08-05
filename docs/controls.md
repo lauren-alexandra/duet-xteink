@@ -42,10 +42,17 @@ Note: Even though some actions assigned to the front buttons could be used globa
 
 ## Side Button Long-press Action
 
-While reading an EPUB, set this to `Change Font Size` and hold a side button for about 1 second:
+While reading an EPUB, set this to `Change Font Size` and hold a side button for about 1 second.
 
-- Up increases font size
-- Down decreases font size
+On X3:
+
+- The physical right side button increases font size.
+- The physical left side button decreases font size.
+
+On X4:
+
+- Up increases font size.
+- Down decreases font size.
 
 Set this to `Orientation Change` and hold a side button for about 1 second:
 

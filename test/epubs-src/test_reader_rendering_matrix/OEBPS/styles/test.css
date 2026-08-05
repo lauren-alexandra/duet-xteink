@@ -75,6 +75,18 @@ h1, h2 {
   text-decoration: underline line-through;
 }
 
+.small-caps {
+  font-variant: small-caps;
+}
+
+.all-small-caps {
+  font-variant-caps: all-small-caps;
+}
+
+.normal-caps {
+  font-variant-caps: normal;
+}
+
 .small {
   font-size: 0.8em;
 }

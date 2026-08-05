@@ -47,7 +47,7 @@ constexpr uint8_t BOOK_STATS_INDEX_VERSION = 1;
 constexpr uint32_t BOOK_STATS_ALIAS_MAGIC = 0x5341494Cu;  // LIAS, little-endian on disk
 constexpr uint8_t BOOK_STATS_ALIAS_VERSION = 1;
 constexpr uint32_t BOOK_STATS_DETAIL_MAGIC = 0x5445444Cu;  // LDET, little-endian on disk
-constexpr uint8_t BOOK_STATS_DETAIL_VERSION = 1;
+constexpr uint8_t BOOK_STATS_DETAIL_VERSION = 2;
 constexpr uint8_t BOOK_STATS_FLAG_COMPLETED = 1u << 0;
 constexpr uint8_t BOOK_STATS_FLAG_PROGRESS = 1u << 1;
 constexpr uint8_t BOOK_STATS_DETAIL_FLAG_START_MANUAL = 1u << 0;
@@ -497,7 +497,8 @@ bool writeDetailedBookStats(FsFile& file, const uint64_t cacheKey, const BookRea
   for (const uint32_t seconds : stats.timeOfDaySeconds) ok = ok && serialization::tryWritePod(file, seconds);
   for (const uint32_t seconds : stats.dayOfWeekSeconds) ok = ok && serialization::tryWritePod(file, seconds);
   return ok && serialization::tryWritePod(file, stats.latestSessionDayIndex) &&
-         serialization::tryWritePod(file, stats.latestSessionStartMinute);
+         serialization::tryWritePod(file, stats.latestSessionStartMinute) &&
+         serialization::tryWritePod(file, stats.totalWordCount);
 }
 
 bool readDetailedBookStats(FsFile& file, uint64_t& cacheKey, BookReadingStats& stats) {
@@ -516,7 +517,8 @@ bool readDetailedBookStats(FsFile& file, uint64_t& cacheKey, BookReadingStats& s
   for (uint32_t& seconds : stats.timeOfDaySeconds) ok = ok && serialization::tryReadPod(file, seconds);
   for (uint32_t& seconds : stats.dayOfWeekSeconds) ok = ok && serialization::tryReadPod(file, seconds);
   ok = ok && serialization::tryReadPod(file, stats.latestSessionDayIndex) &&
-       serialization::tryReadPod(file, stats.latestSessionStartMinute);
+       serialization::tryReadPod(file, stats.latestSessionStartMinute) &&
+       serialization::tryReadPod(file, stats.totalWordCount);
   stats.isCompleted = completed != 0;
   stats.startDateManual = (flags & BOOK_STATS_DETAIL_FLAG_START_MANUAL) != 0;
   stats.finishedDateManual = (flags & BOOK_STATS_DETAIL_FLAG_FINISHED_MANUAL) != 0;
@@ -571,6 +573,9 @@ void mergeDetailedStats(BookReadingStats& target, const BookReadingStats& source
   target.totalReadingSeconds = addSaturated(target.totalReadingSeconds, source.totalReadingSeconds);
   target.countedSessionSeconds = addSaturated(target.countedSessionSeconds, source.countedSessionSeconds);
   target.totalPagesTurned = addSaturated(target.totalPagesTurned, source.totalPagesTurned);
+  if (target.totalWordCount == 0) {
+    target.totalWordCount = source.totalWordCount;
+  }
   target.isCompleted = target.isCompleted || source.isCompleted;
   mergeDate(target.startDate, target.startDateManual, source.startDate, source.startDateManual);
   mergeDate(target.finishedDate, target.finishedDateManual, source.finishedDate, source.finishedDateManual);
@@ -1236,8 +1241,21 @@ bool LibraryInsights::publishLocalDetailedBookStatsForSync(SyncPrepProgress prog
     return false;
   }
   if (Storage.existsForRead(BOOK_STATS_DETAIL_CLEAN_PATH) && Storage.existsForRead(BOOK_STATS_DETAIL_PATH)) {
-    LOG_DBG("LIBDET", "Detailed per-book stats unchanged since last publish; reusing snapshot");
-    return true;
+    FsFile existing;
+    if (Storage.openFileForRead("LIBDET", BOOK_STATS_DETAIL_PATH, existing)) {
+      uint32_t magic = 0;
+      uint8_t version = 0;
+      const bool currentSnapshot = serialization::tryReadPod(existing, magic) &&
+                                   serialization::tryReadPod(existing, version) && magic == BOOK_STATS_DETAIL_MAGIC &&
+                                   version == BOOK_STATS_DETAIL_VERSION;
+      existing.close();
+      if (currentSnapshot) {
+        LOG_DBG("LIBDET", "Detailed per-book stats unchanged since last publish; reusing snapshot");
+        return true;
+      }
+    }
+    LOG_INF("LIBDET", "Detailed stats snapshot is stale; rebuilding for current format");
+    Storage.remove(BOOK_STATS_DETAIL_CLEAN_PATH);
   }
   if (Storage.exists(BOOK_STATS_DETAIL_TMP_PATH)) Storage.remove(BOOK_STATS_DETAIL_TMP_PATH);
 

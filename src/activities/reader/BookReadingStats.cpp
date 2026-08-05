@@ -63,7 +63,11 @@ namespace {
 //   [0-82]   v6 fields
 //   [83-86]  latestSessionDayIndex        uint32_t LE
 //   [87-88]  latestSessionStartMinute     uint16_t LE
-static constexpr uint8_t STATS_FILE_VERSION = 7;
+//
+// Binary layout v8 (93 bytes):
+//   [0-88]   v7 fields
+//   [89-92]  totalWordCount                uint32_t LE, 0 means unavailable
+static constexpr uint8_t STATS_FILE_VERSION = 8;
 static constexpr uint8_t STATS_FILE_VERSION_V2 = 2;
 static constexpr uint8_t STATS_FILE_VERSION_V1 = 1;
 static constexpr uint8_t STATS_FILE_VERSION_V3 = 3;
@@ -75,7 +79,8 @@ static constexpr int STATS_FILE_SIZE_V3 = 16;
 static constexpr int STATS_FILE_SIZE_V4 = 69;
 static constexpr int STATS_FILE_SIZE_V5 = 73;
 static constexpr int STATS_FILE_SIZE_V6 = 83;
-static constexpr int STATS_FILE_SIZE = 89;
+static constexpr int STATS_FILE_SIZE_V7 = 89;
+static constexpr int STATS_FILE_SIZE = 93;
 static constexpr uint16_t MAX_PACE_SAMPLE_COUNT = 1000;
 static constexpr uint8_t FLAG_START_DATE_MANUAL = 1u << 0;
 static constexpr uint8_t FLAG_FINISHED_DATE_MANUAL = 1u << 1;
@@ -179,7 +184,8 @@ BookReadingStats BookReadingStats::load(const std::string& cachePath) {
     return stats;
   }
 
-  if (n != STATS_FILE_SIZE && n != STATS_FILE_SIZE_V6 && n != STATS_FILE_SIZE_V5 && n != STATS_FILE_SIZE_V4) {
+  if (n != STATS_FILE_SIZE && n != STATS_FILE_SIZE_V7 && n != STATS_FILE_SIZE_V6 && n != STATS_FILE_SIZE_V5 &&
+      n != STATS_FILE_SIZE_V4) {
     LOG_DBG("STATS", "Stats missing or version mismatch, starting fresh");
     return stats;
   }
@@ -192,6 +198,10 @@ BookReadingStats BookReadingStats::load(const std::string& cachePath) {
     return stats;
   }
   if (n == STATS_FILE_SIZE_V6 && data[0] != 6) {
+    LOG_DBG("STATS", "Stats missing or version mismatch, starting fresh");
+    return stats;
+  }
+  if (n == STATS_FILE_SIZE_V7 && data[0] != 7) {
     LOG_DBG("STATS", "Stats missing or version mismatch, starting fresh");
     return stats;
   }
@@ -214,19 +224,22 @@ BookReadingStats BookReadingStats::load(const std::string& cachePath) {
   for (size_t i = 0; i < stats.dayOfWeekSeconds.size(); ++i) {
     stats.dayOfWeekSeconds[i] = readLe32(data, 41 + static_cast<int>(i) * 4);
   }
-  if (n == STATS_FILE_SIZE_V5 || n == STATS_FILE_SIZE_V6 || n == STATS_FILE_SIZE) {
+  if (n == STATS_FILE_SIZE_V5 || n == STATS_FILE_SIZE_V6 || n == STATS_FILE_SIZE_V7 || n == STATS_FILE_SIZE) {
     stats.estimatedTimeLeftSeconds = readLe32(data, 69);
   }
-  if (n == STATS_FILE_SIZE_V6 || n == STATS_FILE_SIZE) {
+  if (n == STATS_FILE_SIZE_V6 || n == STATS_FILE_SIZE_V7 || n == STATS_FILE_SIZE) {
     stats.countedSessionSeconds = readLe32(data, 73);
     stats.latestSessionReadingSeconds = readLe32(data, 77);
     stats.latestSessionScreenPages = readLe16(data, 81);
   } else {
     stats.countedSessionSeconds = stats.totalReadingSeconds;
   }
-  if (n == STATS_FILE_SIZE) {
+  if (n == STATS_FILE_SIZE_V7 || n == STATS_FILE_SIZE) {
     stats.latestSessionDayIndex = readLe32(data, 83);
     stats.latestSessionStartMinute = readLe16(data, 87);
+  }
+  if (n == STATS_FILE_SIZE) {
+    stats.totalWordCount = readLe32(data, 89);
   }
   return stats;
 }
@@ -312,6 +325,7 @@ void BookReadingStats::save(const std::string& cachePath) const {
   writeLe16(data, 81, latestSessionScreenPages);
   writeLe32(data, 83, latestSessionDayIndex);
   writeLe16(data, 87, latestSessionStartMinute);
+  writeLe32(data, 89, totalWordCount);
   const bool saved = f.write(data, STATS_FILE_SIZE) == STATS_FILE_SIZE;
   f.close();
   if (saved) {

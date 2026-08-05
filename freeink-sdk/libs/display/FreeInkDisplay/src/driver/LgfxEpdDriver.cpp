@@ -8,6 +8,7 @@
 #include <M5GFX.h>  // pulls LovyanGFX; added to lib_deps only on the LilyGo env
 #include <esp_heap_caps.h>
 #include <lgfx/v1/platforms/esp32/Bus_EPD.h>
+
 #include <lgfx/v1/platforms/esp32/Panel_EPD.hpp>
 #endif
 
@@ -104,9 +105,12 @@ FreeInkLgfxEpd g_dev;
 
 lgfx::epd_mode::epd_mode_t epdModeFor(RefreshMode m) {
   switch (m) {
-    case RefreshMode::Full: return lgfx::epd_mode::epd_text;
-    case RefreshMode::Half: return lgfx::epd_mode::epd_text;
-    default: return lgfx::epd_mode::epd_fast;
+    case RefreshMode::Full:
+      return lgfx::epd_mode::epd_text;
+    case RefreshMode::Half:
+      return lgfx::epd_mode::epd_text;
+    default:
+      return lgfx::epd_mode::epd_fast;
   }
 }
 
@@ -215,7 +219,7 @@ void LgfxEpdDriver::display(EpdBus& bus, const uint8_t* fb, const uint8_t* prev,
   (void)bus;
   (void)prev;
 #if FREEINK_DRIVER_LGFX_EPD
-  fillCanvasBW(fb);          // expand the 1-bpp frame into the gray canvas
+  fillCanvasBW(fb);  // expand the 1-bpp frame into the gray canvas
   pushCanvas(epdModeFor(mode));
   if (turnOff) g_dev.sleep();
 #else
@@ -265,8 +269,12 @@ void LgfxEpdDriver::displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, co
   (void)lut;
   (void)factoryMode;
 #if FREEINK_DRIVER_LGFX_EPD
-  fillCanvasGray(fb);             // combine base + LSB/MSB planes -> 4-level gray
-  pushCanvas(lgfx::epd_mode::epd_fastest);
+  fillCanvasGray(fb);  // combine base + LSB/MSB planes -> 4-level gray
+  // Same mode as the B/W base push: Panel_EPD's per-pixel diff keys on the
+  // epd_mode LUT offset, so switching modes here would re-drive every pixel
+  // (full-screen inversion flash). The board's fast LUT carries both the B/W
+  // drive and the AA gray-nudge columns, so one mode serves both pushes.
+  pushCanvas(lgfx::epd_mode::epd_fast);
   if (turnOff) g_dev.sleep();
 #else
   (void)fb;
@@ -309,7 +317,8 @@ PanelDriver& lgfxEpdDriver() {
   return instance;
 }
 #elif FREEINK_DRIVER_LGFX_EPD
-#error "FREEINK_DRIVER_LGFX_EPD requires a board config: define `const LgfxEpdConfig& yourConfig();` in namespace freeink and build with -DFREEINK_LGFX_EPD_CONFIG=yourConfig"
+#error \
+    "FREEINK_DRIVER_LGFX_EPD requires a board config: define `const LgfxEpdConfig& yourConfig();` in namespace freeink and build with -DFREEINK_LGFX_EPD_CONFIG=yourConfig"
 #else
 // Driver not selected in this build: provide a stub so the accessor still links if
 // referenced. Never called (the facade only selects it under FREEINK_DRIVER_LGFX_EPD).
