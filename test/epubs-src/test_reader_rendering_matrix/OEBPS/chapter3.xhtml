@@ -20,5 +20,10 @@
   <p class="justify">This justified paragraph contains <strong>bold words</strong>, <em>italic words</em>, <span class="underline">underlined words</span>, and <span class="strike">struck words</span>. Guide dots should still appear between the visible word groups when enabled.</p>
   <p>This paragraph has <span class="small">small inline text</span> and <span class="large">large inline text</span> to check line height, baseline placement, and clipping around mixed font sizes.</p>
   <p>This paragraph contains nested spans: <span class="underline"><strong>bold underlined text</strong></span>, <span class="strike"><em>italic struck text</em></span>, and <span class="underline-strike"><strong><em>bold italic underlined struck text</em></strong></span>.</p>
+  <h2>Small Capitals</h2>
+  <p class="small-caps">Small caps should keep Initial Capitals full size while converting lowercase letters into smaller capitals.</p>
+  <p class="all-small-caps">All small caps should render uppercase and lowercase letters at the same smaller-capital height.</p>
+  <p class="small-caps">Nested normal text should reset here: <span class="normal-caps">Normal Mixed Case</span>, then small caps should resume without leaking into the next paragraph.</p>
+  <p>Normal Mixed Case after the small-caps runs must remain ordinary mixed case.</p>
 </body>
 </html>

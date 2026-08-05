@@ -66,6 +66,8 @@ class SdCardFontSystem {
 
  private:
   bool reconcileSelectedSize(const SdCardFontFamilyInfo& family);
+  bool aliasLoadedFamilyAsUiFallback(GfxRenderer& renderer);
+  void clearUiFallback();
 
   SdCardFontRegistry registry_;
   SdCardFontManager manager_;

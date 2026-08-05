@@ -18,7 +18,7 @@ Duet is created and maintained by Lauren Landau as an independent, one-person pr
 - [User Guide](https://github.com/lauren-alexandra/duet-xteink/blob/main/USER_GUIDE.md)
 - [Alpha Testing](./ALPHA_TESTING.html)
 - [Troubleshooting](./troubleshooting.html)
-- [Alpha.8 Acceptance Quickstart](./ALPHA8_ACCEPTANCE_QUICKSTART.html)
+- [Alpha.9 Acceptance Quickstart](./ALPHA9_ACCEPTANCE_QUICKSTART.html)
 
 ## Features And Daily Use
 

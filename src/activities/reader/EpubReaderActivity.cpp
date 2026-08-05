@@ -107,6 +107,15 @@ constexpr uint8_t RELAYOUT_BUILD_MAX_ATTEMPTS = 3;
 constexpr uint16_t RELAYOUT_PREVIEW_MAX_PAGES = 6;
 constexpr uint16_t CHAPTER_PREVIEW_MAX_PAGES = 2;
 
+uint32_t relayoutCompletionIdleMs(const bool chapterPreview) {
+#ifdef SIMULATOR
+  if (!chapterPreview && std::getenv("CROSSINK_SIMULATOR_FORCE_FONT_RELAYOUT_LOW_MEMORY") != nullptr) {
+    return 50;
+  }
+#endif
+  return chapterPreview ? CHAPTER_COMPLETION_IDLE_MS : RELAYOUT_BUILD_IDLE_MS;
+}
+
 struct ToastRect {
   int x = 0;
   int y = 0;
@@ -1718,19 +1727,126 @@ void EpubReaderActivity::loadBookReaderSettings() {
   SETTINGS.epubRenderMode = data.hasRenderModeOverride ? normalizeRenderModeRaw(data.renderMode)
                                                        : static_cast<uint8_t>(EpubRenderMode::CrossInkDefault);
   sdFontSystem.ensureLoaded(renderer);
+  rememberCommittedReaderSettings();
+}
+
+void EpubReaderActivity::rememberCommittedReaderSettings() {
+  captureReaderSettings(committedReaderSettings);
+  committedBookHasCustomReaderSettings = bookHasCustomReaderSettings;
+  committedBookHasRenderModeOverride = bookHasRenderModeOverride;
+  committedReaderSettingsValid = true;
+}
+
+bool EpubReaderActivity::persistCommittedReaderSettings() {
+  if (!epub || !committedReaderSettingsValid) {
+    return false;
+  }
+  return saveBookReaderSettingsFile(
+      epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
+      committedBookHasCustomReaderSettings, committedBookHasRenderModeOverride, committedReaderSettings.epubRenderMode,
+      committedReaderSettings);
+}
+
+bool EpubReaderActivity::beginReaderSettingsRelayoutTransaction() {
+  if (relayoutSettingsTransactionActive) {
+    return true;
+  }
+  if (!committedReaderSettingsValid) {
+    rememberCommittedReaderSettings();
+  }
+  relayoutSettingsTransactionActive = true;
+  if (!persistCommittedReaderSettings()) {
+    LOG_ERR("ERS", "Could not preserve last-known-good reader settings before relayout");
+    rollbackReaderSettingsRelayout("baseline save failed");
+    return false;
+  }
+  LOG_DBG("ERS", "Reader settings relayout transaction started: font=%u size=%u sd=%s",
+          static_cast<unsigned>(SETTINGS.fontFamily), static_cast<unsigned>(SETTINGS.fontSize),
+          SETTINGS.sdFontFamilyName[0] != '\0' ? SETTINGS.sdFontFamilyName : "builtin");
+  return true;
+}
+
+void EpubReaderActivity::commitReaderSettingsRelayout() {
+  if (!relayoutSettingsTransactionActive || !epub) {
+    return;
+  }
+
+  ReaderSettingsSnapshot snapshot;
+  captureReaderSettings(snapshot);
+  if (!saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval,
+                                  lastAutoPageTurnIntervalSeconds, true, true, snapshot.epubRenderMode, snapshot)) {
+    LOG_ERR("ERS", "Could not commit reader settings after successful relayout");
+    rollbackReaderSettingsRelayout("commit save failed");
+    return;
+  }
+
+  bookHasCustomReaderSettings = true;
+  bookHasRenderModeOverride = true;
+  committedReaderSettings = snapshot;
+  committedBookHasCustomReaderSettings = true;
+  committedBookHasRenderModeOverride = true;
+  committedReaderSettingsValid = true;
+  relayoutSettingsTransactionActive = false;
+  LOG_DBG("ERS", "Reader settings relayout committed: font=%u size=%u sd=%s",
+          static_cast<unsigned>(snapshot.fontFamily), static_cast<unsigned>(snapshot.fontSize),
+          snapshot.sdFontFamilyName[0] != '\0' ? snapshot.sdFontFamilyName : "builtin");
+}
+
+void EpubReaderActivity::rollbackReaderSettingsRelayout(const char* reason) {
+  if (!relayoutSettingsTransactionActive || !committedReaderSettingsValid) {
+    return;
+  }
+
+  relayoutBuildCancelRequested.store(true, std::memory_order_release);
+  relayoutBuildWorkRequested.store(false, std::memory_order_release);
+  if (section) {
+    section->clearCache();
+  }
+  section.reset();
+  activeRelayoutPreview = false;
+  activeChapterPreview = false;
+  pendingRelayoutPreview = false;
+  pendingRelayoutPreviewFromBack = false;
+  relayoutPreviewUserMoved = false;
+  relayoutBuildAttempts.store(0, std::memory_order_release);
+  relayoutBuildRetired.store(false, std::memory_order_release);
+  relayoutBuildSafeModePending.store(false, std::memory_order_release);
+  relayoutBuildEligibleAfterMs.store(0, std::memory_order_release);
+
+  applyReaderSettings(committedReaderSettings);
+  bookHasCustomReaderSettings = committedBookHasCustomReaderSettings;
+  bookHasRenderModeOverride = committedBookHasRenderModeOverride;
+  ReaderUtils::applyOrientation(renderer, SETTINGS.orientation);
+  sdFontSystem.ensureLoaded(renderer);
+  if (!persistCommittedReaderSettings()) {
+    LOG_ERR("ERS", "Could not rewrite last-known-good reader settings during rollback");
+  }
+  relayoutSettingsTransactionActive = false;
+  relayoutBuildCancelRequested.store(false, std::memory_order_release);
+  LOG_ERR("ERS", "Reader settings relayout rolled back (%s): font=%u size=%u sd=%s", reason ? reason : "unknown",
+          static_cast<unsigned>(committedReaderSettings.fontFamily),
+          static_cast<unsigned>(committedReaderSettings.fontSize),
+          committedReaderSettings.sdFontFamilyName[0] != '\0' ? committedReaderSettings.sdFontFamilyName : "builtin");
+  requestUpdate();
 }
 
 void EpubReaderActivity::saveCurrentBookReaderSettings() {
   if (!epub) {
     return;
   }
+  if (relayoutSettingsTransactionActive) {
+    LOG_DBG("ERS", "Deferring reader settings save until relayout completes");
+    return;
+  }
 
   ReaderSettingsSnapshot snapshot;
   captureReaderSettings(snapshot);
-  bookHasCustomReaderSettings = true;
-  bookHasRenderModeOverride = true;
-  saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
-                             bookHasCustomReaderSettings, bookHasRenderModeOverride, SETTINGS.epubRenderMode, snapshot);
+  if (saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
+                                 true, true, snapshot.epubRenderMode, snapshot)) {
+    bookHasCustomReaderSettings = true;
+    bookHasRenderModeOverride = true;
+    rememberCommittedReaderSettings();
+  }
 }
 
 void EpubReaderActivity::saveGlobalSettingsPreservingBookOverrides() {
@@ -1767,7 +1883,9 @@ void EpubReaderActivity::saveReaderOptionsForBook(void* ctx) {
   if (!ctx) {
     return;
   }
-  static_cast<EpubReaderActivity*>(ctx)->saveCurrentBookReaderSettings();
+  // Reader options invoke this callback while the picker is still open. The
+  // reader persists the selection only after its full chapter relayout succeeds.
+  LOG_DBG("ERS", "Deferring per-book reader option save until relayout validation");
 }
 
 void EpubReaderActivity::saveGlobalSettingsForBookReader(void* ctx) {
@@ -1810,6 +1928,8 @@ void EpubReaderActivity::onEnter() {
   relayoutBuildSafeModePending.store(false, std::memory_order_relaxed);
   relayoutBuildEligibleAfterMs.store(0, std::memory_order_relaxed);
   relayoutBuildAttempts.store(0, std::memory_order_relaxed);
+  relayoutSettingsTransactionActive = false;
+  committedReaderSettingsValid = false;
   deferredPageTurnDirection = 0;
   nextChapterPreindexWorkRequested.store(false, std::memory_order_relaxed);
   nextChapterPreindexCancelRequested.store(false, std::memory_order_relaxed);
@@ -1965,6 +2085,15 @@ void EpubReaderActivity::onExit() {
   nextChapterPreindexCancelRequested.store(true, std::memory_order_release);
   nextChapterPreindexWorkRequested.store(false, std::memory_order_release);
   Activity::onExit();
+
+  // A preview is not proof that the full chapter fits. If the reader exits or
+  // sleeps mid-relayout, keep the last fully rendered settings as the reopen state.
+  if (relayoutSettingsTransactionActive) {
+    if (!persistCommittedReaderSettings()) {
+      LOG_ERR("ERS", "Could not preserve last-known-good reader settings on reader exit");
+    }
+    relayoutSettingsTransactionActive = false;
+  }
 
   // A timeout or immediate sleep can race the first render. Load the persisted
   // counters before committing so an early exit can never overwrite history.
@@ -3352,7 +3481,6 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
 }
 
 void EpubReaderActivity::reindexCurrentSection() {
-  saveCurrentBookReaderSettings();
   if (activeFootnotePreview) {
     restoreSavedPosition();
     return;
@@ -3361,6 +3489,10 @@ void EpubReaderActivity::reindexCurrentSection() {
 }
 
 void EpubReaderActivity::beginInteractiveRelayout(const bool allowPreview) {
+  if (!beginReaderSettingsRelayoutTransaction()) {
+    requestUpdate();
+    return;
+  }
   relayoutBuildCancelRequested.store(true, std::memory_order_release);
   relayoutBuildRetired.store(false, std::memory_order_release);
   relayoutBuildSafeModePending.store(false, std::memory_order_release);
@@ -3383,7 +3515,7 @@ void EpubReaderActivity::beginInteractiveRelayout(const bool allowPreview) {
   }
   sdFontSystem.ensureLoaded(renderer);
   relayoutBuildCancelRequested.store(false, std::memory_order_release);
-  relayoutBuildEligibleAfterMs.store(millis() + RELAYOUT_BUILD_IDLE_MS, std::memory_order_release);
+  relayoutBuildEligibleAfterMs.store(millis() + relayoutCompletionIdleMs(false), std::memory_order_release);
   requestUpdate();
 }
 
@@ -4186,6 +4318,14 @@ void EpubReaderActivity::applyOrientation(const uint8_t orientation) {
     return;
   }
 
+  // Once a page has painted, orientation is another layout-sensitive reader
+  // setting. Preserve the last completed layout before changing either the
+  // setting or the renderer geometry.
+  if (firstRenderCompleted.load(std::memory_order_acquire) && committedReaderSettingsValid &&
+      !beginReaderSettingsRelayoutTransaction()) {
+    return;
+  }
+
   {
     RenderLock lock(*this);
 
@@ -4199,9 +4339,8 @@ void EpubReaderActivity::applyOrientation(const uint8_t orientation) {
     }
 
     if (settingsChanged) {
-      // Persist the selection for this book without changing global reader defaults.
+      // Commit only after the new geometry has produced a complete chapter.
       SETTINGS.orientation = orientation;
-      saveCurrentBookReaderSettings();
     }
 
     if (rendererChanged) {
@@ -4282,6 +4421,27 @@ bool EpubReaderActivity::pageTurn(bool isForwardTurn, const char* source) {
       moved = true;
       relayoutPreviewUserMoved = true;
       if (sessionScreenPages < UINT16_MAX) sessionScreenPages++;
+    } else if (isForwardTurn && section && section->currentPage >= section->pageCount - 1 &&
+               cachedPageParagraphIndex != UINT16_MAX && cachedPageParagraphIndex < UINT16_MAX - 1) {
+      LOG_DBG("ERS", "Advancing relayout preview window from paragraph %u", cachedPageParagraphIndex);
+      cachedPageParagraphIndex++;
+      cachedPageParagraphOffset = 0;
+      cachedPageParagraphSpan = 1;
+      cachedRelayoutAtChapterStart = false;
+      pendingRelayoutReposition = true;
+      pendingRelayoutPreview = true;
+      pendingRelayoutPreviewFromBack = false;
+      relayoutPreviewUserMoved = true;
+      activeRelayoutPreview = false;
+      activeChapterPreview = false;
+      relayoutBuildCancelRequested.store(true, std::memory_order_release);
+      relayoutBuildRetired.store(false, std::memory_order_release);
+      relayoutBuildEligibleAfterMs.store(millis() + RELAYOUT_BUILD_IDLE_MS, std::memory_order_release);
+      section->clearCache();
+      section.reset();
+      moved = true;
+      if (sessionScreenPages < UINT16_MAX) sessionScreenPages++;
+      armReadingPaceWarmup("relayout_preview_forward_window");
     } else if (!isForwardTurn && section && section->currentPage > 0) {
       section->currentPage--;
       moved = true;
@@ -4440,6 +4600,13 @@ bool EpubReaderActivity::maybeScheduleRelayoutBuild() {
 
   const char* completionLabel = activeChapterPreview ? "new chapter completion" : "font relayout completion";
   if (!MemoryBudget::hasHeapForOptionalEpubRebuild("ERS", completionLabel, currentSpineIndex)) {
+    if (relayoutSettingsTransactionActive) {
+      const uint8_t attempts = relayoutBuildAttempts.fetch_add(1, std::memory_order_acq_rel) + 1;
+      if (attempts >= RELAYOUT_BUILD_MAX_ATTEMPTS) {
+        rollbackReaderSettingsRelayout("background heap precheck");
+        return true;
+      }
+    }
     relayoutBuildEligibleAfterMs.store(now + RELAYOUT_BUILD_LOW_HEAP_RETRY_MS, std::memory_order_release);
     return false;
   }
@@ -4461,6 +4628,13 @@ bool EpubReaderActivity::shouldCancelRelayoutBuild(void* context) {
       std::getenv("CROSSINK_SIMULATOR_FORCE_CHAPTER_COMPLETION_LOW_MEMORY") != nullptr) {
     self->relayoutBuildLowHeapAbort.store(true, std::memory_order_release);
     LOG_DBG("ERS", "Simulator forced low-memory chapter completion cancellation");
+    return true;
+  }
+  if (!self->activeChapterPreview && self->relayoutSettingsTransactionActive &&
+      std::getenv("CROSSINK_SIMULATOR_FORCE_FONT_RELAYOUT_LOW_MEMORY") != nullptr) {
+    self->relayoutBuildAttempts.store(RELAYOUT_BUILD_MAX_ATTEMPTS - 1, std::memory_order_release);
+    self->relayoutBuildLowHeapAbort.store(true, std::memory_order_release);
+    LOG_DBG("ERS", "Simulator forced low-memory font relayout cancellation");
     return true;
   }
 #endif
@@ -4498,17 +4672,29 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
   const bool safeModeCompletion = relayoutBuildSafeModePending.load(std::memory_order_acquire);
   const SectionBuildProfile profile =
       safeModeCompletion ? safeModeBuildProfile() : buildProfileForRenderMode(selectedRenderMode);
-  const bool safeModeWouldChangeSettings =
-      selectedRenderMode != EpubRenderMode::Light || shouldAttemptSafeModeFallback();
+  const bool safeModeWouldChangeSettings = !relayoutSettingsTransactionActive &&
+                                           (selectedRenderMode != EpubRenderMode::Light ||
+                                            shouldAttemptSafeModeFallback());
   const std::string cacheSuffix = sectionCacheSuffixForLayout(profile.renderMode, fontId);
   auto completedSection = makeUniqueNoThrow<Section>(epub, targetSpine, renderer, cacheSuffix.c_str());
   if (!completedSection) {
+    if (relayoutSettingsTransactionActive &&
+        relayoutBuildAttempts.fetch_add(1, std::memory_order_acq_rel) + 1 >= RELAYOUT_BUILD_MAX_ATTEMPTS) {
+      rollbackReaderSettingsRelayout("completion section allocation failed");
+      return;
+    }
     relayoutBuildEligibleAfterMs.store(millis() + RELAYOUT_BUILD_LOW_HEAP_RETRY_MS, std::memory_order_release);
     LOG_ERR("ERS", "Failed to allocate %s completion section for spine %d", profile.label, targetSpine);
     return;
   }
 
   const auto finishRelayout = [&]() {
+    if (relayoutSettingsTransactionActive) {
+      commitReaderSettingsRelayout();
+      if (!activeRelayoutPreview || !section) {
+        return;
+      }
+    }
     if (profile.safeMode) {
       applySafeModeReaderSettings();
       bookHasCustomReaderSettings = true;
@@ -4540,6 +4726,13 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
   };
 
   if (shouldCancelRelayoutBuild(this)) {
+    if (relayoutSettingsTransactionActive && relayoutBuildLowHeapAbort.load(std::memory_order_acquire)) {
+      const uint8_t attempts = relayoutBuildAttempts.fetch_add(1, std::memory_order_acq_rel) + 1;
+      if (attempts >= RELAYOUT_BUILD_MAX_ATTEMPTS) {
+        rollbackReaderSettingsRelayout("pre-build low-memory guard");
+        return;
+      }
+    }
     if (relayoutBuildLowHeapAbort.load(std::memory_order_acquire) && !profile.safeMode && safeModeWouldChangeSettings) {
       relayoutBuildSafeModePending.store(true, std::memory_order_release);
       relayoutBuildAttempts.store(0, std::memory_order_release);
@@ -4605,6 +4798,11 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
     const uint32_t retryMs = relayoutBuildLowHeapAbort.load(std::memory_order_acquire)
                                  ? RELAYOUT_BUILD_LOW_HEAP_RETRY_MS
                                  : RELAYOUT_BUILD_RETRY_IDLE_MS;
+    if (relayoutSettingsTransactionActive && relayoutBuildLowHeapAbort.load(std::memory_order_acquire) &&
+        relayoutBuildAttempts.load(std::memory_order_acquire) >= RELAYOUT_BUILD_MAX_ATTEMPTS) {
+      rollbackReaderSettingsRelayout("background low-memory cancellation");
+      return;
+    }
     if (relayoutBuildLowHeapAbort.load(std::memory_order_acquire) && !profile.safeMode && safeModeWouldChangeSettings) {
       relayoutBuildSafeModePending.store(true, std::memory_order_release);
       relayoutBuildAttempts.store(0, std::memory_order_release);
@@ -4643,6 +4841,10 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
     }
     if (attempts >= RELAYOUT_BUILD_MAX_ATTEMPTS) {
       completedSection->clearCache();
+      if (relayoutSettingsTransactionActive) {
+        rollbackReaderSettingsRelayout("background relayout failed");
+        return;
+      }
       relayoutBuildRetired.store(true, std::memory_order_release);
       relayoutBuildEligibleAfterMs.store(0, std::memory_order_release);
       LOG_ERR("ERS", "%s %s completion retired after %u attempts; keeping readable preview",
@@ -5127,7 +5329,9 @@ void EpubReaderActivity::render(RenderLock&& lock) {
 
       uint8_t fallbackCount = 0;
       const auto fallbackModes = fallbackModesForSelection(selectedRenderMode, fallbackCount);
-      for (uint8_t i = 0; i < fallbackCount && !fallbackBuildSucceeded; ++i) {
+      const uint8_t allowedFallbackCount = relayoutSettingsTransactionActive ? std::min<uint8_t>(fallbackCount, 1)
+                                                                              : fallbackCount;
+      for (uint8_t i = 0; i < allowedFallbackCount && !fallbackBuildSucceeded; ++i) {
         const EpubRenderMode attemptMode = fallbackModes[i];
         if (i > 0) {
           if (!layoutAbortedForLowMemory) {
@@ -5141,7 +5345,8 @@ void EpubReaderActivity::render(RenderLock&& lock) {
         fallbackBuildSucceeded = buildSectionWithProfile(readerFontId, buildProfileForRenderMode(attemptMode));
       }
 
-      if (!fallbackBuildSucceeded && layoutAbortedForLowMemory && shouldAttemptSafeModeFallback()) {
+      if (!fallbackBuildSucceeded && !relayoutSettingsTransactionActive && layoutAbortedForLowMemory &&
+          shouldAttemptSafeModeFallback()) {
         LOG_ERR("ERS", "EPUB section layout aborted for low heap; retrying Safe Mode%s",
                 buildingChapterPreview ? " preview" : "");
         releaseReaderSdFontCachesForLowMemory(renderer, "ERS", "safe mode section rebuild");
@@ -5157,6 +5362,11 @@ void EpubReaderActivity::render(RenderLock&& lock) {
           LOG_ERR("ERS", "Failed to persist page data to SD");
         }
         const bool shouldRestoreFootnoteOrigin = buildingFootnotePreview && footnoteDepth > 0;
+        if (relayoutSettingsTransactionActive) {
+          rollbackReaderSettingsRelayout(layoutAbortedForLowMemory ? "visible relayout exceeded memory"
+                                                                   : "visible relayout failed");
+          return;
+        }
         section.reset();
         if (buildingFootnotePreview) {
           pendingFootnotePreviewAnchor.clear();
@@ -5237,9 +5447,8 @@ void EpubReaderActivity::render(RenderLock&& lock) {
       relayoutBuildAttempts.store(0, std::memory_order_release);
       relayoutBuildRetired.store(false, std::memory_order_release);
       relayoutBuildSafeModePending.store(false, std::memory_order_release);
-      relayoutBuildEligibleAfterMs.store(
-          millis() + (activeChapterPreview ? CHAPTER_COMPLETION_IDLE_MS : RELAYOUT_BUILD_IDLE_MS),
-          std::memory_order_release);
+      relayoutBuildEligibleAfterMs.store(millis() + relayoutCompletionIdleMs(activeChapterPreview),
+                                         std::memory_order_release);
     }
 
     if (!buildingPreview && usedRenderMode != selectedRenderMode && !safeModeBuildSucceeded) {
@@ -5259,6 +5468,13 @@ void EpubReaderActivity::render(RenderLock&& lock) {
       LOG_ERR("ERS", "Section load/build did not produce a section");
       showPendingSyncSaveError();
       return;
+    }
+
+    if (!activeRelayoutPreview && relayoutSettingsTransactionActive) {
+      commitReaderSettingsRelayout();
+      if (!section) {
+        return;
+      }
     }
 
     if (pendingPageJump.has_value()) {

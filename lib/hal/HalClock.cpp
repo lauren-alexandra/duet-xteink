@@ -23,6 +23,7 @@ static uint8_t decToBcd(uint8_t dec) { return ((dec / 10) << 4) | (dec % 10); }
 
 namespace {
 constexpr uint16_t kBaseYear = 2000;
+constexpr time_t kMinimumValidSystemTime = 1704067200;  // 2024-01-01 UTC
 constexpr const char* kMonthNames[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
@@ -304,8 +305,6 @@ bool HalClock::writeDateTimeToRTC(uint16_t year, uint8_t month, uint8_t day, uin
 }
 
 bool HalClock::syncFromNTP() {
-  if (!_available) return false;
-
   if (WiFi.status() != WL_CONNECTED) {
     LOG_ERR("CLK", "WiFi not connected, cannot sync NTP");
     return false;
@@ -317,10 +316,17 @@ bool HalClock::syncFromNTP() {
   // Wait for SNTP sync to complete (up to 5 seconds)
   constexpr int maxAttempts = 50;
   for (int i = 0; i < maxAttempts; i++) {
-    if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED) {
+    if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED && hasValidSystemTime()) {
       time_t now = time(nullptr);
       struct tm timeinfo;
       gmtime_r(&now, &timeinfo);
+
+      if (!_available) {
+        LOG_INF("CLK", "System clock synced to %04d-%02d-%02d %02d:%02d:%02d UTC (no hardware RTC)",
+                timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min,
+                timeinfo.tm_sec);
+        return true;
+      }
 
       const uint16_t year = static_cast<uint16_t>(timeinfo.tm_year + 1900);
       const uint8_t month = static_cast<uint8_t>(timeinfo.tm_mon + 1);
@@ -339,3 +345,5 @@ bool HalClock::syncFromNTP() {
   LOG_ERR("CLK", "NTP sync timed out");
   return false;
 }
+
+bool HalClock::hasValidSystemTime() const { return time(nullptr) >= kMinimumValidSystemTime; }

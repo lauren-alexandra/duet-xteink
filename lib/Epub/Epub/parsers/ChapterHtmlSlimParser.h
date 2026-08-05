@@ -101,6 +101,8 @@ class ChapterHtmlSlimParser {
     int depth = 0;
     bool hasBold = false, bold = false;
     bool hasItalic = false, italic = false;
+    bool hasFontVariantCaps = false;
+    CssFontVariantCaps fontVariantCaps = CssFontVariantCaps::Normal;
     bool hasUnderline = false, underline = false;
     bool hasStrikethrough = false, strikethrough = false;
     bool hasBackgroundBlack = false, backgroundBlack = false;
@@ -120,6 +122,7 @@ class ChapterHtmlSlimParser {
   CssStyle currentCssStyle;
   bool effectiveBold = false;
   bool effectiveItalic = false;
+  CssFontVariantCaps effectiveFontVariantCaps = CssFontVariantCaps::Normal;
   bool effectiveUnderline = false;
   bool effectiveStrikethrough = false;
   bool effectiveBackgroundBlack = false;
@@ -210,6 +213,7 @@ class ChapterHtmlSlimParser {
   bool honorsPublisherDecorations() const { return renderMode != EpubRenderMode::Light; }
   void pushCssAncestor(int depth, const char* tag, std::string_view classAttr);
   static void applyDirectionToEntry(StyleStackEntry& entry, const CssStyle& css);
+  static void applyFontVariantToEntry(StyleStackEntry& entry, const CssStyle& css);
   void emitHorizontalRule(const BlockStyle& blockStyle);
   void finalizeCurrentTableCell();
   void emitBufferedTableAsParagraphs(BufferedTable& table);

@@ -469,7 +469,7 @@ A family exposes the sizes actually installed and can provide Regular, Italic, B
 
 A cached font catalog avoids rescanning every family on every boot and recovers when an installed font is replaced or invalid.
 
-The public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. Alpha.8 also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.8/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
+The public alpha includes licensed built-in fonts and can download CrossInk's credited 24-family compatibility catalog. The current release also provides the optional [Duet Open Font Pack](https://github.com/lauren-alexandra/duet-xteink/releases/download/v0.1.0-alpha.9/Duet-Open-Font-Pack-v1.zip) as a separate release asset: 123 reviewed families, 738 validated `.cpfont` files, and 10, 12, 14, 16, 18, and 20 pt for both readers. [Fonts](https://lauren-alexandra.github.io/duet-xteink/sd-card-fonts.html) explains installation and selective-source options, and [Font Sources][5] records the source and licensing audit.
 
 ## Dictionary and reference tools
 
@@ -723,7 +723,7 @@ Known constraints:
 
 ## Testing and privacy
 
-Start with [Alpha Testing][16], the short [Alpha.8 acceptance route][17], and the full [Physical Test Matrix][18].
+Start with [Alpha Testing][16], the short [Alpha.9 acceptance route][17], and the full [Physical Test Matrix][18].
 
 A useful report includes:
 
@@ -781,7 +781,7 @@ Duet is open source under MIT. The public alpha is an invitation to test it care
 [14]: https://github.com/seek-reader/seek
 [15]: https://github.com/aaludon/crosspoint-reader-aalu
 [16]: https://lauren-alexandra.github.io/duet-xteink/ALPHA_TESTING.html
-[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA8_ACCEPTANCE_QUICKSTART.html
+[17]: https://lauren-alexandra.github.io/duet-xteink/ALPHA9_ACCEPTANCE_QUICKSTART.html
 [18]: https://lauren-alexandra.github.io/duet-xteink/PHYSICAL_TEST_MATRIX.html
 [19]: https://github.com/lauren-alexandra/duet-xteink/releases
 [20]: https://lauren-alexandra.github.io/duet-xteink/

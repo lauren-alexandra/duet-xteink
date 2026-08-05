@@ -17,8 +17,8 @@
 
 namespace {
 constexpr uint32_t SECTION_CACHE_MAGIC = 0x535843FF;  // bytes: 0xFF, "CXS"
-// v43: TextBlock background/hyphen flags are stored only when a line uses them.
-constexpr uint8_t SECTION_FILE_VERSION = 43;
+// v44: Per-word style bytes can carry synthesized small-caps variants.
+constexpr uint8_t SECTION_FILE_VERSION = 44;
 constexpr uint16_t INITIAL_SECTION_PAGE_LUT_ENTRIES = 128;
 constexpr uint16_t MIN_PREVIEW_PAGE_LUT_ENTRIES = 8;
 constexpr uint32_t HEADER_SIZE = sizeof(SECTION_CACHE_MAGIC) + sizeof(uint8_t) + sizeof(int) + sizeof(float) +

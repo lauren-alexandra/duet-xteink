@@ -72,10 +72,13 @@ void ClockSyncActivity::runSync() {
     return;
   }
 
-  // Mark as synced so the auto-sync hook stops firing on future WiFi connects.
-  SETTINGS.clockHasBeenSynced = 1;
-  SETTINGS.clockDateHasBeenSynced = 1;
-  SETTINGS.saveToFile();
+  // The persisted debounce flags describe the battery-backed X3 RTC. The X4
+  // has only the software clock and must be allowed to sync again after reset.
+  if (halClock.isAvailable()) {
+    SETTINGS.clockHasBeenSynced = 1;
+    SETTINGS.clockDateHasBeenSynced = 1;
+    SETTINGS.saveToFile();
+  }
 
   // Read the freshly synced time back for the user-facing confirmation.
   char buf[9];

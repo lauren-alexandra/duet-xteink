@@ -36,6 +36,26 @@ bool SdCardFontSystem::reconcileSelectedSize(const SdCardFontFamilyInfo& family)
   return oldIndex != SETTINGS.fontSize || oldPointSize != SETTINGS.sdFontPointSize;
 }
 
+void SdCardFontSystem::clearUiFallback() { EpdFontFamily::setUiFallbackFamily(nullptr); }
+
+bool SdCardFontSystem::aliasLoadedFamilyAsUiFallback(GfxRenderer& renderer) {
+  clearUiFallback();
+  const int fontId = manager_.getFontId(manager_.currentFamilyName());
+  if (fontId == 0) return false;
+
+  const auto& fontMap = renderer.getFontMap();
+  const auto it = fontMap.find(fontId);
+  if (it == fontMap.end()) {
+    LOG_ERR("SDFS", "UI fallback alias failed: loaded font ID %d is not registered", fontId);
+    return false;
+  }
+
+  EpdFontFamily::setUiFallbackFamily(&it->second);
+  LOG_DBG("SDFS", "UI glyph fallback aliased to %s @%upt (fontId=%d, no second font allocation)",
+          manager_.currentFamilyName().c_str(), manager_.currentPointSize(), fontId);
+  return true;
+}
+
 void SdCardFontSystem::begin(GfxRenderer& renderer) {
   (void)renderer;
   registry_.discoverCachedOrScan();
@@ -51,13 +71,18 @@ void SdCardFontSystem::begin(GfxRenderer& renderer) {
 }
 
 void SdCardFontSystem::loadSelectedFamily(GfxRenderer& renderer) {
-  if (SETTINGS.sdFontFamilyName[0] == '\0') return;
+  if (SETTINGS.sdFontFamilyName[0] == '\0') {
+    clearUiFallback();
+    return;
+  }
 
   for (int attempt = 0; attempt < 2; attempt++) {
     const auto* family = registry_.findFamily(SETTINGS.sdFontFamilyName);
     if (family) {
       const bool sizeReconciled = reconcileSelectedSize(*family);
+      clearUiFallback();
       if (manager_.loadFamily(*family, renderer, SETTINGS.getSdFontTargetPointSize(), SETTINGS.fontSize)) {
+        aliasLoadedFamilyAsUiFallback(renderer);
         LOG_DBG("SDFS", "Loaded SD card font family: %s", SETTINGS.sdFontFamilyName);
         if (sizeReconciled) SETTINGS.saveToFile();
         return;
@@ -92,7 +117,10 @@ void SdCardFontSystem::ensureLoaded(GfxRenderer& renderer) {
   const std::string& currentFamily = manager_.currentFamilyName();
   if (wantedFamily[0] == '\0') {
     if (!currentFamily.empty()) {
+      clearUiFallback();
       manager_.unloadAll(renderer);
+    } else {
+      clearUiFallback();
     }
     return;
   }
@@ -105,6 +133,7 @@ void SdCardFontSystem::ensureLoaded(GfxRenderer& renderer) {
     const auto* family = registry_.findFamily(wantedFamily);
     if (!family) {
       LOG_DBG("SDFS", "SD font family disappeared: %s (clearing)", wantedFamily);
+      clearUiFallback();
       manager_.unloadAll(renderer);
       SETTINGS.sdFontFamilyName[0] = '\0';
       SETTINGS.sdFontPointSize = 0;
@@ -122,6 +151,7 @@ void SdCardFontSystem::ensureLoaded(GfxRenderer& renderer) {
   }
 
   if (!currentFamily.empty()) {
+    clearUiFallback();
     manager_.unloadAll(renderer);
   }
 
@@ -130,7 +160,9 @@ void SdCardFontSystem::ensureLoaded(GfxRenderer& renderer) {
     reconcileSelectedSize(*family);
     const uint8_t targetPointSize = SETTINGS.getSdFontTargetPointSize();
     const uint8_t sizeStep = SETTINGS.fontSize;
+    clearUiFallback();
     if (manager_.loadFamily(*family, renderer, targetPointSize, sizeStep)) {
+      aliasLoadedFamilyAsUiFallback(renderer);
       LOG_DBG("SDFS", "Loaded SD font family: %s", wantedFamily);
     } else {
       LOG_ERR("SDFS", "Failed to load SD font family: %s (clearing)", wantedFamily);
@@ -147,10 +179,14 @@ void SdCardFontSystem::ensureLoaded(GfxRenderer& renderer) {
 }
 
 void SdCardFontSystem::releaseLoadedFont(GfxRenderer& renderer) {
-  if (manager_.currentFamilyName().empty()) return;
+  if (manager_.currentFamilyName().empty()) {
+    clearUiFallback();
+    return;
+  }
 
   const std::string familyName = manager_.currentFamilyName();
   (void)familyName;
+  clearUiFallback();
   manager_.unloadAll(renderer);
   LOG_DBG("SDFS", "Released SD card font before low-memory operation: %s", familyName.c_str());
 }

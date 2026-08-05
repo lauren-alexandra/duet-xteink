@@ -5,7 +5,7 @@ nav_order: 6
 
 # Reading Stats Sync
 
-Duet can merge reading history directly between two nearby X3/X4 readers over ESP-NOW. It does not use WiFi, a server, or an account. Both readers must run the same Duet sync protocol. Alpha.8 uses protocol v6; it does not pair with the protocol v5 implementation in the Alpha.7 release, so both devices must be updated to Alpha.8 before syncing.
+Duet can merge reading history directly between two nearby X3/X4 readers over ESP-NOW. It does not use WiFi, a server, or an account. Both readers must run the same Duet sync protocol. Alpha.8 and Alpha.9 use protocol v6; they do not pair with the protocol v5 implementation in the Alpha.7 release, so both devices must run Alpha.8 or later before syncing.
 
 ## What Gets Synced
 
@@ -38,7 +38,7 @@ The first sync after a library change can spend time preparing detailed book rec
 
 Matched private/test `v0.1.0-alpha.7.1` builds have physically passed current-book WPM and detailed-stat convergence between Lauren's X3 and X4 after a fresh Nearby Stats Sync. The repair forces stale pre-WPM detailed snapshots to rebuild in the current format before reuse.
 
-Alpha.8 promotes that accepted repair into matched public X3/X4 builds. Do not mix Alpha.8 with Alpha.7 for Nearby Stats Sync: Alpha.8 uses protocol v6, while Alpha.7 uses protocol v5.
+Alpha.8 promoted that accepted repair into matched public X3/X4 builds, and Alpha.9 retains the same protocol. Do not mix Alpha.8 or Alpha.9 with Alpha.7 for Nearby Stats Sync: current releases use protocol v6, while Alpha.7 uses protocol v5.
 
 ## Storage
 

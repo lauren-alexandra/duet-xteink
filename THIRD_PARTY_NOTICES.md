@@ -43,6 +43,8 @@ Source: [imshentastic/CrumBLE](https://github.com/imshentastic/CrumBLE)
 
 Audited revision: `a4c5507d14041a92389903675fb5edf94e39c8a8`
 
+Additional CJK/font-fallback audit: `7812054b9bf6b2b737711c6043fefb0cb2c00405`
+
 Adapted or informed work:
 
 - The selectable 2x2, 3x3, and 4x4 bookshelf geometry in `src/activities/home/FileBrowserActivity.cpp`.
@@ -50,6 +52,7 @@ Adapted or informed work:
 - Transparency-aware PNG composition over the stored reader page in Page Overlay sleep mode.
 - CrumBLE's original opt-in **Tap Power While Asleep to Cycle** behavior, which used one brief Power tap to choose a fresh sleep image and return to deep sleep, plus large-folder caching concepts. Duet adapts that interaction into configurable Off/1/2/3 click choices and defaults to three at Lauren's direction to reduce accidental cycling; Duet's multi-click wake-path implementation is not attributed to CrumBLE.
 - Deep-sleep reading-time commit behavior and idempotent session preservation.
+- The zero-extra-heap UI glyph fallback pattern, adapted so Duet's built-in UI fonts can resolve missing CJK and other extended glyphs through the currently loaded SD-card family and its on-demand glyph loader.
 
 CrumBLE credits its dictionary base to [SEEK Reader](https://github.com/seek-reader/seek) and its reading-time fix to [aalu's CrossPoint fork](https://github.com/aaludon/crosspoint-reader-aalu). Those transitive origins are acknowledged here; this branch retains its more capable CPR-vCodex-derived dictionary UI and selectively ports hardening rather than replacing it with CrumBLE's full implementation.
 

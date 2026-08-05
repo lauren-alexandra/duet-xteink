@@ -107,6 +107,11 @@ class EpubReaderActivity final : public Activity {
   bool bookHasCustomReaderSettings = false;
   bool bookHasAutoPageTurnInterval = false;
   bool bookHasRenderModeOverride = false;
+  bool committedReaderSettingsValid = false;
+  bool relayoutSettingsTransactionActive = false;
+  bool committedBookHasCustomReaderSettings = false;
+  bool committedBookHasRenderModeOverride = false;
+  ReaderSettingsSnapshot committedReaderSettings;
   bool restoreGlobalReaderSettingsOnExit = false;
   ReaderSettingsSnapshot globalReaderSettingsBeforeBook;
   bool bookReaderSettingsSuspendedForGlobalEdit = false;
@@ -294,6 +299,11 @@ class EpubReaderActivity final : public Activity {
   void captureGlobalReaderSettings();
   void restoreGlobalReaderSettings();
   void loadBookReaderSettings();
+  void rememberCommittedReaderSettings();
+  bool persistCommittedReaderSettings();
+  bool beginReaderSettingsRelayoutTransaction();
+  void commitReaderSettingsRelayout();
+  void rollbackReaderSettingsRelayout(const char* reason);
   void saveCurrentBookReaderSettings();
   void saveGlobalSettingsPreservingBookOverrides();
   void beginGlobalSettingsEdit();

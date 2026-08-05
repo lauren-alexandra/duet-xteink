@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#ifndef SIMULATOR
+#include <BoardConfig.h>
+#endif
 #include <DuetStorageMigration.h>
 #include <DuetStoragePaths.h>
 #include <Epub.h>
@@ -854,6 +857,9 @@ void setupDisplayAndFonts(bool seamless = false) {
 }
 
 void setup() {
+#ifndef SIMULATOR
+  BoardConfig::holdPowerRails();
+#endif
   t1 = millis();
 
   const esp_reset_reason_t rawResetReason = esp_reset_reason();
@@ -895,15 +901,22 @@ void setup() {
   silentRebootTarget = 0;
 
   gpio.begin();
+  // X3 hardware detection releases its temporary I2C probe bus. Reopen the
+  // production bus before getWakeupReason() asks the fuel gauge whether USB is
+  // connected; probing a closed TwoWire bus can leave its mutex locked.
+  LOG_INF("BOOT", "Starting power manager");
+  powerManager.begin();
+  LOG_INF("BOOT", "Power manager ready");
   // Preserve the original locked-screen gesture route: arm only after GPIO
   // initialization has identified a real Power-button wake.
   const auto wakeupReason = gpio.getWakeupReason();
   if (wakeupReason == HalGPIO::WakeupReason::PowerButton) {
     armLockedPowerClickCounter();
   }
-  powerManager.begin();
+  LOG_INF("BOOT", "Starting X3 peripherals");
   halTiltSensor.begin();
   halClock.begin();
+  LOG_INF("BOOT", "X3 peripherals ready");
   bootTiming.gpioReadyMs = millis();
 
   LOG_INF("MAIN", "Hardware detect: %s", gpio.deviceIsX3() ? "X3" : "X4");

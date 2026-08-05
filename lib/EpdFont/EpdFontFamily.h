@@ -14,6 +14,8 @@ class EpdFontFamily {
     STRIKETHROUGH = 8,
     SUP = 16,
     SUB = 32,
+    SMALL_CAPS = 64,
+    ALL_SMALL_CAPS = 128,
   };
   struct GlyphData {
     const EpdFontData* fontData;
@@ -33,6 +35,12 @@ class EpdFontFamily {
   int8_t getKerning(uint32_t leftCp, uint32_t rightCp, Style style = REGULAR) const;
   uint32_t applyLigatures(uint32_t cp, const char*& text, Style style = REGULAR) const;
   bool resolvesToSameFont(Style first, Style second) const;
+
+  // CrumBLE lineage: let built-in UI fonts fill glyph misses from the
+  // currently loaded SD-card family without loading a second font. The owner
+  // must clear this non-owning pointer before erasing that family.
+  static void setUiFallbackFamily(const EpdFontFamily* family);
+  static const EpdFontFamily* uiFallbackFamily();
 
  private:
   const EpdFont* regular;

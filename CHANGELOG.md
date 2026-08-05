@@ -1,4 +1,20 @@
-## [Unreleased]
+## [0.1.0-alpha.9] - 2026-08-04
+
+### Added
+
+- EPUB `font-variant: small-caps` and `font-variant-caps: small-caps`/`all-small-caps` now survive CSS cascade, nested inline styling, layout caching, and reader rendering. Duet synthesizes compact capitals from the selected regular, bold, italic, or bold-italic bitmap face when OpenType small-cap substitution data is unavailable.
+- Built-in UI fonts can now fill missing glyphs from the currently loaded SD-card font without loading a second family. The CrumBLE-derived alias invokes Duet's on-demand SD glyph path for CJK and other extended characters and is cleared before every font unload or reload.
+
+### Changed
+
+- Settings is now the first item inside Apps so configuration and recovery controls are immediately reachable from the reading-first Home dashboard.
+
+### Fixed
+
+- Clock Sync now repairs the software clock on the RTC-less X4 as well as updating the X3 hardware clock, so time-dependent network features can recover correctly after a reset or firmware flash.
+- Reader typography changes are now transactional: Duet keeps the last fully rendered per-book settings on disk and commits a new font, size, spacing, or orientation only after the complete chapter layout succeeds. If a low-memory relayout fails, the book quietly returns to its prior selected font and size instead of reopening into a persistent memory error or switching to a built-in font or Light Mode.
+- Relayout previews can advance beyond their first temporary page window while the complete chapter continues building, so changing typography does not strand the reader after a handful of pages.
+- X3 refresh completion uses the proven two-phase BUSY polling path again, preventing a missed interrupt edge from leaving the post-update screen stranded even after the firmware has booted.
 
 ## [0.1.0-alpha.8] - 2026-07-30
 

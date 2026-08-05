@@ -8,9 +8,9 @@ has_children: true
 
 Duet alpha builds are for volunteers who are comfortable backing up an SD card, flashing firmware, collecting logs, and restoring a known-good build. They are not yet recommended as a first e-reader firmware experience.
 
-The current tester version is `v0.1.0-alpha.8`. Internal repair labels such as `wpm2` and `indexing2` are development history, not Duet release versions.
+The current tester version is `v0.1.0-alpha.9`. Internal repair labels and private maintainer editions are development or support lanes, not public Duet release versions.
 
-For a practical first pass on this exact candidate, follow the [Alpha.8 Device Acceptance](ALPHA8_ACCEPTANCE_QUICKSTART.md) route and record the results in the [Physical Test Matrix](PHYSICAL_TEST_MATRIX.md).
+For a practical first pass on this exact candidate, follow the [Alpha.9 Device Acceptance](ALPHA9_ACCEPTANCE_QUICKSTART.md) route and record the results in the [Physical Test Matrix](PHYSICAL_TEST_MATRIX.md).
 
 ## Before Installing
 
@@ -27,7 +27,7 @@ These are intentionally public. An alpha tester should know what may fail and wh
 
 ### Fix Included, Physical Verification Needed
 
-- X4 post-install cleanup detects the first boot of a new device/version from an SD-card marker. Alpha.2 relied on the hardware `AfterFlash` route, but SD-card updates restart as a generic software reset and could leave the updater screen ghosting through Home. Verify that the cleanup occurs once after the Alpha.8 installation and does not repeat on ordinary sleep/wake.
+- Post-install cleanup detects the first boot of a new device/version from an SD-card marker. Alpha.2 relied on the hardware `AfterFlash` route, but SD-card updates restart as a generic software reset and could leave the updater screen ghosting through Home. Verify that the cleanup occurs once after the Alpha.9 installation and does not repeat on ordinary sleep/wake.
 - X4 sleep once again shows **Going to sleep**, then paints the selected sleep frame with one final full update. Ordinary X4 wake no longer runs the firmware-flash-only black/white scrub before the Duet splash. Verify the settled sleep image, visible flash count, wake time, and old-screen residue. X3 sleep/wake behavior is intentionally unchanged.
 - Library input is intended to remain responsive while covers are generated. Verify this separately in list, grid, and carousel views on both devices.
 - Carousel movement now reuses overlapping covers, preloads one hidden cover beyond each visible edge, and requests higher-quality persistent center and adjacent thumbnails. Verify quality, ordinary next/previous movement after the initial seven-cover window hydrates, and persistence after leaving and returning to a folder.
@@ -37,8 +37,9 @@ These are intentionally public. An alpha tester should know what may fail and wh
 - Disposable chapter layout caches are sharded to avoid large FAT-directory scans. Verify first-use migration and later chapter transitions.
 - Guarded chapter pre-indexing starts earlier and records completion, cancellation, heap deferral, failure, and duration in the reader timing log. At the temporary two-page preview boundary, the next press must trigger completion rather than repainting the same page forever.
 - Current-book and Home speed fields show estimated WPM when reading time and saved progress can be connected to compatible `META-INF/x-locations.json` word-location metadata. Pace Trend, Reader DNA, and Reading Signature can include qualifying ledger entries for that enriched current book without reopening EPUBs during rendering. Plain EPUBs still read normally, but untouched books require the one-time [EPUB WPM Preparation](EPUB_LOCATION_ENRICHMENT.md) step before true WPM and reference-page statistics can appear. A dash appears, or an unknown historical entry is excluded, when Duet cannot calculate a defensible value; screen-page pace remains internal for estimates and rhythm.
-- Alpha.8 Nearby Stats Sync protocol v6 exchanges the readers' CRC-protected Stats Date, persisted EPUB word counts, detailed per-book statistics, and achievement milestones. It retains the peer achievement ledger and merges the highest milestone per metric. Protocol v6 does not pair with Alpha.7's protocol v5 implementation, so both readers must run Alpha.8. Matched private/test `v0.1.0-alpha.7.1` builds physically passed current-book WPM and detailed-stat convergence after a fresh Nearby Stats Sync before that source was promoted into Alpha.8. Repeated bidirectional achievement-ledger testing and broader long-running sync verification remain open.
-- X3 side-button font-size direction changed in Alpha.8 so the physical right button increases the size and the physical left button decreases it. The direction is physically confirmed on the source-equivalent maintainer build; repeat it on the exact public artifact and report any difference.
+- Alpha.9 Nearby Stats Sync protocol v6 exchanges the readers' CRC-protected Stats Date, persisted EPUB word counts, detailed per-book statistics, and achievement milestones. It retains the peer achievement ledger and merges the highest milestone per metric. Protocol v6 does not pair with Alpha.7's protocol v5 implementation, so both readers must run Alpha.8 or later. Repeated bidirectional achievement-ledger testing and broader long-running sync verification remain open.
+- X3 side-button font-size direction remains right to increase and left to decrease. X4 remains Up to increase and Down to decrease. Alpha.9 also protects the visible reading origin and rolls back the complete typography selection if a relayout cannot finish within memory limits.
+- Alpha.9 updates the vendored FreeInk SDK to its current hardware-detection, display-driver, and power-safety paths. Newer X3/X4 hardware is a priority test target; record any boot loop, SD Card Error, persistent updater screen, refresh failure, or power-latch problem before retrying the update.
 - Complete `.cstats` archives collect canonical statistics and achievement state from `/.duet`, while mapping inherited `/.crossink` and `/.crosspoint` records into the canonical archive layout. Older archives that omit achievements preserve the current ledgers. Both simulators pass a non-empty content-level export/restore round trip; verify the same flow on physical X3 and X4 cards before relying on it as the only backup.
 - Locked sleep-image cycling is adapted from CrumBLE's original one-tap feature. Duet offers Off/1/2/3 clicks and defaults to three to reduce accidental changes. The code intends to count the wake press as the first click, but the reliable physical sequence may be one initial wake press plus three deliberate taps, making it feel like four. Verify the exact sequence separately on X3 and X4 and report whether the first wake press was counted.
 
@@ -63,7 +64,7 @@ On macOS, verify that the final card copy contains no AppleDouble `._*.epub` sid
 
 ### Complete Stats Archives
 
-Alpha.8 preserves the validated complete-archive contract while storing new exports under `/.duet/backups/reading-stats`. The archive includes global totals, journal and ledger history, the session log, Stats Date, library statistics, synced-device data and names, achievement ledgers, and each book's versioned statistics.
+Alpha.9 preserves the validated complete-archive contract while storing new exports under `/.duet/backups/reading-stats`. The archive includes global totals, journal and ledger history, the session log, Stats Date, library statistics, synced-device data and names, achievement ledgers, and each book's versioned statistics.
 
 Physical acceptance is still required. Keep the full SD-card backup, confirm the export reports a non-zero file count and byte count, restore the archive, and verify global totals, a known book's statistics, session history, and synced-device figures. A successful simulator run does not prove the physical card or panel path.
 
@@ -73,7 +74,7 @@ Physical acceptance is still required. Keep the full SD-card backup, confirm the
 - Repeated X3-to-X4 and X4-to-X3 position and statistics sync.
 - Sleep/wake, achievement notifications, and book resume across long-running use rather than a short smoke test.
 - The locked sleep-image cycle gesture at Off, 1, 2, and 3, including whether the default three-click setting requires an additional initial wake press.
-- X4 sleep/wake after the Alpha.8 install path, including sleep from Home and from an open book.
+- X3 and X4 sleep/wake after the Alpha.9 install path, including sleep from Home and from an open book.
 - Unusual SD-card brands, capacities, filesystems, and near-full cards.
 
 ### SD-Card Health

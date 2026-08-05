@@ -4,6 +4,14 @@
 
 #include <algorithm>
 
+namespace {
+const EpdFontFamily* gUiFallbackFamily = nullptr;
+}
+
+void EpdFontFamily::setUiFallbackFamily(const EpdFontFamily* family) { gUiFallbackFamily = family; }
+
+const EpdFontFamily* EpdFontFamily::uiFallbackFamily() { return gUiFallbackFamily; }
+
 const EpdFont* EpdFontFamily::getFont(const Style style) const {
   // Extract font variant bits; decoration and positioning bits do not affect font selection.
   const bool hasBold = (style & BOLD) != 0;
@@ -205,6 +213,28 @@ EpdFontFamily::GlyphData EpdFontFamily::getGlyphData(const uint32_t cp, const St
     return glyphData;
   }
 
+  // CrumBLE's zero-extra-heap UI fallback: use the selected SD family only
+  // for codepoints the primary family cannot render. EpdFont::getGlyph()
+  // deliberately invokes the SD font's miss handler so glyphs outside the
+  // current prewarm set can still be loaded on demand.
+  if (cp != REPLACEMENT_GLYPH) {
+    const EpdFontFamily* fallback = uiFallbackFamily();
+    if (fallback && fallback != this) {
+      const auto tryFallback = [fallback, cp](const Style fallbackStyle) -> GlyphData {
+        if (const GlyphData data = fallback->findGlyphData(cp, fallbackStyle); data.glyph) return data;
+        const EpdFont* font = fallback->getFont(fallbackStyle);
+        if (!font) return {nullptr, nullptr};
+        if (const EpdGlyph* glyph = font->getGlyph(cp)) return {font->data, glyph};
+        return {nullptr, nullptr};
+      };
+
+      if (const GlyphData data = tryFallback(style); data.glyph) return data;
+      if (style != REGULAR) {
+        if (const GlyphData data = tryFallback(REGULAR); data.glyph) return data;
+      }
+    }
+  }
+
   if (cp != REPLACEMENT_GLYPH) {
     return getGlyphData(REPLACEMENT_GLYPH, style);
   }
@@ -219,10 +249,31 @@ uint32_t EpdFontFamily::getFallbackCodepoint(const uint32_t cp, const Style styl
   if (findGlyphData(cp, style).glyph) return cp;
   const uint32_t aliasCp = syntheticGlyph::aliasCodepoint(cp);
   if (aliasCp != cp) {
-    return findGlyphData(aliasCp, style).glyph ? aliasCp : REPLACEMENT_GLYPH;
+    if (findGlyphData(aliasCp, style).glyph) return aliasCp;
+    const EpdFontFamily* fallback = uiFallbackFamily();
+    if (fallback && fallback != this) {
+      const EpdFont* fallbackFont = fallback->getFont(style);
+      if (fallbackFont && fallbackFont->getGlyph(aliasCp)) return aliasCp;
+      if (style != REGULAR) {
+        const EpdFont* fallbackRegular = fallback->getFont(REGULAR);
+        if (fallbackRegular && fallbackRegular->getGlyph(aliasCp)) return aliasCp;
+      }
+    }
+    return REPLACEMENT_GLYPH;
   }
   if (syntheticGlyph::isSpaceFallback(cp)) return cp;
   if (syntheticGlyph::isSolid(cp) || syntheticGlyph::isGreekFallback(cp)) return cp;
+  if (cp != REPLACEMENT_GLYPH) {
+    const EpdFontFamily* fallback = uiFallbackFamily();
+    if (fallback && fallback != this) {
+      const EpdFont* fallbackFont = fallback->getFont(style);
+      if (fallbackFont && fallbackFont->getGlyph(cp)) return cp;
+      if (style != REGULAR) {
+        const EpdFont* fallbackRegular = fallback->getFont(REGULAR);
+        if (fallbackRegular && fallbackRegular->getGlyph(cp)) return cp;
+      }
+    }
+  }
   return REPLACEMENT_GLYPH;
 }
 

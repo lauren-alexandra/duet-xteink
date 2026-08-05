@@ -1174,8 +1174,10 @@ inline std::vector<SettingInfo> buildSystemDeviceSettingsList(const std::vector<
   if (halClock.isAvailable()) {
     addSettingByName(settings, allSettings, StrId::STR_CLOCK_FORMAT);
     addSettingByName(settings, allSettings, StrId::STR_CLOCK_UTC_OFFSET);
-    settings.push_back(SettingInfo::Action(StrId::STR_CLOCK_SYNC_NOW, SettingAction::ClockSync));
   }
+  // X4 has no RTC, but its software clock still must be recoverable for HTTPS
+  // certificate validation after a hard reset or firmware flash.
+  settings.push_back(SettingInfo::Action(StrId::STR_CLOCK_SYNC_NOW, SettingAction::ClockSync));
   return settings;
 }
 

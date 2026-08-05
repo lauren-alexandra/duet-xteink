@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "activities/Activity.h"
 
@@ -31,6 +32,9 @@ class SdFirmwareUpdateActivity : public Activity {
   explicit SdFirmwareUpdateActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, bool recoveryMode = false)
       : Activity("SdFirmwareUpdate", renderer, mappedInput), recoveryMode(recoveryMode) {}
 
+  SdFirmwareUpdateActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, std::string preselectedPath)
+      : Activity("SdFirmwareUpdate", renderer, mappedInput), preselectedFirmwarePath(std::move(preselectedPath)) {}
+
   void onEnter() override;
   void loop() override;
   void render(RenderLock&&) override;
@@ -40,6 +44,7 @@ class SdFirmwareUpdateActivity : public Activity {
  private:
   State state = State::PICKING;
   bool recoveryMode = false;
+  std::string preselectedFirmwarePath;
 
   std::string firmwarePath;
   size_t firmwareSize = 0;

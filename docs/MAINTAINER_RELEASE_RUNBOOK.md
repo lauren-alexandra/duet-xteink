@@ -28,9 +28,9 @@ Do not publish the private working history as the initial public history. It con
 
 Duet uses semantic prerelease versions:
 
-- `0.1.0-alpha.8` for the current public-alpha candidate;
+- `0.1.0-alpha.9` for the current public-alpha candidate;
 - `0.1.0-alpha.9` for the next public alpha with changed firmware;
-- `0.1.0-alpha.8-rc.1` for an optional release candidate.
+- `0.1.0-alpha.9-rc.1` for an optional release candidate.
 
 Any firmware change after a candidate has been flashed must receive a distinguishable version. Do not silently replace a BIN while keeping the same version string.
 
