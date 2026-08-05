@@ -1,7 +1,6 @@
 #include "Uc8279Driver.h"
 
 #include <Arduino.h>
-
 #include <BoardConfig.h>
 
 #include "../lut/Uc8279X3Luts.h"

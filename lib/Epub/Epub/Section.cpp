@@ -642,9 +642,9 @@ bool Section::createSectionFile(const int fontId, const float lineCompression, c
           "Create section done: spine=%d pages=%u html=%lums parse=%lums finalize=%lums total=%lums reusedHtml=%u "
           "free=%u maxAlloc=%u",
           spineIndex, pageCount, static_cast<unsigned long>(htmlReadyMs - createStartMs),
-          static_cast<unsigned long>(parserDoneMs - parserStartMs),
-          static_cast<unsigned long>(millis() - parserDoneMs), static_cast<unsigned long>(millis() - createStartMs),
-          reusedHtml ? 1U : 0U, ESP.getFreeHeap(), ESP.getMaxAllocHeap());
+          static_cast<unsigned long>(parserDoneMs - parserStartMs), static_cast<unsigned long>(millis() - parserDoneMs),
+          static_cast<unsigned long>(millis() - createStartMs), reusedHtml ? 1U : 0U, ESP.getFreeHeap(),
+          ESP.getMaxAllocHeap());
   return true;
 }
 

@@ -1,5 +1,5 @@
-#include <HalGPIO.h>
 #include <BoardConfig.h>
+#include <HalGPIO.h>
 #include <Logging.h>
 #include <PowerManager.h>
 #include <SPI.h>

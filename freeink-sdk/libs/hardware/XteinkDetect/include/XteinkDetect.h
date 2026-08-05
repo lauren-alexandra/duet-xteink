@@ -81,11 +81,11 @@ DisplayControllerVerdict detectXteinkDisplayController(uint8_t verBytes[5] = nul
 // detectXteinkDisplayController() / applyXteinkDisplayController(); zeroed
 // until a probe has run (`valid` false).
 struct XteinkDisplayProbeDiag {
-  bool valid = false;        // a probe has run this boot
-  uint8_t ver[5] = {0};      // VER (0x70) bytes from the authoritative pass
-  uint8_t flg = 0;           // FLG (0x71) status byte from pass 1
-  uint8_t verdict = 0;       // DisplayControllerVerdict as its raw value
-  bool promoted = false;     // applyXteinkDisplayController() switched drivers
+  bool valid = false;     // a probe has run this boot
+  uint8_t ver[5] = {0};   // VER (0x70) bytes from the authoritative pass
+  uint8_t flg = 0;        // FLG (0x71) status byte from pass 1
+  uint8_t verdict = 0;    // DisplayControllerVerdict as its raw value
+  bool promoted = false;  // applyXteinkDisplayController() switched drivers
   // First 48 bytes of the controller MTP via RMTP (0xA2), captured on a
   // confirmed UltraChip part: [0x000] = 0xA5 refresh-enable key, 0x001-0x016 =
   // factory Command Default Setting (real PSR/TRES/GSST/CDI/TCON), 0x017-0x019

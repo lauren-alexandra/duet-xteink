@@ -31,10 +31,10 @@ struct Uc8253LutBank {
 };
 
 struct Uc8253X3Config {
-  Uc8253LutBank normal;  // condition-pass / settle (CDI 0xA9)
-  Uc8253LutBank half;    // scrub (CDI 0xA9)
-  Uc8253LutBank fast;    // turbo differential (CDI 0x29)
-  Uc8253LutBank full;    // OEM full / factory (CDI 0x29)
+  Uc8253LutBank normal;    // condition-pass / settle (CDI 0xA9)
+  Uc8253LutBank half;      // scrub (CDI 0xA9)
+  Uc8253LutBank fast;      // turbo differential (CDI 0x29)
+  Uc8253LutBank full;      // OEM full / factory (CDI 0x29)
   Uc8253LutBank gc;        // OEM 4-level grayscale nudge (CDI 0x29)
   Uc8253LutBank preBwMid;  // OEM grayscale preconditioning settle (CDI 0xA9)
   // OEM standalone grayscale banks (partial long / full short). Reference only,

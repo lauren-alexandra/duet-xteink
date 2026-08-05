@@ -247,8 +247,8 @@ void ChapterHtmlSlimParser::updateEffectiveInlineStyle() {
   // Start with block-level styles
   effectiveBold = currentCssStyle.hasFontWeight() && currentCssStyle.fontWeight == CssFontWeight::Bold;
   effectiveItalic = currentCssStyle.hasFontStyle() && currentCssStyle.fontStyle == CssFontStyle::Italic;
-  effectiveFontVariantCaps = currentCssStyle.hasFontVariantCaps() ? currentCssStyle.fontVariantCaps
-                                                                  : CssFontVariantCaps::Normal;
+  effectiveFontVariantCaps =
+      currentCssStyle.hasFontVariantCaps() ? currentCssStyle.fontVariantCaps : CssFontVariantCaps::Normal;
   effectiveUnderline = currentCssStyle.hasTextDecoration() &&
                        (currentCssStyle.textDecoration & CssTextDecoration::Underline) != CssTextDecoration::None;
   effectiveStrikethrough = currentCssStyle.hasTextDecoration() &&
@@ -2636,16 +2636,14 @@ void ChapterHtmlSlimParser::prewarmSectionAdvanceTable(FsFile& file) {
   bool hitCap = false;
   uint32_t bytesScanned = 0;
 
-  while (file.available() > 0 && !hitCap &&
-         (fontPrewarmByteLimit_ == 0 || bytesScanned < fontPrewarmByteLimit_)) {
+  while (file.available() > 0 && !hitCap && (fontPrewarmByteLimit_ == 0 || bytesScanned < fontPrewarmByteLimit_)) {
     if (cancellationRequested()) {
       file.seekSet(0);
       return;
     }
-    const size_t remaining =
-        fontPrewarmByteLimit_ == 0
-            ? SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE
-            : std::min<size_t>(SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE, fontPrewarmByteLimit_ - bytesScanned);
+    const size_t remaining = fontPrewarmByteLimit_ == 0 ? SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE
+                                                        : std::min<size_t>(SECTION_ADVANCE_PREWARM_READ_BUFFER_SIZE,
+                                                                           fontPrewarmByteLimit_ - bytesScanned);
     const size_t len = file.read(buffer.get(), remaining);
     if (len == 0) {
       LOG_DBG("EHP", "Section advance prewarm stopped after short read");
@@ -3050,8 +3048,7 @@ void ChapterHtmlSlimParser::makePages() {
 
   if (!currentTextBlock->layoutAndExtractLines(
           renderer, fontId, effectiveWidth,
-          [this](const std::shared_ptr<TextBlock>& textBlock) { addLineToPage(textBlock); },
-          true,
+          [this](const std::shared_ptr<TextBlock>& textBlock) { addLineToPage(textBlock); }, true,
           [](void* context) {
             auto* parser = static_cast<ChapterHtmlSlimParser*>(context);
             return !parser || parser->cancellationRequested() || parser->lowMemoryAbort;

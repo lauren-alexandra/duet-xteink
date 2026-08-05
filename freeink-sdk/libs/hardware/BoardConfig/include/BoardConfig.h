@@ -16,7 +16,7 @@
 // selectDevice); ACTIVE defaults to a compile-time default until then.
 
 #include <Arduino.h>
-#include <driver/gpio.h>   // gpio_hold_dis in releaseSdRail()
+#include <driver/gpio.h>  // gpio_hold_dis in releaseSdRail()
 #include <esp_rom_sys.h>  // esp_rom_printf in holdPowerRails()
 
 // ============================================================================
@@ -69,8 +69,8 @@
 // classic ESP32 (ESP32-D0WDQ6). The three families differ in deep-sleep wakeup,
 // SPI peripheral count, and toolchain, so they never share a binary.
 #define FREEINK_MCU_C3 (FREEINK_DEVICE_X3 || FREEINK_DEVICE_X4)
-#define FREEINK_MCU_S3                                                                                    \
-  (FREEINK_DEVICE_M5 || FREEINK_DEVICE_MURPHY || FREEINK_DEVICE_DELINK || FREEINK_DEVICE_LILYGO ||        \
+#define FREEINK_MCU_S3                                                                             \
+  (FREEINK_DEVICE_M5 || FREEINK_DEVICE_MURPHY || FREEINK_DEVICE_DELINK || FREEINK_DEVICE_LILYGO || \
    FREEINK_DEVICE_STICKY || FREEINK_DEVICE_X4PRO)
 #define FREEINK_MCU_ESP32 (FREEINK_DEVICE_M5PAPER)
 #if (FREEINK_MCU_C3 + FREEINK_MCU_S3 + FREEINK_MCU_ESP32) != 1
@@ -154,7 +154,7 @@
 
 // --- 4) Derive default capabilities (override with -DFREEINK_CAP_*=0/1) -------
 #ifndef FREEINK_CAP_TOUCH
-#define FREEINK_CAP_TOUCH                                                                         \
+#define FREEINK_CAP_TOUCH                                                                               \
   (FREEINK_DEVICE_MURPHY || FREEINK_DEVICE_LILYGO || FREEINK_DEVICE_M5PAPER || FREEINK_DEVICE_STICKY || \
    FREEINK_DEVICE_X4PRO)
 #endif
@@ -312,7 +312,7 @@ enum class Board : uint8_t {
   XteinkX4,
   XteinkX3,
   XteinkX3Uc8279,  // newer X3 production run: same board/glass, UC8279d controller
-  XteinkX4Pro,  // ESP32-S3 sibling of the C3 X4: SSD1677 + GT911 touch + warm/cold frontlight
+  XteinkX4Pro,     // ESP32-S3 sibling of the C3 X4: SSD1677 + GT911 touch + warm/cold frontlight
   M5StackPaperColor,
   MurphyM3,
   DeLink,
@@ -323,11 +323,11 @@ enum class Board : uint8_t {
 
 // How the board reports button presses.
 enum class InputStyle : uint8_t {
-  XteinkAdcLadder,         // resistor ladder on two ADC pins (X3/X4)
-  DigitalButtons,          // plain active-low GPIO buttons
-  DigitalConfirmBackHold,  // confirm held > N ms synthesizes BACK (M5 PaperColor)
-  DigitalConfirmPowerHold, // confirm click, power hold on a shared GPIO
-  DigitalFiveKey,          // 3 physical GPIO keys + synthesized events (Murphy M3)
+  XteinkAdcLadder,          // resistor ladder on two ADC pins (X3/X4)
+  DigitalButtons,           // plain active-low GPIO buttons
+  DigitalConfirmBackHold,   // confirm held > N ms synthesizes BACK (M5 PaperColor)
+  DigitalConfirmPowerHold,  // confirm click, power hold on a shared GPIO
+  DigitalFiveKey,           // 3 physical GPIO keys + synthesized events (Murphy M3)
 };
 
 // Panel controller silicon. Drivers are selected from this at begin().
@@ -621,8 +621,8 @@ constexpr TouchConfig NO_TOUCH = {TouchController::None,
 // portrait 540x960 frame on the landscape 960x540 panel, so swap axes into the
 // panel-native display frame before app-level orientation mapping.
 constexpr TouchConfig LILYGO_T5_PRO_GT911 = {
-    TouchController::Gt911, 39, 40, 3, 9, 0x5D, 0, 959, 0, 539, false, 0x14, false, true, PIN_UNASSIGNED, true,
-    false, true};  // powerEnable, swapXY=true, flipX=false, flipY=true
+    TouchController::Gt911, 39,   40,    3,   9, 0x5D, 0, 959, 0, 539, false, 0x14, false, true,
+    PIN_UNASSIGNED,         true, false, true};  // powerEnable, swapXY=true, flipX=false, flipY=true
 constexpr FrontlightConfig NO_FRONTLIGHT = {PIN_UNASSIGNED, 0, 0, true};
 constexpr AudioConfig NO_AUDIO = {AudioOutput::None,
                                   PIN_UNASSIGNED,
@@ -668,9 +668,18 @@ constexpr AudioConfig M5_PAPERCOLOR_AUDIO = {
 // Sticky has no output codec (PDM mic in only) — just the LEDC buzzer on GPIO48,
 // driven by the Buzzer lib. output=None so hasAudio() stays false; the buzzer
 // field carries the tone pin (mirrors how MURPHY_AUDIO carries its buzzer).
-constexpr AudioConfig STICKY_AUDIO = {AudioOutput::None,    PIN_UNASSIGNED, PIN_UNASSIGNED, PIN_UNASSIGNED,
-                                      PIN_UNASSIGNED,       PIN_UNASSIGNED, true,           PIN_UNASSIGNED,
-                                      PIN_UNASSIGNED,       PIN_UNASSIGNED, 0,              48};
+constexpr AudioConfig STICKY_AUDIO = {AudioOutput::None,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      true,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      PIN_UNASSIGNED,
+                                      0,
+                                      48};
 constexpr DisplayOrientation NO_FLIP = {false, false};   // native scan
 constexpr DisplayOrientation ROTATE_180 = {true, true};  // upside-down mount
 constexpr DisplayOrientation MIRROR_X = {true, false};   // horizontal mirror
@@ -872,7 +881,7 @@ constexpr BoardProfile DE_LINK = {Board::DeLink,
                                   // the wiring is in the sdmmc field below. These SPI sd pins are unused.
                                   {39, 38, 40, 41, PIN_UNASSIGNED, true, 0},
                                   {0, 1, 2, 3, 4, 5, 3, true},  // power button active-HIGH (INPUT_PULLDOWN) on de-link
-                                  4,  // batteryAdc GPIO4
+                                  4,                            // batteryAdc GPIO4
                                   PIN_UNASSIGNED,
                                   2.0f,
                                   PIN_UNASSIGNED,
@@ -978,7 +987,7 @@ constexpr BoardProfile M5PAPER_V11 = {
     // flipY=true keeps the back gesture upright (silicon (0,0) = physical top-left, from the
     // working back-gesture corner); flipX=false (X was never mirrored).
     {TouchController::Gt911, 21, 22, 36, PIN_UNASSIGNED, 0x5D, 0, 959, 0, 539, false, 0x14, false,
-     true,  // gt911CoordsAtByte0: reports coords at byte 0 (no track-id) on M5Paper
+     true,                                // gt911CoordsAtByte0: reports coords at byte 0 (no track-id) on M5Paper
      PIN_UNASSIGNED, true, false, true},  // powerEnable, swapXY=true, flipX=false, flipY=true
     NO_FRONTLIGHT,
     NO_AUDIO,
@@ -1127,8 +1136,26 @@ constexpr BoardProfile XTEINK_X4_PRO = {
     // post-swap panel axes. Coords start at byte 0 of the 0x8150 read → gt911CoordsAtByte0=true.
     // flipX/flipY pending a corner-tap test. {ctrl,sda,scl,irq,rst,addr,rawMinX,rawMaxX,rawMinY,rawMaxY,
     //  synthConfirm,altAddr,irqActiveLow,coordsAtByte0,powerEnable,swapXY,flipX,flipY,hasHomeKey,pwrActiveHigh}
-    {TouchController::Gt911, 39, 38, 10, 4, 0x5D, 0, 799, 0, 479, false, 0x14, false, true, 2,
-     true, false, true, true, false},  // swapXY + flipY (confirmed by corner-tap); powerEnable=GPIO2 active-LOW; hasHomeKey
+    {TouchController::Gt911,
+     39,
+     38,
+     10,
+     4,
+     0x5D,
+     0,
+     799,
+     0,
+     479,
+     false,
+     0x14,
+     false,
+     true,
+     2,
+     true,
+     false,
+     true,
+     true,
+     false},  // swapXY + flipY (confirmed by corner-tap); powerEnable=GPIO2 active-LOW; hasHomeKey
     // Frontlight: dual warm/cold LEDC PWM with color temperature (NVS lightWarmValue/
     // lightColdValue/lightCT/lightBri/lightOn). Recovered from the OEM LEDC init (IROM
     // 0x420a2130 → helper 0x420a20c0): two channels — GPIO8 on LEDC ch4 and GPIO9 on ch5 —
@@ -1177,15 +1204,15 @@ constexpr uint32_t cmax(uint32_t a, uint32_t b) { return a > b ? a : b; }
 constexpr uint32_t panelBytes(const BoardProfile& p) {
   return static_cast<uint32_t>(p.displayWidth / 8) * p.displayHeight;
 }
-constexpr uint32_t MAX_FRAMEBUFFER_BYTES = cmax(
-    cmax(cmax(FREEINK_DEVICE_X4 ? panelBytes(XTEINK_X4) : 0u, FREEINK_DEVICE_X3 ? panelBytes(XTEINK_X3) : 0u),
-         cmax(FREEINK_DEVICE_M5 ? panelBytes(M5STACK_PAPER_COLOR) : 0u,
-              FREEINK_DEVICE_MURPHY ? panelBytes(MURPHY_M3) : 0u)),
-    cmax(cmax(cmax(FREEINK_DEVICE_DELINK ? panelBytes(DE_LINK) : 0u,
-                   FREEINK_DEVICE_LILYGO ? panelBytes(LILYGO_T5S3) : 0u),
-              cmax(FREEINK_DEVICE_M5PAPER ? panelBytes(M5PAPER_V11) : 0u,
-                   FREEINK_DEVICE_X4PRO ? panelBytes(XTEINK_X4_PRO) : 0u)),
-         FREEINK_DEVICE_STICKY ? panelBytes(STICKY) : 0u));
+constexpr uint32_t MAX_FRAMEBUFFER_BYTES =
+    cmax(cmax(cmax(FREEINK_DEVICE_X4 ? panelBytes(XTEINK_X4) : 0u, FREEINK_DEVICE_X3 ? panelBytes(XTEINK_X3) : 0u),
+              cmax(FREEINK_DEVICE_M5 ? panelBytes(M5STACK_PAPER_COLOR) : 0u,
+                   FREEINK_DEVICE_MURPHY ? panelBytes(MURPHY_M3) : 0u)),
+         cmax(cmax(cmax(FREEINK_DEVICE_DELINK ? panelBytes(DE_LINK) : 0u,
+                        FREEINK_DEVICE_LILYGO ? panelBytes(LILYGO_T5S3) : 0u),
+                   cmax(FREEINK_DEVICE_M5PAPER ? panelBytes(M5PAPER_V11) : 0u,
+                        FREEINK_DEVICE_X4PRO ? panelBytes(XTEINK_X4_PRO) : 0u)),
+              FREEINK_DEVICE_STICKY ? panelBytes(STICKY) : 0u));
 
 // Compile-time default device — the profile ACTIVE starts as. With a single
 // device in the build this is the only device; with several same-MCU devices it
@@ -1305,8 +1332,7 @@ inline bool latchConflictsWithBus(int8_t pin) {
   const DisplayPins& d = ACTIVE.display;
   if (pin == d.sclk || pin == d.mosi || pin == d.cs || pin == d.dc || pin == d.rst || pin == d.busy) return true;
   const SdmmcPins& s = ACTIVE.sdmmc;
-  if (s.busWidth != 0 &&
-      (pin == s.clk || pin == s.cmd || pin == s.d0 || pin == s.d1 || pin == s.d2 || pin == s.d3)) {
+  if (s.busWidth != 0 && (pin == s.clk || pin == s.cmd || pin == s.d0 || pin == s.d1 || pin == s.d2 || pin == s.d3)) {
     return true;
   }
   return false;

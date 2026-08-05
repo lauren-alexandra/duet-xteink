@@ -12,8 +12,8 @@ The matched X3 and X4 release-prep builds and the reusable font and dictionary p
 
 | Asset | Size | SHA-256 |
 | --- | ---: | --- |
-| `Duet-X3-v0.1.0-alpha.9.bin` | 5,960,976 bytes | `90c63270da45269eee80daacda4500175003a3e81091ffdd7a49b901352599c0` |
-| `Duet-X4-v0.1.0-alpha.9.bin` | 5,823,888 bytes | `dd53a2bb234e4390efb3975cdea72bf5caec24014ac2e31fcee0ad291f5f47eb` |
+| `Duet-X3-v0.1.0-alpha.9.bin` | 5,960,976 bytes | `f7ea78e91ff614872cb77156ee68b837ff4cae8d89cf58a36a8d605e481d087d` |
+| `Duet-X4-v0.1.0-alpha.9.bin` | 5,823,888 bytes | `1dee9f0fd99c0bf1d52be39cbda71dc81388945120f7e527c8ff52146f962d06` |
 | `Duet-Open-Font-Pack-v1.zip` | 366,108,920 bytes | `1d0b100683e05a3c2f9ad6e1fbf6f24c2c3674c3ee096ddfa32c383ccbf85c7c` |
 | `Duet-WordNet-3.0-StarDict.zip` | 8,857,151 bytes | `19f6840ee91881cd303bcedc29c81777da1756ad73a09b114d3226fcf01ed80a` |
 

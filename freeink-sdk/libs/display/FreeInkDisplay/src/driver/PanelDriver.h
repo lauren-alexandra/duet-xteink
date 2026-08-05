@@ -37,7 +37,7 @@ class PanelDriver {
   virtual BusyPolarity busyPolarity() const = 0;
   virtual PanelGeometry geometry() const = 0;
   virtual int8_t spiMiso() const { return -1; }  // SSD1677 uses none; M5 shares MISO
-  virtual int8_t coCs() const { return -1; }      // co-resident SPI CS to hold high (M5 SD)
+  virtual int8_t coCs() const { return -1; }     // co-resident SPI CS to hold high (M5 SD)
 
   // True for drivers backed by an external library that manages its own SPI /
   // display hardware (e.g. M5GFX, EPD_Painter). When true the facade does NOT
@@ -86,7 +86,10 @@ class PanelDriver {
   // `fb` is the just-displayed frame, re-supplied fresh by the facade at finish
   // time (not stashed at start): callers may release/realloc the buffer holding
   // it between the two calls, so the driver must not cache the pointer.
-  virtual void displayFinish(EpdBus& bus, const uint8_t* fb) { (void)bus; (void)fb; }
+  virtual void displayFinish(EpdBus& bus, const uint8_t* fb) {
+    (void)bus;
+    (void)fb;
+  }
 
   // Re-seed the controller's host-managed previous-frame plane (SSD1677 RED RAM)
   // with `buf`, WITHOUT triggering a refresh. A dual-buffer fast refresh only
@@ -97,7 +100,10 @@ class PanelDriver {
   // RED holds. Callers seed the on-screen frame here just before releasing so that
   // first differential diff has a correct baseline. Default no-op: controllers with
   // no host-managed previous-frame plane (X3 DTM1, M5) keep their own baseline.
-  virtual void seedPreviousFrame(EpdBus& bus, const uint8_t* buf) { (void)bus; (void)buf; }
+  virtual void seedPreviousFrame(EpdBus& bus, const uint8_t* buf) {
+    (void)bus;
+    (void)buf;
+  }
 
   // Optional white-inversion scrub. Panels without a dedicated implementation
   // keep the default no-op and retain their normal resync policy.
@@ -119,20 +125,37 @@ class PanelDriver {
   // the BW base frame is displayed, before grayscale planes are written.
   // Default no-op for panels whose grayscale needs no conditioning.
   virtual void preconditionGrayscale(EpdBus& bus, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    (void)bus; (void)x; (void)y; (void)w; (void)h;
+    (void)bus;
+    (void)x;
+    (void)y;
+    (void)w;
+    (void)h;
   }
-  virtual void copyGrayscaleLsb(EpdBus& bus, const uint8_t* lsb) { (void)bus; (void)lsb; }
-  virtual void copyGrayscaleMsb(EpdBus& bus, const uint8_t* msb) { (void)bus; (void)msb; }
+  virtual void copyGrayscaleLsb(EpdBus& bus, const uint8_t* lsb) {
+    (void)bus;
+    (void)lsb;
+  }
+  virtual void copyGrayscaleMsb(EpdBus& bus, const uint8_t* msb) {
+    (void)bus;
+    (void)msb;
+  }
   virtual void writeGrayscalePlaneStrip(EpdBus& bus, GrayPlane plane, const uint8_t* rows, uint16_t yStart,
                                         uint16_t numRows) {
-    (void)bus; (void)plane; (void)rows; (void)yStart; (void)numRows;
+    (void)bus;
+    (void)plane;
+    (void)rows;
+    (void)yStart;
+    (void)numRows;
   }
   virtual void displayGray(EpdBus& bus, const uint8_t* fb, bool turnOff, const unsigned char* lut, bool factoryMode) {
     (void)lut;
     (void)factoryMode;
     display(bus, fb, nullptr, RefreshMode::Fast, turnOff);
   }
-  virtual void cleanupGrayscaleBuffers(EpdBus& bus, const uint8_t* bw) { (void)bus; (void)bw; }
+  virtual void cleanupGrayscaleBuffers(EpdBus& bus, const uint8_t* bw) {
+    (void)bus;
+    (void)bw;
+  }
 
   // --- optional, controller-specific hooks (no-op by default) ---
   virtual void requestResync(uint8_t settlePasses) { (void)settlePasses; }
@@ -141,8 +164,15 @@ class PanelDriver {
   // Interrupted-refresh cutoff tuning (ED2208: where the gate scan freezes).
   virtual void setFastRefreshCutoffMs(uint16_t ms) { (void)ms; }
   virtual uint16_t fastRefreshCutoffMs() const { return 0; }
-  virtual void grayscaleRevert(EpdBus& bus, const uint8_t* fb) { (void)bus; (void)fb; }
-  virtual void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) { (void)bus; (void)enabled; (void)data; }
+  virtual void grayscaleRevert(EpdBus& bus, const uint8_t* fb) {
+    (void)bus;
+    (void)fb;
+  }
+  virtual void setCustomLut(EpdBus& bus, bool enabled, const unsigned char* data) {
+    (void)bus;
+    (void)enabled;
+    (void)data;
+  }
 };
 
 }  // namespace freeink

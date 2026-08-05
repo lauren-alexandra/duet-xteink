@@ -7,10 +7,10 @@ This page separates source review, build success, simulator coverage, and behavi
 - Version: `v0.1.0-alpha.9`
 - X3 artifact: `Duet-X3-v0.1.0-alpha.9.bin`
 - X3 size: 5,960,976 bytes
-- X3 SHA-256: `90c63270da45269eee80daacda4500175003a3e81091ffdd7a49b901352599c0`
+- X3 SHA-256: `f7ea78e91ff614872cb77156ee68b837ff4cae8d89cf58a36a8d605e481d087d`
 - X4 artifact: `Duet-X4-v0.1.0-alpha.9.bin`
 - X4 size: 5,823,888 bytes
-- X4 SHA-256: `dd53a2bb234e4390efb3975cdea72bf5caec24014ac2e31fcee0ad291f5f47eb`
+- X4 SHA-256: `1dee9f0fd99c0bf1d52be39cbda71dc81388945120f7e527c8ff52146f962d06`
 - Source state: public `release/alpha9` candidate; exact public-artifact acceptance remains open
 
 Both Alpha.9 hardware targets build successfully from the same public source. The X3 image leaves 592,624 bytes of OTA app-partition headroom. The X4 image leaves 729,712 bytes. All 118 host unit tests pass, and full X3 and X4 simulator smoke tests exercise small caps, reader relayout, Home, and statistics. This is useful development evidence, but it is not a substitute for testing these exact cleanly named Alpha.9 artifacts. Simulator results do not prove physical panel refresh behavior.

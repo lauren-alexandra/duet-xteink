@@ -1741,10 +1741,9 @@ bool EpubReaderActivity::persistCommittedReaderSettings() {
   if (!epub || !committedReaderSettingsValid) {
     return false;
   }
-  return saveBookReaderSettingsFile(
-      epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
-      committedBookHasCustomReaderSettings, committedBookHasRenderModeOverride, committedReaderSettings.epubRenderMode,
-      committedReaderSettings);
+  return saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
+                                    committedBookHasCustomReaderSettings, committedBookHasRenderModeOverride,
+                                    committedReaderSettings.epubRenderMode, committedReaderSettings);
 }
 
 bool EpubReaderActivity::beginReaderSettingsRelayoutTransaction() {
@@ -1773,8 +1772,8 @@ void EpubReaderActivity::commitReaderSettingsRelayout() {
 
   ReaderSettingsSnapshot snapshot;
   captureReaderSettings(snapshot);
-  if (!saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval,
-                                  lastAutoPageTurnIntervalSeconds, true, true, snapshot.epubRenderMode, snapshot)) {
+  if (!saveBookReaderSettingsFile(epub->getCachePath(), bookHasAutoPageTurnInterval, lastAutoPageTurnIntervalSeconds,
+                                  true, true, snapshot.epubRenderMode, snapshot)) {
     LOG_ERR("ERS", "Could not commit reader settings after successful relayout");
     rollbackReaderSettingsRelayout("commit save failed");
     return;
@@ -4672,9 +4671,9 @@ void EpubReaderActivity::runGuardedRelayoutBuild() {
   const bool safeModeCompletion = relayoutBuildSafeModePending.load(std::memory_order_acquire);
   const SectionBuildProfile profile =
       safeModeCompletion ? safeModeBuildProfile() : buildProfileForRenderMode(selectedRenderMode);
-  const bool safeModeWouldChangeSettings = !relayoutSettingsTransactionActive &&
-                                           (selectedRenderMode != EpubRenderMode::Light ||
-                                            shouldAttemptSafeModeFallback());
+  const bool safeModeWouldChangeSettings =
+      !relayoutSettingsTransactionActive &&
+      (selectedRenderMode != EpubRenderMode::Light || shouldAttemptSafeModeFallback());
   const std::string cacheSuffix = sectionCacheSuffixForLayout(profile.renderMode, fontId);
   auto completedSection = makeUniqueNoThrow<Section>(epub, targetSpine, renderer, cacheSuffix.c_str());
   if (!completedSection) {
@@ -5329,8 +5328,8 @@ void EpubReaderActivity::render(RenderLock&& lock) {
 
       uint8_t fallbackCount = 0;
       const auto fallbackModes = fallbackModesForSelection(selectedRenderMode, fallbackCount);
-      const uint8_t allowedFallbackCount = relayoutSettingsTransactionActive ? std::min<uint8_t>(fallbackCount, 1)
-                                                                              : fallbackCount;
+      const uint8_t allowedFallbackCount =
+          relayoutSettingsTransactionActive ? std::min<uint8_t>(fallbackCount, 1) : fallbackCount;
       for (uint8_t i = 0; i < allowedFallbackCount && !fallbackBuildSucceeded; ++i) {
         const EpubRenderMode attemptMode = fallbackModes[i];
         if (i > 0) {

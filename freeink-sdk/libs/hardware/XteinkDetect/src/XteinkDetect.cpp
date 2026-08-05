@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <BoardConfig.h>
 #include <Wire.h>
-
 #include <string.h>
 
 #include "nvs.h"
@@ -235,8 +234,10 @@ DisplayControllerVerdict probeDisplayController(const EpdProbePins& p, uint8_t v
   if (verBytes) memcpy(verBytes, g_probeDiag.ver, 5);
   if (flg) *flg = flg1;
   DisplayControllerVerdict v = DisplayControllerVerdict::Inconclusive;
-  if (confirmed) v = DisplayControllerVerdict::Uc81xxConfirmed;
-  else if (!pass1 && !pass2) v = DisplayControllerVerdict::PrimaryAssumed;
+  if (confirmed)
+    v = DisplayControllerVerdict::Uc81xxConfirmed;
+  else if (!pass1 && !pass2)
+    v = DisplayControllerVerdict::PrimaryAssumed;
   g_probeDiag.verdict = static_cast<uint8_t>(v);
   return v;
 }
@@ -499,9 +500,12 @@ X3DisplayVerdict detectX3DisplayController(uint8_t verBytes[5], uint8_t* flg) {
   // here, before selectDevice) has the right map either way.
   const DisplayControllerVerdict v = detectXteinkDisplayController(verBytes, flg);
   switch (v) {
-    case DisplayControllerVerdict::Uc81xxConfirmed: return X3DisplayVerdict::Uc8279Confirmed;
-    case DisplayControllerVerdict::PrimaryAssumed: return X3DisplayVerdict::Uc8253Assumed;
-    default: return X3DisplayVerdict::Inconclusive;
+    case DisplayControllerVerdict::Uc81xxConfirmed:
+      return X3DisplayVerdict::Uc8279Confirmed;
+    case DisplayControllerVerdict::PrimaryAssumed:
+      return X3DisplayVerdict::Uc8253Assumed;
+    default:
+      return X3DisplayVerdict::Inconclusive;
   }
 }
 

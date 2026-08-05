@@ -122,19 +122,18 @@ bool LauncherLayoutStore::resetDefaults(const bool save) {
   appCount = 0;
 
   constexpr LauncherItem defaultHome[] = {
-      LauncherItem::SearchLibrary, LauncherItem::RecentBooks, LauncherItem::ReadingStats,
-      LauncherItem::SavedItems,    LauncherItem::Favorites,    LauncherItem::Sleep,
+      LauncherItem::SearchLibrary,   LauncherItem::RecentBooks, LauncherItem::ReadingStats,
+      LauncherItem::SavedItems,      LauncherItem::Favorites,   LauncherItem::Sleep,
       LauncherItem::NearbyStatsSync, LauncherItem::IfFound,     LauncherItem::Apps,
   };
   constexpr LauncherItem defaultApps[] = {
-      LauncherItem::Settings,          LauncherItem::BrowseFiles,      LauncherItem::SearchLibrary,
-      LauncherItem::RecentBooks,       LauncherItem::ReadingStats,     LauncherItem::ReadingHeatmap,
-      LauncherItem::ReadingProfile,    LauncherItem::SavedItems,       LauncherItem::Favorites,
-      LauncherItem::Achievements,
-      LauncherItem::Dictionary,        LauncherItem::Tetris,           LauncherItem::IfFound,
-      LauncherItem::ScreenClean,       LauncherItem::NearbyStatsSync,  LauncherItem::FileTransfer,
-      LauncherItem::OpdsBrowser,       LauncherItem::KOReaderSync,     LauncherItem::Sleep,
-      LauncherItem::ReadMe,            LauncherItem::CustomizeHomeApps,
+      LauncherItem::Settings,       LauncherItem::BrowseFiles,  LauncherItem::SearchLibrary,
+      LauncherItem::RecentBooks,    LauncherItem::ReadingStats, LauncherItem::ReadingHeatmap,
+      LauncherItem::ReadingProfile, LauncherItem::SavedItems,   LauncherItem::Favorites,
+      LauncherItem::Achievements,   LauncherItem::Dictionary,   LauncherItem::Tetris,
+      LauncherItem::IfFound,        LauncherItem::ScreenClean,  LauncherItem::NearbyStatsSync,
+      LauncherItem::FileTransfer,   LauncherItem::OpdsBrowser,  LauncherItem::KOReaderSync,
+      LauncherItem::Sleep,          LauncherItem::ReadMe,       LauncherItem::CustomizeHomeApps,
   };
   for (const auto item : defaultHome) append(LauncherSurface::Home, item);
   for (const auto item : defaultApps) append(LauncherSurface::Apps, item);

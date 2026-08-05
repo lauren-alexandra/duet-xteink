@@ -1,10 +1,9 @@
 #include "SdFirmwareUpdateActivity.h"
 
-#include <HalDisplay.h>
-#include <HalGPIO.h>
-
 #include <Arduino.h>
 #include <GfxRenderer.h>
+#include <HalDisplay.h>
+#include <HalGPIO.h>
 #include <HalStorage.h>
 #include <I18n.h>
 #include <Logging.h>

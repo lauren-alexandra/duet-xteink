@@ -91,10 +91,10 @@ class Uc8179Driver : public PanelDriver {
 
   const Uc8179Config& _cfg;
 
-  uint16_t _w;        // visible width (800)
-  uint16_t _h;        // visible height (480)
-  uint16_t _wb;       // width in bytes (100)
-  uint16_t _tresH;    // addressed gate count (600) — DTM padded to this
+  uint16_t _w;      // visible width (800)
+  uint16_t _h;      // visible height (480)
+  uint16_t _wb;     // width in bytes (100)
+  uint16_t _tresH;  // addressed gate count (600) — DTM padded to this
   uint32_t _bufferSize;
 
   bool _isScreenOn = false;

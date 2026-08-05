@@ -1,10 +1,8 @@
 #include "Uc8179Driver.h"
 
 #include <Arduino.h>
-
-#include <string.h>
-
 #include <BoardConfig.h>
+#include <string.h>
 
 namespace freeink {
 namespace {

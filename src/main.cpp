@@ -67,8 +67,8 @@ inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_
 #include <algorithm>
 #include <cstring>
 
-#include "AppVersion.h"
 #include "AchievementStore.h"
+#include "AppVersion.h"
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
 #include "FavoritesStore.h"
@@ -687,7 +687,8 @@ void putTiltSensorToSleepForDeepSleep() {
   if (cycleSleepImage) {
     display.deepSleep();
   }
-  LOG_INF("MAIN", "%s; re-entering deep sleep", cycleSleepImage ? "Sleep image cycle complete" : "Lock screen unchanged");
+  LOG_INF("MAIN", "%s; re-entering deep sleep",
+          cycleSleepImage ? "Sleep image cycle complete" : "Lock screen unchanged");
   powerManager.startDeepSleep(gpio);
 
   while (true) {
@@ -965,8 +966,7 @@ void setup() {
       } else {
         disarmLockedPowerClickCounter();
         LOG_INF("BOOT", "Power-button wake: verifying duration required=%u shortAllowed=%d",
-                SETTINGS.getPowerButtonWakeDuration(),
-                SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
+                SETTINGS.getPowerButtonWakeDuration(), SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
         gpio.verifyPowerButtonWakeup(SETTINGS.getPowerButtonWakeDuration(),
                                      SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::SLEEP);
       }
@@ -1162,15 +1162,16 @@ void loop() {
     FsFile bootTimingFile;
     if (Storage.openFileForWrite("BOOT", DUET_STATE_ROOT_PATH "/boot_timing.txt", bootTimingFile)) {
       char buf[320];
-      const int n = snprintf(buf, sizeof(buf),
-                             "reset=%d wake=%d serial=%lums gpio=%lums storage=%lums panicChk=%lums settings=%lums gesture=%lums "
-                             "stores=%lums panel=%lums displayInit=%lums builtinFonts=%lums sdDiscover=%lums "
-                             "sdLoad=%lums dispatch=%lums releaseWait=%lums setupDone=%lums\n",
-                             bootTiming.resetReason, bootTiming.wakeupCause, bootTiming.serialReadyMs,
-                             bootTiming.gpioReadyMs, bootTiming.storageReadyMs, bootTiming.panicCheckMs, bootTiming.settingsMs,
-                             bootTiming.gestureMs, bootTiming.storesMs, bootTiming.panelMs, bootTiming.displayInitMs,
-                             bootTiming.builtinFontsMs, bootTiming.sdDiscoverMs, bootTiming.sdLoadMs,
-                             bootTiming.dispatchDoneMs, bootTiming.powerReleaseWaitMs, bootTiming.setupDoneMs);
+      const int n =
+          snprintf(buf, sizeof(buf),
+                   "reset=%d wake=%d serial=%lums gpio=%lums storage=%lums panicChk=%lums settings=%lums gesture=%lums "
+                   "stores=%lums panel=%lums displayInit=%lums builtinFonts=%lums sdDiscover=%lums "
+                   "sdLoad=%lums dispatch=%lums releaseWait=%lums setupDone=%lums\n",
+                   bootTiming.resetReason, bootTiming.wakeupCause, bootTiming.serialReadyMs, bootTiming.gpioReadyMs,
+                   bootTiming.storageReadyMs, bootTiming.panicCheckMs, bootTiming.settingsMs, bootTiming.gestureMs,
+                   bootTiming.storesMs, bootTiming.panelMs, bootTiming.displayInitMs, bootTiming.builtinFontsMs,
+                   bootTiming.sdDiscoverMs, bootTiming.sdLoadMs, bootTiming.dispatchDoneMs,
+                   bootTiming.powerReleaseWaitMs, bootTiming.setupDoneMs);
       if (n > 0) bootTimingFile.write(reinterpret_cast<const uint8_t*>(buf), static_cast<size_t>(n));
       bootTimingFile.close();
     }

@@ -905,14 +905,12 @@ bool CssParser::writeCssStylePayload(FsFile& file, const CssStyle& style) {
   };
 
   if (!writeByte(static_cast<uint8_t>(style.textAlign)) || !writeByte(static_cast<uint8_t>(style.fontStyle)) ||
-      !writeByte(static_cast<uint8_t>(style.fontWeight)) ||
-      !writeByte(static_cast<uint8_t>(style.fontVariantCaps)) ||
-      !writeByte(static_cast<uint8_t>(style.textDecoration)) ||
-      !writeLength(style.textIndent) || !writeLength(style.marginTop) || !writeLength(style.marginBottom) ||
-      !writeLength(style.marginLeft) || !writeLength(style.marginRight) || !writeLength(style.paddingTop) ||
-      !writeLength(style.paddingBottom) || !writeLength(style.paddingLeft) || !writeLength(style.paddingRight) ||
-      !writeLength(style.imageHeight) || !writeLength(style.imageWidth) ||
-      !writeByte(static_cast<uint8_t>(style.display)) ||
+      !writeByte(static_cast<uint8_t>(style.fontWeight)) || !writeByte(static_cast<uint8_t>(style.fontVariantCaps)) ||
+      !writeByte(static_cast<uint8_t>(style.textDecoration)) || !writeLength(style.textIndent) ||
+      !writeLength(style.marginTop) || !writeLength(style.marginBottom) || !writeLength(style.marginLeft) ||
+      !writeLength(style.marginRight) || !writeLength(style.paddingTop) || !writeLength(style.paddingBottom) ||
+      !writeLength(style.paddingLeft) || !writeLength(style.paddingRight) || !writeLength(style.imageHeight) ||
+      !writeLength(style.imageWidth) || !writeByte(static_cast<uint8_t>(style.display)) ||
       !writeByte(static_cast<uint8_t>(style.backgroundBlack ? 1 : 0)) ||
       !writeByte(static_cast<uint8_t>(style.verticalAlign)) || !writeByte(static_cast<uint8_t>(style.direction)) ||
       !writeByte(static_cast<uint8_t>(style.pageBreakBefore ? 1 : 0)) ||

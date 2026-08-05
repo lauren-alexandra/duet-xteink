@@ -36,12 +36,10 @@ constexpr uint32_t simpleUppercase(const uint32_t cp) {
   if (cp >= 'a' && cp <= 'z') return cp - ('a' - 'A');
   if ((cp >= 0x00E0 && cp <= 0x00F6) || (cp >= 0x00F8 && cp <= 0x00FE)) return cp - 0x20;
   if (cp == 0x00FF) return 0x0178;
-  if ((cp >= 0x0101 && cp <= 0x0137 && (cp & 1U) != 0) ||
-      (cp >= 0x014B && cp <= 0x0177 && (cp & 1U) != 0)) {
+  if ((cp >= 0x0101 && cp <= 0x0137 && (cp & 1U) != 0) || (cp >= 0x014B && cp <= 0x0177 && (cp & 1U) != 0)) {
     return cp - 1;
   }
-  if ((cp >= 0x013A && cp <= 0x0148 && (cp & 1U) == 0) ||
-      (cp >= 0x017A && cp <= 0x017E && (cp & 1U) == 0)) {
+  if ((cp >= 0x013A && cp <= 0x0148 && (cp & 1U) == 0) || (cp >= 0x017A && cp <= 0x017E && (cp & 1U) == 0)) {
     return cp - 1;
   }
   if (cp == 0x0131) return 'I';
@@ -57,12 +55,10 @@ constexpr uint32_t simpleUppercase(const uint32_t cp) {
 constexpr bool isSimpleUppercase(const uint32_t cp) {
   if (cp >= 'A' && cp <= 'Z') return true;
   if ((cp >= 0x00C0 && cp <= 0x00D6) || (cp >= 0x00D8 && cp <= 0x00DE) || cp == 0x0178) return true;
-  if ((cp >= 0x0100 && cp <= 0x0136 && (cp & 1U) == 0) ||
-      (cp >= 0x014A && cp <= 0x0176 && (cp & 1U) == 0)) {
+  if ((cp >= 0x0100 && cp <= 0x0136 && (cp & 1U) == 0) || (cp >= 0x014A && cp <= 0x0176 && (cp & 1U) == 0)) {
     return true;
   }
-  if ((cp >= 0x0139 && cp <= 0x0147 && (cp & 1U) != 0) ||
-      (cp >= 0x0179 && cp <= 0x017D && (cp & 1U) != 0)) {
+  if ((cp >= 0x0139 && cp <= 0x0147 && (cp & 1U) != 0) || (cp >= 0x0179 && cp <= 0x017D && (cp & 1U) != 0)) {
     return true;
   }
   return (cp >= 0x0391 && cp <= 0x03A9) || (cp >= 0x0410 && cp <= 0x042F) || cp == 0x0401;
@@ -874,8 +870,7 @@ void GfxRenderer::drawText(const int fontId, const int x, const int y, const cha
     if (utf8IsCombiningMark(cp)) {
       const EpdGlyph* combiningGlyph = font.getGlyph(cp, style);
       if (!combiningGlyph) continue;
-      const int combiningTop =
-          lastBaseWasSmallCap ? scaleSignedMetric(combiningGlyph->top, 3, 4) : combiningGlyph->top;
+      const int combiningTop = lastBaseWasSmallCap ? scaleSignedMetric(combiningGlyph->top, 3, 4) : combiningGlyph->top;
       const int combiningHeight =
           lastBaseWasSmallCap ? scaleSignedMetric(combiningGlyph->height, 3, 4) : combiningGlyph->height;
       const int combiningLeft =
@@ -907,7 +902,7 @@ void GfxRenderer::drawText(const int fontId, const int x, const int y, const cha
     // where they fall on the line.
     if (prevCp != 0) {
       const auto kernFP = hasSmallCapsStyle(style) ? 0 : font.getKerning(prevCp, cp, style);
-      lastBaseX += fp4::toPixel(prevAdvanceFP + kernFP);       // snap 12.4 fixed-point to nearest pixel
+      lastBaseX += fp4::toPixel(prevAdvanceFP + kernFP);  // snap 12.4 fixed-point to nearest pixel
     }
 
     if (!hasRealGlyph && syntheticGlyph::isSpaceFallback(cp)) {
@@ -1946,8 +1941,7 @@ void GfxRenderer::drawPerspectiveBitmap1Bit(const uint8_t* rows, const int sourc
                                             const uint8_t blackPaletteIndex, const int x, const int y, const int w,
                                             const int hL, const int hR) const {
   if (fontCacheManager_ && fontCacheManager_->isScanning()) return;
-  if (rows == nullptr || sourceWidth <= 0 || sourceHeight <= 0 || sourceRowBytes <= 0 || w <= 0 || hL <= 0 ||
-      hR <= 0) {
+  if (rows == nullptr || sourceWidth <= 0 || sourceHeight <= 0 || sourceRowBytes <= 0 || w <= 0 || hL <= 0 || hR <= 0) {
     return;
   }
 
@@ -1965,8 +1959,7 @@ void GfxRenderer::drawPerspectiveBitmap1Bit(const uint8_t* rows, const int sourc
       if (screenX < 0 || screenX >= screenW) continue;
 
       const int sourceX = (dx * sourceWidth) / w;
-      const uint8_t paletteIndex =
-          (sourceRow[sourceX >> 3] & static_cast<uint8_t>(0x80 >> (sourceX & 7))) ? 1 : 0;
+      const uint8_t paletteIndex = (sourceRow[sourceX >> 3] & static_cast<uint8_t>(0x80 >> (sourceX & 7))) ? 1 : 0;
       if (paletteIndex != blackPaletteIndex) continue;
 
       const int columnTop = (hMax - columnHeight) / 2;
@@ -2255,12 +2248,11 @@ static bool logicalRectToPhysicalBounds(GfxRenderer::Orientation orientation, in
   return true;
 }
 
-void GfxRenderer::displayWindow(const int x, const int y, const int width, const int height,
-                                const bool turnOffScreen, const bool honorFadingFix) const {
+void GfxRenderer::displayWindow(const int x, const int y, const int width, const int height, const bool turnOffScreen,
+                                const bool honorFadingFix) const {
   if (fastRefreshesSinceClear_ < UINT16_MAX) fastRefreshesSinceClear_++;
   int x0, y0, x1, y1;
-  if (!logicalRectToPhysicalBounds(orientation, x, y, width, height, panelWidth, panelHeight, &x0, &y0, &x1,
-                                   &y1)) {
+  if (!logicalRectToPhysicalBounds(orientation, x, y, width, height, panelWidth, panelHeight, &x0, &y0, &x1, &y1)) {
     return;
   }
 
@@ -2273,9 +2265,8 @@ void GfxRenderer::displayWindow(const int x, const int y, const int width, const
   // the optional turn-off argument used by the hardware backend.
   display.displayWindow(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
 #else
-  display.displayWindow(static_cast<uint16_t>(x0), static_cast<uint16_t>(y0),
-                        static_cast<uint16_t>(x1 - x0 + 1), static_cast<uint16_t>(y1 - y0 + 1),
-                        turnOffScreen || (honorFadingFix && fadingFix));
+  display.displayWindow(static_cast<uint16_t>(x0), static_cast<uint16_t>(y0), static_cast<uint16_t>(x1 - x0 + 1),
+                        static_cast<uint16_t>(y1 - y0 + 1), turnOffScreen || (honorFadingFix && fadingFix));
 #endif
 }
 
@@ -2454,7 +2445,7 @@ int GfxRenderer::getTextAdvanceX(const int fontId, const char* text, EpdFontFami
     // matching drawText so measurement and rendering agree exactly.
     if (prevCp != 0) {
       const auto kernFP = hasSmallCapsStyle(style) ? 0 : font.getKerning(prevCp, cp, style);
-      widthPx += fp4::toPixel(prevAdvanceFP + kernFP);         // snap 12.4 fixed-point to nearest pixel
+      widthPx += fp4::toPixel(prevAdvanceFP + kernFP);  // snap 12.4 fixed-point to nearest pixel
     }
 
     if (!hasRealGlyph && syntheticGlyph::isSpaceFallback(cp)) {
